@@ -15,7 +15,6 @@ import {
 } from '../storage/authStorage';
 import { Alert } from 'react-native';
 import { showAlert } from '../../utils/AlertService';
-import NotificationService from '../../api/services/NotificationService';
 
 export const loginUser = async (username, password, platform) => {
    const result = await apiRequest({
@@ -28,10 +27,7 @@ export const loginUser = async (username, password, platform) => {
     if (!saved.success) {
       showAlert('error', 'Auth Failed', saved?.message ?? 'Failed to Login');
       console.warn('Auth data could not be persisted:', saved.error);
-    }else{
-      await NotificationService.registerToken();
     }
-
   } else {
     showAlert('error', 'Auth Failed', result?.message ?? 'Failed to Login');
   }

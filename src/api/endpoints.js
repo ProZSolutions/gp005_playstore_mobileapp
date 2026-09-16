@@ -13,9 +13,7 @@ const ENDPOINTS = {
     PROCESS: '/continuitymapping/toOrderListDropdown',
     SAVE:'/continuitymapping/createContinuityMapping'
   },
-  NOTIFICATION: {
-    REGISTER_TOKEN: '/register-token', // adjust path to match your backend route
-  },
+
   AUDIT: {
   OPERATION_DEFECTS: '/audit/operation-defects',
   DEFECT_LIST:       '/audit/defect-list',

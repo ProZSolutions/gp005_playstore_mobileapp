@@ -1,4 +1,4 @@
-package com.proz.tls
+package com.proz.tlsdemo
 
 import android.os.Bundle
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen

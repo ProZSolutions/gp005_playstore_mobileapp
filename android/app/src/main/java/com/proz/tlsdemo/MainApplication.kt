@@ -1,4 +1,4 @@
-package com.proz.tls
+package com.proz.tlsdemo
 
 import android.app.Application
 import com.facebook.react.PackageList

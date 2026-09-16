@@ -2,6 +2,8 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
+// Add this line — apply the Google services plugin here
+apply plugin: "com.google.gms.google-services"
 apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
 
 react { autolinkLibrariesWithApp() }
@@ -10,18 +12,24 @@ def enableProguardInReleaseBuilds = true
 def jscFlavor = 'org.webkit:android-jsc:+'
 
 android {
-    namespace "com.proz.tls"
+    namespace "com.proz.tlsdemo"
     compileSdk rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
     ndkVersion rootProject.ext.ndkVersion
 
     defaultConfig {
-        applicationId "com.proz.tls"
+        
+        applicationId "com.proz.tlsdemo"
         minSdk rootProject.ext.minSdkVersion
         targetSdk rootProject.ext.targetSdkVersion
         versionCode 2
         versionName "0.1.2"
     }
+     // Add this block
+    buildFeatures {
+        buildConfig true
+    }
+
 
     signingConfigs {
         debug {
@@ -78,4 +86,11 @@ dependencies {
         implementation jscFlavor
     }
     implementation("androidx.core:core-splashscreen:1.0.1")
+     // --- Firebase additions ---
+    // Import the Firebase BoM — manages all Firebase library versions together
+    implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
+
+    // Firebase Cloud Messaging — required for push notifications
+    implementation("com.google.firebase:firebase-messaging")
+ 
 }

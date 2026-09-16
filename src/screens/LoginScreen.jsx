@@ -4,6 +4,7 @@ import React, { useState ,useEffect,useCallback} from 'react';
   KeyboardAvoidingView, Platform, StatusBar, SafeAreaView, Alert,TouchableOpacity,BackHandler
 } from 'react-native';
 import { useWindowDimensions } from 'react-native';
+import NotificationService from '../api/services/NotificationService';
 
 import { useFocusEffect } from '@react-navigation/native';
 import TabletLoginStyles from './styles/TabletLoginStyles';
@@ -111,8 +112,7 @@ useFocusEffect(
     await setShowWelcomeFlag();
     const isAdmin   = result.data.role_code === ADMIN_ROLE_CODE;
     const hasBranch = !!result.data.branch_id;
-
-    if (isAdmin && !hasBranch) {
+     if (isAdmin && !hasBranch) {
       navigation.replace('BranchSelectionScreen', {
         user: result.data,
       });

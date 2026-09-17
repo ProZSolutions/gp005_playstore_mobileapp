@@ -8,7 +8,6 @@ import {
   View,
   Text,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   Platform,
   Pressable,
@@ -16,19 +15,21 @@ import {
   StyleSheet,
   BackHandler,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getZones, getLinesByZoneIds } from '../api/services/dropdownApi';
+import { useOrientation } from '../hooks/useOrientation';
 
 import { SkeletonList } from '../components/SkeletonListItem';
 import { AppColors } from '../theme/theme';
-import screenStyles    from './styles/ZoneLineCheckInStyles';
+import screenStyles, { landscapeStyles } from './styles/ZoneLineCheckInStyles';
 import rowStyles       from '../components/styles/SelectableRowStyles';
 import btnStyles       from '../components/styles/ActionButtonStyles';
 import cbStyles        from '../components/styles/SelectionCheckboxStyles';
 import { chipStyles, badgeStyles } from '../components/styles/ChipPillStyles';
 import Icon from '../components/Icon';
-import {ActionButton} from '../components/ActionButton';
+import { ActionButton } from '../components/ActionButton';
 import {
   getZoneIds,
   saveZoneIds,
@@ -37,7 +38,7 @@ import {
   getLineIds,
   saveLineIds,
   saveLineNames,
-  getLineNames, 
+  getLineNames,
   clearOnlyBraLine,
   getLines,
   saveLines,
@@ -105,7 +106,6 @@ function SelectableRow({ icon = 'location-outline', title, subtitle, selected, o
   );
 }
 
- 
 function StepBadge({ step }) {
   return (
     <View style={badgeStyles.badge}>
@@ -154,7 +154,10 @@ export default function ZoneLineCheckInScreen({ route, navigation }) {
     currentLineNames: rawCurrentLineNames = [],
     branch_screen
   } = route.params ?? {};
- 
+
+  const { isLandscape } = useOrientation();
+  const insets = useSafeAreaInsets();
+
   const currentZoneIds = asArray(rawCurrentZoneIds);
   const currentLineIds = asArray(rawCurrentLineIds);
   const currentZoneNames = asArray(rawCurrentZoneNames);
@@ -186,23 +189,23 @@ export default function ZoneLineCheckInScreen({ route, navigation }) {
   );
 
   const performLogout = async () => {
-     
-      try {   await clearOnlyBraLine(); 
-      } catch (err) {
-          console.warn('Logout error:', err);
-      } finally {
-          if(branch_screen){
-            navigation.reset({ index: 0, routes: [{ name: 'BranchSelectionScreen' }] });
-          }else{
-            navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-          }
+    try {
+      await clearOnlyBraLine();
+    } catch (err) {
+      console.warn('Logout error:', err);
+    } finally {
+      if (branch_screen) {
+        navigation.reset({ index: 0, routes: [{ name: 'BranchSelectionScreen' }] });
+      } else {
+        navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
       }
-    };
- 
+    }
+  };
+
   const hasExistingSelection =
     isChangeZone || currentZoneIds.length > 0 || currentLineIds.length > 0;
 
-  const goBackToZones = () => setStep(STEP_ZONES); 
+  const goBackToZones = () => setStep(STEP_ZONES);
   const handleBackPress = useCallback(() => {
     if (step === STEP_LINES) {
       goBackToZones();
@@ -213,8 +216,6 @@ export default function ZoneLineCheckInScreen({ route, navigation }) {
       navigation.navigate('Dashboard', { user });
     } else {
       performLogout();
-     
-      
     }
     return true;
   }, [step, hasExistingSelection, navigation, user]);
@@ -289,11 +290,6 @@ export default function ZoneLineCheckInScreen({ route, navigation }) {
   useEffect(() => {
     if (!hydratedRef.current || linesLoading) return;
 
-    // selectedLineIds is in TAP ORDER (whatever order the user pressed
-    // rows in), which is arbitrary. Build id+name pairs first, then sort
-    // that single combined list once — both saved arrays are derived
-    // from the SAME sorted list afterward, so they can never end up in
-    // two different orders (e.g. ids desc / names asc) again.
     const pairs = selectedLineIds
       .map((id) => ({
         id,
@@ -311,10 +307,6 @@ export default function ZoneLineCheckInScreen({ route, navigation }) {
 
     saveLineIds(sortedIds);
     saveLineNames(sortedNames);
-
-    // Extra: also persist the same selection as a single paired array,
-    // so any screen that reads via getLines() gets an id/name pair
-    // captured together, already in matching order.
     saveLines(pairs);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedLineIds, lines, linesLoading]);
@@ -390,21 +382,26 @@ export default function ZoneLineCheckInScreen({ route, navigation }) {
   const chipNames  = isZoneStep ? zoneChipNames : lineChipNames;
 
   return (
-    <SafeAreaView style={screenStyles.safe}>
+    <SafeAreaView style={screenStyles.safe} edges={['top', 'bottom']}>
       <StatusBar barStyle="light-content" backgroundColor={TEAL} />
 
-      <View style={screenStyles.header}>
-        {/* Back pill now shows on both steps — its target changes based on
-            step + whether the user already had a zone/line assignment. */}
+      <View
+        style={[
+          screenStyles.header,
+          isLandscape && landscapeStyles.header,
+          isLandscape && { paddingTop: (landscapeStyles.header.paddingTop ?? 0) + insets.top },
+          isLandscape && { paddingLeft: insets.left + 16, paddingRight: insets.right + 16 },
+        ]}
+      >
         <View style={localStyles.headerTopRow}>
           <StepBadge step={step} />
           <HeaderBackButton onPress={handleBackPress} />
         </View>
 
-        <Text style={screenStyles.title}>
+        <Text style={[screenStyles.title, isLandscape && landscapeStyles.title]}>
           {isZoneStep ? 'Select Zones' : 'Select Lines'}
         </Text>
-        <Text style={screenStyles.subtitle}>
+        <Text style={[screenStyles.subtitle, isLandscape && landscapeStyles.subtitle]}>
           {isZoneStep ? 'Choose one or more zones' : 'Choose lines within your selected zones'}
         </Text>
 
@@ -415,7 +412,13 @@ export default function ZoneLineCheckInScreen({ route, navigation }) {
         )}
       </View>
 
-      <View style={screenStyles.body}>
+      <View
+        style={[
+          screenStyles.body,
+          isLandscape && landscapeStyles.body,
+          isLandscape && { paddingLeft: insets.left + 16, paddingRight: insets.right + 16 },
+        ]}
+      >
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={screenStyles.listContent}
@@ -424,10 +427,10 @@ export default function ZoneLineCheckInScreen({ route, navigation }) {
             zonesLoading ? (
               <SkeletonList count={4} />
             ) : zones.length === 0 ? (
-            <Text style={screenStyles.emptyText}>
-              No Zones found 
-            </Text>
-          ) : (
+              <Text style={screenStyles.emptyText}>
+                No Zones found
+              </Text>
+            ) : (
               zones.map((zone, i) => (
                 <View key={zone.id} style={i > 0 ? { marginTop: 10 } : undefined}>
                   <SelectableRow
@@ -466,7 +469,14 @@ export default function ZoneLineCheckInScreen({ route, navigation }) {
         </ScrollView>
       </View>
 
-      <View style={screenStyles.footer}>
+      <View
+        style={[
+          screenStyles.footer,
+          isLandscape && landscapeStyles.footer,
+          isLandscape && { paddingBottom: (landscapeStyles.footer.paddingBottom ?? 0) + insets.bottom },
+          isLandscape && { paddingLeft: insets.left + 16, paddingRight: insets.right + 16 },
+        ]}
+      >
         <ActionButton
           label={
             isZoneStep

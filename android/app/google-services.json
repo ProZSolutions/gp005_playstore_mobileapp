@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "283925952984",
-    "project_id": "qone-a7209",
-    "storage_bucket": "qone-a7209.firebasestorage.app"
+    "project_number": "307791083194",
+    "project_id": "tls-q-one---demo",
+    "storage_bucket": "tls-q-one---demo.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:283925952984:android:478a7218350ac61e3f5aad",
+        "mobilesdk_app_id": "1:307791083194:android:a0c61bb2a457e3e5b17483",
         "android_client_info": {
           "package_name": "com.proz.tlsdemo"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyB16pyt_WBa-Z1gEj-QbLl2ITgk6k5OO1I"
+          "current_key": "AIzaSyCihc2F1YPnKUW8itfhGaZHPwPDUjJw-78"
         }
       ],
       "services": {

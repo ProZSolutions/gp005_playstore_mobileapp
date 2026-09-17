@@ -4,8 +4,9 @@ import {
   StyleSheet, View, TextInput as RNInput,
   TouchableOpacity, Platform, Text,
 } from 'react-native';
-import { AppColors } from '../theme/theme'; 
+import { AppColors } from '../theme/theme';
 import { useResponsive } from '../utils/responsive';
+import { useOrientation } from '../hooks/useOrientation';
 
 export const AppInput = forwardRef(function AppInput(
   {
@@ -36,8 +37,9 @@ export const AppInput = forwardRef(function AppInput(
 ) {
   const [focused,    setFocused]    = useState(false);
   const [pwVisible,  setPwVisible]  = useState(false);
- 
+
   const { isLargeScreen, moderateScale, fontScale } = useResponsive();
+  const { isLandscape } = useOrientation();
 
   const borderColor = error
     ? AppColors.error
@@ -68,30 +70,57 @@ export const AppInput = forwardRef(function AppInput(
     }
     onSubmitEditing?.(e);
   };
- 
-  const dynamicBoxStyle = isLargeScreen
+
+  // Tablet-portrait sizing (unchanged) — only applied when NOT landscape,
+  // so a tablet rotated sideways doesn't get these tall portrait values.
+  const applyLarge = isLargeScreen && !isLandscape;
+
+  const dynamicBoxStyle = applyLarge
     ? {
         borderRadius:      moderateScale(12),
         paddingHorizontal: moderateScale(18),
         minHeight:         moderateScale(50),
       }
+    : isLandscape
+    ? styles.boxLandscape
     : null;
 
-  const dynamicInputStyle = isLargeScreen
+  const dynamicInputStyle = applyLarge
     ? {
         fontSize:        fontScale(16),
         paddingVertical: Platform.OS === 'ios' ? moderateScale(15) : moderateScale(13),
       }
+    : isLandscape
+    ? styles.inputLandscape
     : null;
 
-  const dynamicLabelStyle = isLargeScreen
+  const dynamicLabelStyle = applyLarge
     ? { fontSize: fontScale(14), marginBottom: moderateScale(8) }
+    : isLandscape
+    ? styles.labelLandscape
     : null;
 
-  const dynamicWrapperStyle = isLargeScreen ? { marginBottom: moderateScale(20) } : null;
-  const dynamicSideIconStyle = isLargeScreen ? { marginHorizontal: moderateScale(6) } : null;
-  const dynamicShowHideStyle = isLargeScreen ? { fontSize: fontScale(14.5) } : null;
-  const dynamicHelperTextStyle = isLargeScreen ? { fontSize: fontScale(15) } : null;
+  const dynamicWrapperStyle = applyLarge
+    ? { marginBottom: moderateScale(20) }
+    : isLandscape
+    ? styles.wrapperLandscape
+    : null;
+
+  const dynamicSideIconStyle = applyLarge
+    ? { marginHorizontal: moderateScale(6) }
+    : null;
+
+  const dynamicShowHideStyle = applyLarge
+    ? { fontSize: fontScale(14.5) }
+    : isLandscape
+    ? styles.showHideLandscape
+    : null;
+
+  const dynamicHelperTextStyle = applyLarge
+    ? { fontSize: fontScale(15) }
+    : isLandscape
+    ? styles.helperTextLandscape
+    : null;
 
   return (
     <View style={[styles.wrapper, dynamicWrapperStyle, containerStyle]}>
@@ -135,7 +164,7 @@ export const AppInput = forwardRef(function AppInput(
             styles.input,
             dynamicInputStyle,
             multiline && {
-              minHeight:        numberOfLines * (isLargeScreen ? moderateScale(26) : 22),
+              minHeight:        numberOfLines * (applyLarge ? moderateScale(26) : isLandscape ? 18 : 22),
               textAlignVertical:'top',
               paddingTop:       Platform.OS === 'ios' ? 14 : 10,
             },
@@ -229,4 +258,31 @@ const styles = StyleSheet.create({
   errorText: { fontSize: 14, color: '#DC2626', flex: 1 },
   hintText:  { fontSize: 14, color: '#9CA3AF', flex: 1 },
   counter:   { fontSize: 14, color: '#9CA3AF' },
+
+  // ── Landscape-only overrides ─────────────────────────────────────────
+  // Kept separate from the base styles above so portrait is byte-for-byte
+  // unchanged — these are only merged in when isLandscape is true, for
+  // BOTH phones and tablets, to keep each field's vertical footprint
+  // small in a short viewport.
+  wrapperLandscape: {
+    marginBottom: 8,
+  },
+  boxLandscape: {
+    minHeight: 34,
+    paddingHorizontal: 12,
+  },
+  inputLandscape: {
+    fontSize: 13,
+    paddingVertical: Platform.OS === 'ios' ? 7 : 5,
+  },
+  labelLandscape: {
+    fontSize: 12,
+    marginBottom: 3,
+  },
+  showHideLandscape: {
+    fontSize: 11.5,
+  },
+  helperTextLandscape: {
+    fontSize: 12,
+  },
 });

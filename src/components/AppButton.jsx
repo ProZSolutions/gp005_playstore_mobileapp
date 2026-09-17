@@ -4,6 +4,7 @@ import { StyleSheet, TouchableOpacity, ActivityIndicator, View, Platform } from 
 import { Text } from 'react-native-paper';
 import { AppColors } from '../theme/theme';
 import { useResponsive } from '../utils/responsive';
+import { useOrientation } from '../hooks/useOrientation';
 
 export function AppButton({
   label,
@@ -18,8 +19,8 @@ export function AppButton({
   style,
 }) {
   const { isLargeScreen } = useResponsive();
-
-   const statusBase = {
+  const { isLandscape } = useOrientation();
+  const statusBase = {
     primary: AppColors.primary,
     success: AppColors.success,
     error:   AppColors.error,
@@ -38,11 +39,6 @@ export function AppButton({
   const isDisabled = disabled || loading;
 
   // ── Size map ──────────────────────────────────────────────────────────────
-  // Mobile values are UNCHANGED from before. Large-screen values are
-  // separate fixed numbers rather than the mobile numbers run through a
-  // ratio-based scale() — that compounding is what made things blow up
-  // in other components on wide tablets, so each size just gets its own
-  // explicit tablet variant here instead.
   const sizeMap = {
     sm: { height: 36, fontSize: 15, paddingH: 14, radius: 10 },
     md: { height: 46, fontSize: 17, paddingH: 20, radius: 12 },
@@ -53,7 +49,18 @@ export function AppButton({
     md: { height: 56, fontSize: 25.5, paddingH: 26, radius: 14 },
     lg: { height: 64, fontSize: 30, paddingH: 30, radius: 14 },
   };
-  const sz = (isLargeScreen ? sizeMapLarge[size] : sizeMap[size]) ?? sizeMap.md;
+  // Landscape gets its own compact tier — used whenever width > height,
+  // regardless of whether the device is classed as "large" (tablet).
+  // This is what keeps the login button from ballooning in landscape.
+  const sizeMapLandscape = {
+    sm: { height: 32, fontSize: 14, paddingH: 12, radius: 9 },
+    md: { height: 40, fontSize: 15, paddingH: 18, radius: 10 },
+    lg: { height: 46, fontSize: 17, paddingH: 20, radius: 11 },
+  };
+
+  const sz = isLandscape
+    ? (sizeMapLandscape[size] ?? sizeMapLandscape.md)
+    : (isLargeScreen ? sizeMapLarge[size] : sizeMap[size]) ?? sizeMap.md;
 
   // ── Derived colours ───────────────────────────────────────────────────────
   const bgColor = isDisabled
@@ -70,7 +77,6 @@ export function AppButton({
   const borderColor =
     variant === 'outlined' && !isDisabled ? statusBase : AppColors.transparent;
 
-  // Subtle teal glow on primary contained only
   const shadowStyle =
     variant === 'contained' && !isDisabled && status === 'primary'
       ? styles.shadowPrimary
@@ -89,7 +95,7 @@ export function AppButton({
           paddingHorizontal: sz.paddingH,
           backgroundColor: bgColor,
           borderRadius:    sz.radius,
-          borderWidth:     variant === 'outlined' ? (isLargeScreen ? 2 : 1.5) : 0,
+          borderWidth:     variant === 'outlined' ? (isLargeScreen && !isLandscape ? 2 : 1.5) : 0,
           borderColor,
         },
         shadowStyle,
@@ -99,22 +105,17 @@ export function AppButton({
     >
       {loading ? (
         <ActivityIndicator
-          size={isLargeScreen ? 'small' : 'small'}
+          size="small"
           color={variant === 'contained' ? AppColors.white : statusBase}
         />
       ) : (
         <View style={styles.inner}>
           {icon ? (
-            <View style={[styles.iconWrap, isLargeScreen && styles.iconWrapLarge]}>
+            <View style={[styles.iconWrap, isLargeScreen && !isLandscape && styles.iconWrapLarge]}>
               {icon}
             </View>
           ) : null}
-          <Text
-            style={[
-              styles.label,
-              { fontSize: sz.fontSize, color: textColor },
-            ]}
-          >
+          <Text style={[styles.label, { fontSize: sz.fontSize, color: textColor }]}>
             {label}
           </Text>
         </View>
@@ -124,27 +125,14 @@ export function AppButton({
 }
 
 const styles = StyleSheet.create({
-  base: {
-    flexDirection:  'row',
-    alignItems:     'center',
-    justifyContent: 'center',
-  },
+  base: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   fullWidth: { width: '100%' },
-  inner:     { flexDirection: 'row', alignItems: 'center' },
-  iconWrap:  { marginRight: 8 },
+  inner: { flexDirection: 'row', alignItems: 'center' },
+  iconWrap: { marginRight: 8 },
   iconWrapLarge: { marginRight: 10 },
-  label: {
-    fontWeight:    '600',
-    letterSpacing: 0.5,
-    textAlign:     'center',
-  },
+  label: { fontWeight: '600', letterSpacing: 0.5, textAlign: 'center' },
   shadowPrimary: Platform.select({
-    ios: {
-      shadowColor:   '#1A9E96',
-      shadowOffset:  { width: 0, height: 4 },
-      shadowOpacity: 0.30,
-      shadowRadius:  10,
-    },
+    ios: { shadowColor: '#1A9E96', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.30, shadowRadius: 10 },
     android: { elevation: 5 },
     default: {},
   }),

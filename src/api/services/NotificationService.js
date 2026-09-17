@@ -23,6 +23,7 @@ const REQUEST_TYPE_SCREEN_MAP = {
   rejection_tracker: 'RejectionTrackerList',
   qc_verification: 'QCVerification',
   inputlist: 'InputListScreen',
+  escalation:'EscalationList'
 };
 
 class NotificationService {

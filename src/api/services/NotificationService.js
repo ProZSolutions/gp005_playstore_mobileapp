@@ -3,13 +3,12 @@ import notifee, { EventType, AndroidImportance, AndroidStyle } from '@notifee/re
 import { Platform, PermissionsAndroid } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { navigationRef } from '../../navigation/NavigationService';
-import { getUser } from '../../api/storage/authStorage';
-import apiRequest from '../apiRequest';
+ import apiRequest from '../apiRequest';
 import ENDPOINTS from '../../api/endpoints';
 import { showAlert } from '../../utils/AlertService';
-
+import { getUser, savePendingNotification, getPendingNotification, clearPendingNotification } from '../../api/storage/authStorage';
 const PENDING_NOTIFICATION_KEY = 'pending_notification_data';
-const CHANNEL_ID = 'default_v4'; // single source of truth — change ONLY here
+const CHANNEL_ID = 'default_v5'; // single source of truth — change ONLY here
 const TAG = '[NotificationService]';
 
 // Map request_type -> screen name (adjust to match your navigator's route names)
@@ -31,11 +30,7 @@ class NotificationService {
   unsubscribeOnTokenRefresh = null;
   unsubscribeForegroundEvent = null;
 
-  constructor() {
-    // Resolved once checkInitialNotification() has finished writing (or
-    // confirming absence of) pending notification data. consumePendingNavigation()
-    // awaits this so it never races init()'s slower steps (permission dialog,
-    // token registration network call, etc).
+  constructor() { 
     this._resolveInitialNotificationReady = null;
     this.initialNotificationReady = new Promise((resolve) => {
       this._resolveInitialNotificationReady = resolve;
@@ -45,10 +40,7 @@ class NotificationService {
   async init() {
     console.log(`${TAG} ========== INIT START ==========`);
 
-    // Capture killed-state notification data FIRST, before anything slow
-    // (permission dialogs, network calls). This used to run last, which let
-    // NavigationContainer's onReady → consumePendingNavigation() race ahead
-    // of it and find nothing in AsyncStorage yet.
+   
     await this.checkInitialNotification();
     this._resolveInitialNotificationReady();
 
@@ -235,50 +227,55 @@ class NotificationService {
   }
 
   // ---- FOREGROUND: app open, must display manually via Notifee ----
-  listenForForegroundMessages() {
-    this.unsubscribeOnMessage = messaging().onMessage(async (remoteMessage) => {
-      console.log(`${TAG} ========== onMessage (FOREGROUND) ==========`);
-      console.log(`${TAG} Full remoteMessage:`, JSON.stringify(remoteMessage, null, 2));
+ listenForForegroundMessages() {
+  this.unsubscribeOnMessage = messaging().onMessage(async (remoteMessage) => {
+    console.log(`${TAG} ========== onMessage (FOREGROUND) ==========`);
+    console.log(`${TAG} Full remoteMessage:`, JSON.stringify(remoteMessage, null, 2));
 
-      try {
-        const rawBody = remoteMessage.data?.body ?? remoteMessage.notification?.body ?? '';
-        const normalizedBody = rawBody.replace(/\r\n/g, '\n\n'); // normalize CRLF -> LF
-        const largeIconUrl = remoteMessage.data?.image || remoteMessage.notification?.image;
-        const title = remoteMessage.notification?.title ?? remoteMessage.data?.title ?? 'Qone';
+    try {
+      const rawBody = remoteMessage.data?.body ?? remoteMessage.notification?.body ?? '';
+      const normalizedBody = rawBody.replace(/\r\n/g, '\n\n'); // normalize CRLF -> LF
+      const largeIconUrl = remoteMessage.data?.image || remoteMessage.notification?.image;
+      const title = remoteMessage.notification?.title ?? remoteMessage.data?.title ?? 'Qone';
 
-        const androidConfig = {
-          channelId: CHANNEL_ID,
-          pressAction: { id: 'default' },
-          sound: 'custom_sound',
-          smallIcon: 'ic_notification',
-          color: '#0A9E96',
-          style: {
-            type: AndroidStyle.MESSAGING,
-            person: {
-              name: title,
-              icon: largeIconUrl, // primary avatar-style visual
-            },
-            messages: [
-              {
-                text: normalizedBody,
-                timestamp: Date.now(),
+      const androidConfig = {
+        channelId: CHANNEL_ID,
+        pressAction: { id: 'default' },
+        sound: 'custom_sound',
+        smallIcon: 'ic_notification',
+        color: '#0A9E96',
+        ...(largeIconUrl
+          ? {
+              style: {
+                type: AndroidStyle.MESSAGING,
+                person: {
+                  name: title,
+                  icon: largeIconUrl, // primary avatar-style visual
+                },
+                messages: [
+                  {
+                    text: normalizedBody,
+                    timestamp: Date.now(),
+                  },
+                ],
               },
-            ],
-          },
-        };
+            }
+          : {}),
+      };
 
-        const notificationId = await notifee.displayNotification({
-          title,
-          body: normalizedBody,
-          data: remoteMessage.data,
-          android: androidConfig,
-        });
-        console.log(`${TAG} ✅ displayNotification() success, id:`, notificationId);
-      } catch (e) {
-        console.log(`${TAG} ❌ displayNotification() FAILED:`, e);
-      }
-    });
-  }
+      const notificationId = await notifee.displayNotification({
+        id: remoteMessage.messageId,
+        title,
+        body: normalizedBody,
+        data: remoteMessage.data,
+        android: androidConfig,
+      });
+      console.log(`${TAG} ✅ displayNotification() success, id:`, notificationId);
+    } catch (e) {
+      console.log(`${TAG} ❌ displayNotification() FAILED:`, e);
+    }
+  });
+}
 
   // Tap while notification was shown by Notifee (foreground case)
   listenForForegroundTaps() {
@@ -302,42 +299,40 @@ class NotificationService {
 
   // ---- KILLED: app fully closed, OS shows notification, tap cold-starts app ----
   async checkInitialNotification() {
-    const notifeeInitial = await notifee.getInitialNotification();
-    const fcmInitial = await messaging().getInitialNotification();
+  const notifeeInitial = await notifee.getInitialNotification();
+  const fcmInitial = await messaging().getInitialNotification();
 
-    console.log(`${TAG} checkInitialNotification() notifeeInitial:`, JSON.stringify(notifeeInitial));
-    console.log(`${TAG} checkInitialNotification() fcmInitial:`, JSON.stringify(fcmInitial));
+  console.log(`${TAG} checkInitialNotification() notifeeInitial:`, JSON.stringify(notifeeInitial));
+  console.log(`${TAG} checkInitialNotification() fcmInitial:`, JSON.stringify(fcmInitial));
 
-    const data = notifeeInitial?.notification?.data ?? fcmInitial?.data ?? null;
+  const data = notifeeInitial?.notification?.data ?? fcmInitial?.data ?? null;
 
-    if (data) {
-      console.log(`${TAG} Cold-start notification data found, stashing for later nav:`, JSON.stringify(data));
-      await AsyncStorage.setItem(PENDING_NOTIFICATION_KEY, JSON.stringify(data));
-    } else {
-      console.log(`${TAG} No cold-start notification data (normal app launch)`);
-    }
+  if (data && (data.request_type || data.screen)) {
+    console.log(`${TAG} Cold-start notification data found, stashing for later nav:`, JSON.stringify(data));
+    await savePendingNotification(data);
+  } else {
+    console.log(`${TAG} No cold-start notification data (normal app launch) — clearing any stale pending value`);
+    await clearPendingNotification();
   }
+}
 
   async consumePendingNavigation() {
-    // Wait until checkInitialNotification() has definitely finished writing
-    // (or confirming absence of) pending data — regardless of how fast
-    // NavigationContainer's onReady fires relative to init().
-    await this.initialNotificationReady;
+  await this.initialNotificationReady;
 
-    const raw = await AsyncStorage.getItem(PENDING_NOTIFICATION_KEY);
-    console.log(`${TAG} consumePendingNavigation() raw:`, raw);
-    if (!raw) return;
+  const data = await getPendingNotification();
+  console.log(`${TAG} consumePendingNavigation() data:`, JSON.stringify(data));
 
-    const data = JSON.parse(raw);
-    const success = await this.handleNavigation(data);
-
-    // Only clear storage once navigation actually succeeded — if it failed
-    // (e.g. navigationRef never became ready), leave the data so it isn't
-    // silently lost with no chance to retry.
-    if (success) {
-      await AsyncStorage.removeItem(PENDING_NOTIFICATION_KEY);
-    }
+  if (!data || (!data.request_type && !data.screen)) {
+    console.log(`${TAG} No valid pending request_type — staying on landing page`);
+    return;
   }
+
+  const success = await this.handleNavigation(data);
+
+  if (success) {
+    await clearPendingNotification();
+  }
+}
 
   // ---- Central navigation resolver based on request_type ----
   handleNavigation(data, retriesLeft = 20) {

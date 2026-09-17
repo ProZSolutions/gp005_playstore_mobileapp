@@ -27,6 +27,7 @@ const SERVICES = {
   TEAM_ID:            'app.checkin.teamId',
   TEAM_NAME:          'app.checkin.teamName',
   WELCOME_FLAG:       'app.auth.welcomeFlag',
+  PENDING_NOTIFICATION: 'app.notification.pending',
 };
 
 const KEYCHAIN_OPTIONS = {
@@ -358,7 +359,33 @@ export const getShiftData = async () => {
     return null;
   }
 };
+export const savePendingNotification = async (data) => {
+  try {
+    await setItem(SERVICES.PENDING_NOTIFICATION, JSON.stringify(data ?? null));
+    return { success: true };
+  } catch (e) {
+    console.error('savePendingNotification failed:', e);
+    return { success: false, error: e.message };
+  }
+};
 
+export const getPendingNotification = async () => {
+  try {
+    const raw = await getItem(SERVICES.PENDING_NOTIFICATION);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const clearPendingNotification = async () => {
+  try {
+    await removeItem(SERVICES.PENDING_NOTIFICATION);
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+};
 export const saveLines = async (lines) => {
   try {
     const safe = (lines ?? []).map((l) => ({ id: l.id, name: l.name }));

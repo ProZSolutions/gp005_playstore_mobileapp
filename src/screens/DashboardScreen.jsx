@@ -37,9 +37,7 @@ const SETTINGS_TYPE = {
   AQL_ONLY: 2,
   BOTH: 3,
 };
-
-// Keys that are gated by settings type (in addition to normal group
-// permissions) rather than always shown.
+ 
 const SETTINGS_GATED_KEYS = {
   CheckingList: [SETTINGS_TYPE.CHECKING_ONLY, SETTINGS_TYPE.BOTH],
   AQLAuditList: [SETTINGS_TYPE.AQL_ONLY, SETTINGS_TYPE.BOTH],

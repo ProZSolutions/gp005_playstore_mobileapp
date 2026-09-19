@@ -358,6 +358,18 @@ const tlsSearchBarStyle = pickStyle(styles.searchBarLarge,
     setScannerVisible(true);
   }, []);
 
+  const handleStartAuditList = () =>{
+     navigation.navigate('ProcessAuditScreen', {
+      user,
+      order: '',
+      zone: incomingZone ?? zoneNames,
+      line: incomingLine ?? lineIds,
+      selectedLine: activeLineId,
+      operator:'',
+      expectedTlsId: 'dlsdngsd',
+    });
+  };
+  
   const handleStartAudit = () => {
     if (!selectedOrder) return;
     startScanFor(selectedOrder);
@@ -586,10 +598,10 @@ const tlsSearchBarStyle = pickStyle(styles.searchBarLarge,
           label="Start Audit"
           disabled={!selectedOrder || checkingDevice}
           loading={checkingDevice}
-          onPress={handleStartAudit}
+          onPress={handleStartAudit}//handleStartAudit
         />
       </View>
- 
+     
       <Modal
         visible={scannerVisible}
         animationType="slide"

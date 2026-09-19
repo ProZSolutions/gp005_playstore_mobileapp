@@ -77,6 +77,7 @@ function ManualQtyModal({ visible, initialValue, maxValue, onClose, onSave, sett
   const btncantxt      = pick(styles.btncantextlarge, styles.btncantext);
   const btnsubtxt      = pick(styles.btnsavetxtlarge, styles.btnsavetxt);
   const mnyy           = pick(styles.manbglng, styles.manbg);
+  const fontSizeL = pick(25,16);
   useEffect(() => {
     if (visible) setText(String(initialValue ?? ''));
   }, [visible, initialValue]);
@@ -148,7 +149,7 @@ function ManualQtyModal({ visible, initialValue, maxValue, onClose, onSave, sett
               borderRadius: 10,
               paddingHorizontal: 14,
               paddingVertical: 10,
-              fontSize: 16,
+              fontSize: fontSizeL,
               color: AppColors.textPrimary ?? '#111827',
               marginTop: hasLimit ? 0 : 12,
               marginBottom: 16,

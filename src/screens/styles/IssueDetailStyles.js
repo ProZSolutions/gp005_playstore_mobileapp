@@ -1,5 +1,6 @@
 import { StyleSheet, Platform } from 'react-native';
 import { AppColors } from '../../theme/theme';
+import { bottomSpace,scale,verticalScale,moderateScale,moderateVerticalScale,fontScale,  ms,mvs,fs,screen} from '../../utils/scale';
 
 export default function createStyles(ms, mvs, fs) {
   return StyleSheet.create({
@@ -422,7 +423,7 @@ export default function createStyles(ms, mvs, fs) {
       marginRight: ms(10),
     },
     escalateLabel: {
-      fontSize: fs(14.5),
+      fontSize: screen.isTablet ?  fs(22) :fs(14.5),
       fontWeight: '700',
       color: AppColors.textPrimary,
     },

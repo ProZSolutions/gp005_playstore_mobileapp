@@ -3,8 +3,9 @@ import { bottomSpace,scale,verticalScale,moderateScale,moderateVerticalScale,fon
 const Dimensions = {
   radius: {
     card: ms(16),
-     cardL: ms(10),          // CARD_RADIUS
-    header: ms(24),        // HEADER_RADIUS
+     cardL: ms(5),          // CARD_RADIUS
+    header: ms(24), 
+    headerLarge: ms(5),        // HEADER_RADIUS
     cardBg: ms(10),
     cardTop: ms(28),       // card borderTopLeft/RightRadius
     chip: ms(14),
@@ -37,6 +38,7 @@ const Dimensions = {
 
     // global screen padding (scroll_bg, scrollContent, fixedCardWrap)
     screenPaddingH: scale(14),
+    screenPaddingHq: scale(5),
     screenPaddingHL: scale(0),
     scrollContentPaddingTop: verticalScale(8),
 
@@ -83,6 +85,7 @@ const Dimensions = {
 
     // ── header (product audit) ──
     headerPaddingH: ms(16),
+    headerPaddingHI: ms(2),
     headerPaddingTopAndroid: mvs(15),
      headerPaddingTopAndroidLar: mvs(50),
     headerPaddingTopIOS: mvs(7),
@@ -138,6 +141,7 @@ const Dimensions = {
     sliderRowGap: scale(7),
     sliderRowMarginLeft: ms(7),
     sliderHeight: verticalScale(40),
+    sliderHeightLarge: verticalScale(60),
     sliderMarginBottom: ms(8),
     qcRowGap: scale(10),
     qcRowPaddingV: verticalScale(12),
@@ -180,6 +184,7 @@ const Dimensions = {
 
     // ── stepDots / dot ──
     stepDotsGap: ms(7),
+    stepDotsGapL: ms(12),
     dotWidth: ms(20),
     dotHeight: mvs(4),
     dotActiveWidth: ms(32),
@@ -225,6 +230,8 @@ const Dimensions = {
 
     // ── headerTitle ──
     headerTitleMarginBottom: mvs(3),
+        headerTitleMarginBottomL: mvs(20),
+
 
     // ── auditRowIconShield / pieceDotText ──
     auditRowIconShieldMarginTop: verticalScale(1),
@@ -295,6 +302,7 @@ const Dimensions = {
     fieldFontSize: fs(12),
     fieldPaddingH: ms(5),
     fieldMarginLeft: ms(5),
+     fieldMarginLeftM: ms(12),
   },
 
   text: {
@@ -330,8 +338,10 @@ const Dimensions = {
     pillTextFontSize: fs(17),
     headerTitleFontSize: fs(22),
     sectionLabelFontSize: fs(14.5),
+    sectionLabelFontSizeL: fs(22),
     viewAllTextFontSize: fs(14),
      viewAllTextFontSizeL: fs(25),
+     viewAllTextFontSizeLL: fs(30),
     fieldValueFontSize: fs(16),
     fieldSepFontSize: fs(16),
     detailLabelFontSize: fs(12),

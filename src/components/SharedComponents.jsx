@@ -9,7 +9,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppColors } from '../theme/theme';
 import Dimensions from '../theme/dimensions';
-import { ms, mvs, fs } from '../utils/scale';
+import { ms, mvs, fs } from '../utils/scale_new';
 import GlobalStyles from '../screens/styles';
 import AuditLayoutStyles, { HEADER_MAX_WIDTH } from '../screens/styles/Auditlayoutstyles';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -115,6 +115,7 @@ export function OperatorOrderCard({ order, operator, onViewAll, styless, isLands
 export function AuditHeader({ title, step, totalSteps = 2, onCancel, onBack, header, isLandscape, isLargeScreen }) {
   const insets = useSafeAreaInsets();
   const phoneLandscape = !!isLandscape && !isLargeScreen;
+const headerWrap = isLargeScreen ? AuditLayoutStyles.headerWrapLarge : AuditLayoutStyles.headerWrap;
 
   const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) => isLargeScreen ? (isLandscape ? largeLandscape : largePortrait) :
     (isLandscape ? mobileLandscape : mobilePortrait);
@@ -123,21 +124,26 @@ export function AuditHeader({ title, step, totalSteps = 2, onCancel, onBack, hea
     AuditLayoutStyles.headerTopRow, AuditLayoutStyles.headerTopRow);
   const headerPill = pickStyle(GlobalStyles.container.headerPillL, GlobalStyles.container.headerPillL,
     GlobalStyles.container.headerPill, GlobalStyles.container.headerPill);
-  const headerTitle = pickStyle(GlobalStyles.text.headerTitleL, GlobalStyles.text.headerTitleL,
-    GlobalStyles.text.headerTitle, GlobalStyles.text.headerTitle);
+  const headerTitle =   GlobalStyles.text.headerTitle;
   const maxWidth = pickStyle(HEADER_MAX_WIDTH.largePortrait, HEADER_MAX_WIDTH.largeLandscape,
     HEADER_MAX_WIDTH.mobile, HEADER_MAX_WIDTH.mobile);
 
-   const paddingTop = insets.top + (phoneLandscape ? mvs(6) : (Platform.OS === 'android' ? mvs(14) : mvs(10)));
-  const sidePad = Dimensions.spacing.headerPaddingH;
+     const titletxt = GlobalStyles.text.pillText
+    const backLL = GlobalStyles.text.pillTextLL;
 
+
+
+   const paddingTop = insets.top + (phoneLandscape ? mvs(6) : (Platform.OS === 'android' ? mvs(14) : mvs(10)));
+  const sidePad = pickStyle(Dimensions.spacing.headerPaddingHI,Dimensions.spacing.headerPaddingHI
+    ,Dimensions.spacing.headerPaddingH,Dimensions.spacing.headerPaddingH);
+    //!isLargeScreen && { maxWidth },
   return (
-    <View style={[AuditLayoutStyles.headerWrap, { paddingTop }, phoneLandscape && { paddingBottom: mvs(10) }]}>
+    <View style={[headerWrap, { paddingTop }, phoneLandscape && { paddingBottom: mvs(10) }]}>
       <View
         style={[
-          AuditLayoutStyles.headerInner,
-          { maxWidth, paddingLeft: Math.max(insets.left, sidePad), paddingRight: Math.max(insets.right, sidePad) },
-        ]}
+            AuditLayoutStyles.headerInner,            
+            { paddingLeft: Math.max(insets.left, sidePad), paddingRight: Math.max(insets.right, sidePad) },
+          ]}
       >
         <View style={[topRow, !onBack && AuditLayoutStyles.headerTopRowCompact]}>
           {onBack && (
@@ -147,10 +153,9 @@ export function AuditHeader({ title, step, totalSteps = 2, onCancel, onBack, hea
               activeOpacity={0.8}
             >
               <View style={GlobalStyles.container.headerPillBack}>
-                <Text style={GlobalStyles.text.pillTextBack}>‹</Text>
+                <Text style={[ backLL]}>‹</Text>
               </View>
-
-              <Text style={[GlobalStyles.text.pillText, { marginLeft: 8 }]}>
+              <Text style={[  { marginLeft: 8 },titletxt]}>
                 TLS Audit
               </Text>
             </TouchableOpacity>
@@ -161,7 +166,7 @@ export function AuditHeader({ title, step, totalSteps = 2, onCancel, onBack, hea
               style={{ flexDirection: 'row', alignItems: 'center' }}
               activeOpacity={0.8}
             >
-              <Text style={[GlobalStyles.text.pillText, { marginLeft: 8, fontFamily: 'Inter-Bold' }]}>
+              <Text style={[titletxt, { marginLeft: 8, fontFamily: 'Inter-Bold' }]}>
                 TLS Audit
               </Text>
             </TouchableOpacity>
@@ -173,11 +178,11 @@ export function AuditHeader({ title, step, totalSteps = 2, onCancel, onBack, hea
             activeOpacity={0.8}
           >
             <Text style={GlobalStyles.icon.pillIcon}>✕</Text>
-            <Text style={GlobalStyles.text.pillText}>Cancel</Text>
+            <Text style={titletxt}>Cancel</Text>
           </TouchableOpacity>
         </View>
 
-        <Text style={[headerTitle, phoneLandscape && { fontSize: fs(16), marginTop: mvs(4), marginBottom: mvs(6) }]}>
+        <Text style={[headerTitle , {  marginTop: mvs(4), marginBottom: mvs(6) }]}>
           {title}
         </Text>
 
@@ -193,12 +198,7 @@ export function AuditHeader({ title, step, totalSteps = 2, onCancel, onBack, hea
     </View>
   );
 }
-
-/**
- * FooterBar - wrap the footer contents with it and pass the footer style you already
- * pick (footer / footerpor / footerLand). It paints the full-width strip behind the
- * centred footer on tablets; on phones it looks identical to before.
- */
+ 
 export function FooterBar({ footerStyle, children }) {
   return (
     <View style={AuditLayoutStyles.footerBar}>

@@ -5,7 +5,8 @@
     TouchableOpacity, Platform, Text,
     } from 'react-native';
     import { AppColors } from '../theme/theme';
-    
+    import {   ms,mvs,fs,screen} from '../utils/scale';
+
     export function AppInput({
     label,
     value,
@@ -120,7 +121,7 @@
         marginBottom: 14,
     },
     label: {
-        fontSize:      15,
+        fontSize:      screen.isTablet ? 21 : 14,
         fontWeight:    '500',
         letterSpacing: 0.2,
         marginBottom:  6,
@@ -158,7 +159,7 @@
         marginTop:      4,
         paddingHorizontal: 2,
     },
-    errorText: { fontSize: 12, color: '#DC2626', flex: 1,fontFamily:'Inter-Regular' },
-    hintText:  { fontSize: 12, color: '#9CA3AF', flex: 1 ,fontFamily:'Inter-Regular'},
-    counter:   { fontSize: 12, color: '#9CA3AF',marginBottom:5,marginRight:8 ,fontFamily:'Inter-Regular'},
+    errorText: { fontSize: screen.isTablet ? 22: 12, color: '#DC2626', flex: 1,fontFamily:'Inter-Regular' },
+    hintText:  { fontSize: screen.isTablet ? 22:  12, color: '#9CA3AF', flex: 1 ,fontFamily:'Inter-Regular'},
+    counter:   { fontSize: screen.isTablet ? 22:  12, color: '#9CA3AF',marginBottom:5,marginRight:8 ,fontFamily:'Inter-Regular'},
     });

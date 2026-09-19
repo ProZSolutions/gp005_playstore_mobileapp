@@ -213,7 +213,7 @@ const createStyles = ({ scale, verticalScale, fontScale, moderateScale, isLargeS
 
     rowLabel: {
       flex: 1,
-      fontSize: isLargeScreen ? 30 : fontScale(13.8),
+      fontSize: isLargeScreen ? 22 : fontScale(13.8),
       color: AppColors.textSecondary,
       fontWeight: '500',
       fontFamily:'Inter-Regular'
@@ -232,7 +232,7 @@ const createStyles = ({ scale, verticalScale, fontScale, moderateScale, isLargeS
       borderRadius: isLargeScreen ? 7.5 : scale(5),
     },
     rowValue: {
-      fontSize: isLargeScreen ? 30 : fontScale(13.8),
+      fontSize: isLargeScreen ? 22 : fontScale(13.8),
       fontWeight: '700',
       color: AppColors.textPrimary,
       textAlign: 'right',

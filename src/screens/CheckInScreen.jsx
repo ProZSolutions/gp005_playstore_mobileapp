@@ -399,7 +399,7 @@ const toggleLine = (id) =>
   const chipNames  = isZoneStep ? zoneChipNames : lineChipNames;
 
   return (
-    <SafeAreaView style={screenStyles.safe} edges={['top', 'bottom']}>
+    <SafeAreaView style={screenStyles.safe} edges={['top' ]}>
       <StatusBar barStyle="light-content" backgroundColor={TEAL} />
 
       <View

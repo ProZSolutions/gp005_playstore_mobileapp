@@ -111,7 +111,7 @@ export const landscapeStyles = StyleSheet.create({
   },
   footer: {
     paddingTop: 8,
-    paddingBottom: Platform.OS === 'ios' ? 10 : 25,
+    paddingBottom: Platform.OS === 'ios' ? 10 : 0,
   },
 
   porheader: {

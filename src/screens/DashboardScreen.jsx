@@ -144,7 +144,7 @@ const CONFIG_TOOLS = [
   { key: 'OrderMappingScreen', title: 'Order Mapping', icon: 'dashboard_5', iconColor: AppColors.lineBlue, group: GROUP.LINEMAPPING },
   { key: 'OrderContinuityMappingScreen', title: 'Continuity Mapping', icon: 'dashboard_6', iconColor: AppColors.lineGreen, group: GROUP.CONTINUITY },
   { key: 'InputListScreen', title: 'Input', icon: 'dashboard_8', iconColor: AppColors.linePurple, group: GROUP.INPUTMODULE },
-  { key: 'TLSDeviceMappingScreen', title: 'Device Swapping', icon: 'dashboard_9', iconColor: AppColors.warning, group: GROUP.INPUTMODULE },
+  { key: 'TLSDeviceMappingScreen', title: 'Device Swapping', icon: 'dashboard_9', iconColor: AppColors.warning, group: GROUP.SWAPPING },
   { key: 'DeviceMachineMappingScreen', title: 'Device & Machine Mapping', icon: 'dashboard_10', iconColor: AppColors.lineBlue, group: GROUP.DEVICEMAPPING },
 ];
 

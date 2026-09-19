@@ -19,6 +19,7 @@ import { useResponsive } from '../../utils/responsive';
 import ScannerScreen from '../../components/ScannerScreen';
 import deviceSwapService from '../../api/services/deviceSwapService';
 import { showAlert } from '../../utils/AlertService';
+import { ms,screen } from '../../utils/scale';
 
 const { container, text, button } = GlobalStyles;
 
@@ -57,9 +58,7 @@ export default function TLSDeviceMappingScreen({ navigation }) {
       return;
     }
     setDeviceLoading(true);
-    try {
-      // The service already alerts on API failure; only guard against a
-      // "success" response that has no usable device data.
+    try { 
       const result = await deviceSwapService.scanDevice(code);
       if (result?.success) {
         if (result.data?.tls_id) {
@@ -325,7 +324,7 @@ const local = StyleSheet.create({
   },
   loadingText: {
     marginLeft: 8,
-    fontSize: 13,
+    fontSize: screen.isTablet ? 20 :13,
     color: AppColors.textSecondary,
     fontWeight: '600',
   },

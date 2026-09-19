@@ -1,8 +1,7 @@
 import React, { useRef, useState, useCallback } from 'react';
 import { View, PanResponder, StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-// If you're on Expo instead, swap the import above for:
-// import { LinearGradient } from 'expo-linear-gradient';
+import { screen } from '../utils/scale';
 
 export default function CustomSlider({
   minimumValue = 0,
@@ -10,8 +9,6 @@ export default function CustomSlider({
   step = 1,
   value = 0,
   onValueChange,
-  // Gradient used for the filled portion of the track (left → thumb).
-  // Defaults approximate the teal → green gradient in the design.
   gradientColors = ['#14B8A6', '#22C55E'],
   maximumTrackTintColor = '#E5E7EB',
   thumbColor = '#FFFFFF',
@@ -51,7 +48,8 @@ export default function CustomSlider({
   const ratio = (internalValue - minimumValue) / (maximumValue - minimumValue);
   const filledWidth = sliderWidth * ratio;
   // Keep the thumb fully inside the track bounds at both ends
-  const thumbLeft = Math.min(Math.max(filledWidth - 10, -2), sliderWidth - 18);
+  const thumbHalf = screen.isTablet ? 20 : 10;
+  const thumbLeft = Math.min(Math.max(filledWidth - thumbHalf, -2), sliderWidth - (thumbHalf * 2 - 2));
 
   return (
     <View
@@ -88,15 +86,15 @@ export default function CustomSlider({
 }
 
 const styles = StyleSheet.create({
-  hitBox: { height: 40, justifyContent: 'center' },
-  track: { height: 4, borderRadius: 2, width: '100%', overflow: 'hidden' },
-  fill: { position: 'absolute', height: 4, borderRadius: 2, left: 0, top: 0 },
+  hitBox: { height: screen.isTablet ? 100 : 40, justifyContent: 'center' },
+  track: { height: screen.isTablet ? 15 : 4, borderRadius: screen.isTablet ? 5 : 2, width: '100%', overflow: 'hidden' },
+  fill: { position: 'absolute', height: screen.isTablet ? 15 : 4, borderRadius: screen.isTablet ? 5 : 2, left: 0, top: 0 },
   thumb: {
     position: 'absolute',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    top: 10,
+    width: screen.isTablet ? 40 : 20,
+    height: screen.isTablet ? 40 : 20,
+    borderRadius: screen.isTablet ? 20 : 10,
+    top: screen.isTablet ? 20 : 10,
     borderWidth: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

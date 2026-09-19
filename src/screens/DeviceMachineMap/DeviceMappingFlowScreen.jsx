@@ -20,17 +20,15 @@ export default function DeviceMappingFlowScreen({
   onConfirm,
 }) {
   const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs,isLargeScreen } = useResponsive();
-      const { isLandscape } = useOrientation();
+  const { isLandscape } = useOrientation();
 
   const styles = createStyles(ms, mvs, fs);
   const styless = createStyles(ms, mvs, fs, isLargeScreen);
 
- 
-  
   const deviceDone = !!device?.id;
   const machineDone = !!machine?.machineNo;
   const bothScanned = deviceDone && machineDone;
-  console.log("machine details "+JSON.stringify(machine));
+
   let infoText;
   if (bothScanned) {
     infoText =
@@ -42,13 +40,12 @@ export default function DeviceMappingFlowScreen({
   } else {
     infoText = 'Scan the Qone device and the machine to build the mapping below.';
   }
-const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
-(isLandscape ? mobileLandscape : mobilePortrait);
+
   const handleConfirmPress = () => {
-    if (!bothScanned) return;  
+    if (!bothScanned) return;
     onConfirm?.();
   };
- 
+
   const handleRescanDevice = () => {
     Alert.alert(
       'Rescan Qone Device?',
@@ -91,8 +88,8 @@ const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscap
         </SafeAreaView>
       </View>
 
-      <View style={[container.safe, { flex: 1 }]}>
-        <View style={[container.screenBody, { flex: 1 }]}>
+      <View style={[container.safe, { flex: 1, minHeight: 0 }]}>
+        <View style={[container.screenBody, { flex: 1, minHeight: 0 }]}>
           <MappingCard
             device={device}
             machine={machine}
@@ -102,29 +99,19 @@ const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscap
             onRescanMachine={handleRescanMachine}
             isLandscape={isLandscape}
             isLargeScreen={isLargeScreen}
+            infoText={infoText}
+            bothScanned={bothScanned}
           />
-
-          <View style={container.warningBox}>
-            <Ionicons
-              name={bothScanned ? 'alert-circle-outline' : 'information-circle-outline'}
-              size={18}
-              color={AppColors.warningIcon}
-              style={{ marginTop: 1 }}
-            />
-            <Text style={text.warningText}>{infoText}</Text>
-          </View>
         </View>
       </View>
 
-    <View style={styless.footer}>
-              <ActionButton
-                label="Confirm Mapping"
-                disabled={!bothScanned}
-                 onPress={handleConfirmPress}
-              />
+      <View style={styless.footer}>
+        <ActionButton
+          label="Confirm Mapping"
+          disabled={!bothScanned}
+          onPress={handleConfirmPress}
+        />
       </View>
-
-     
     </SafeAreaView>
   );
 }
@@ -137,23 +124,21 @@ function MappingCard({
   onRescanDevice,
   onRescanMachine,
   isLandscape,
-  isLargeScreen
+  isLargeScreen,
+  infoText,
+  bothScanned,
 }) {
   const deviceDone = !!device?.id;
   const machineDone = !!machine?.machineNo;
-   const machineTypeName =
+  const machineTypeName =
     machine?.raw?.machine_type_name ?? machine?.machine_type_name ?? machine?.machineType ?? '—';
 
-  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
-(isLandscape ? mobileLandscape : mobilePortrait);
- const textStyle = pickStyle(text.cardSectionTitleLarge,text.cardSectionTitleLarge,text.cardSectionTitle,text.cardSectionTitle);
- const dtextStyle = pickStyle(text.detailLabelLarge,text.detailLabelLarge,text.detailLabel,text.detailLabel);
- const vtextStyle = pickStyle(text.detailValueLarge,text.detailValueLarge,text.detailValue,text.detailValue);
-
-
-
-
-
+  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen ? (isLandscape ? largeLandscape : largePortrait) :
+    (isLandscape ? mobileLandscape : mobilePortrait);
+  const textStyle = pickStyle(text.cardSectionTitleLarge, text.cardSectionTitleLarge, text.cardSectionTitle, text.cardSectionTitle);
+  const dtextStyle = pickStyle(text.detailLabelLarge, text.detailLabelLarge, text.detailLabel, text.detailLabel);
+  const vtextStyle = pickStyle(text.detailValueLarge, text.detailValueLarge, text.detailValue, text.detailValue);
 
   return (
     <View style={{ flex: 1 }}>
@@ -168,15 +153,13 @@ function MappingCard({
               <View style={container.iconChipSm}>
                 <Ionicons name="phone-portrait-outline" size={20} color={AppColors.primary} />
               </View>
-              <Text style={[text.cardSectionTitle,textStyle]}>Qone Details</Text>
+              <Text style={[text.cardSectionTitle, textStyle]}>Qone Details</Text>
             </View>
           </View>
 
           {deviceDone ? (
             <>
-                {console.log('Device:', JSON.stringify(device))}
-
-            <View style={{ flexDirection: 'row', marginTop: 12 }}>
+              <View style={{ flexDirection: 'row', marginTop: 12 }}>
                 <View style={container.detailCell}>
                   <Text style={[dtextStyle]}>Qone ID</Text>
                   <Text style={[vtextStyle]}>{device.raw.tls_id}</Text>
@@ -188,7 +171,6 @@ function MappingCard({
               </View>
               <ScanButton label="Rescan Device" onPress={onRescanDevice} />
             </>
-           
           ) : (
             <ScanButton label="Scan Device" onPress={onScanDevice} />
           )}
@@ -218,7 +200,7 @@ function MappingCard({
               <View style={container.iconChipSm}>
                 <Ionicons name="hardware-chip-outline" size={20} color={AppColors.primary} />
               </View>
-              <Text style={[text.cardSectionTitle,textStyle]}>Machine Details</Text>
+              <Text style={[text.cardSectionTitle, textStyle]}>Machine Details</Text>
             </View>
           </View>
 
@@ -226,12 +208,12 @@ function MappingCard({
             <>
               <View style={{ flexDirection: 'row', marginTop: 12 }}>
                 <View style={container.detailCell}>
-                  <Text style={[ dtextStyle]}>MACHINE NO.</Text>
-                  <Text style={[ vtextStyle]}>{machine.machineNo}</Text>
+                  <Text style={[dtextStyle]}>MACHINE NO.</Text>
+                  <Text style={[vtextStyle]}>{machine.machineNo}</Text>
                 </View>
                 <View style={container.detailCell}>
-                  <Text style={[ dtextStyle]}>MACHINE TYPE</Text>
-                  <Text style={[ vtextStyle]}>{machineTypeName}</Text>
+                  <Text style={[dtextStyle]}>MACHINE TYPE</Text>
+                  <Text style={[vtextStyle]}>{machineTypeName}</Text>
                 </View>
               </View>
               <ScanButton label="Rescan Machine" onPress={onRescanMachine} />
@@ -239,6 +221,16 @@ function MappingCard({
           ) : (
             <ScanButton label="Scan Machine" onPress={onScanMachine} />
           )}
+        </View>
+
+        <View style={container.warningBox}>
+          <Ionicons
+            name={bothScanned ? 'alert-circle-outline' : 'information-circle-outline'}
+            size={18}
+            color={AppColors.warningIcon}
+            style={{ marginTop: 1 }}
+          />
+          <Text style={text.warningText}>{infoText}</Text>
         </View>
       </ScrollView>
     </View>

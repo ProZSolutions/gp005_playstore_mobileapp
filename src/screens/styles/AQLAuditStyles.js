@@ -36,12 +36,12 @@ const DISABLED_TEXT = AppColors.onSurfaceDisabled;
       fontSize: 14, fontWeight: '700', color: AppColors.textPrimary ?? '#111827', marginBottom: 4 ,fontFamily:'Inter-Regular'
     },
     manualTitleLarge:{
-      fontSize: 20, fontWeight: '700', color: AppColors.textPrimary ?? '#111827', marginBottom: 4 ,fontFamily:'Inter-Regular'
+      fontSize: 35, fontWeight: '700', color: AppColors.textPrimary ?? '#111827', marginBottom: 4 ,fontFamily:'Inter-Regular'
     },
     limit:{
        fontSize: 12, color: AppColors.textTertiary ?? '#9CA3AF', marginBottom: 12 ,fontFamily:'Inter-Regular'    },
         limitLarge:{
-       fontSize: 15, color: AppColors.textTertiary ?? '#9CA3AF', marginBottom: 12 ,fontFamily:'Inter-Regular'    },
+       fontSize: 20, color: AppColors.textTertiary ?? '#9CA3AF', marginBottom: 12 ,fontFamily:'Inter-Regular'    },
        btncancel:{ flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 10, backgroundColor: '#F1F5F9' },
        btncancellarge:{ flex: 1, paddingVertical: 16, alignItems: 'center', borderRadius: 10, backgroundColor: '#F1F5F9' },
        btnsubmitt:{ flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 10, backgroundColor: TEAL },

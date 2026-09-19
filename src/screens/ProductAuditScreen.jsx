@@ -31,6 +31,7 @@ import {
   OperatorOrderCard,
   SeverityBadge,
   SectionLabel,
+  SectionLabelNew,
 } from '../components/SharedComponents';
 import OrderDetailsSheet from '../components/OrderDetailsSheet';
 import DefectEntrySheet from '../components/DefectEntrySheet';
@@ -204,9 +205,7 @@ function InfoListSheet({ visible, onClose, title, items, emptyText, variant }) {
 export default function ProductAuditScreen({ route, navigation }) {
   const incomingParams = route?.params ?? {};
   const styles = createStyles(ms, mvs, fs);
-
-  // Layout only: same pickStyle(largePortrait, largeLandscape, mobilePortrait, mobileLandscape)
-  // you already use on the other screens, shared through one hook.
+ 
   const { isLargeScreen, isLandscape, pickStyle, pinOperatorCard } = useAuditLayout();
 
   const contaa = pickStyle(GlobalStyles.container.scrollContentLarge, GlobalStyles.container.scrollContentLand, GlobalStyles.container.scrollContent
@@ -278,7 +277,7 @@ export default function ProductAuditScreen({ route, navigation }) {
   const [slotInfo, setSlotInfo] = useState(null);
   const [successVisible, setSuccessVisible] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
-
+ 
   useEffect(() => {
     let cancelled = false;
 
@@ -535,9 +534,7 @@ export default function ProductAuditScreen({ route, navigation }) {
     }),
     [operator, slotInfo],
   );
-
-  // Extracted so the operator card can be pinned above the scroll area, or scroll
-  // with the content on a phone in landscape. Content itself is unchanged.
+ 
   const operatorCard = (
     <OperatorOrderCard
       styless={styles}
@@ -549,10 +546,7 @@ export default function ProductAuditScreen({ route, navigation }) {
     />
   );
 
-  return (
-    // Same structure as ProcessAuditScreen: plain root View, AuditHeader (paints its own
-    // teal + status-bar inset), body View, footer. The old root + nested SafeAreaView with
-    // scroll_bg is gone, so the header no longer depends on what colour the root is.
+  return ( 
     <View style={GlobalStyles.container.safe}>
       <StatusBar barStyle="light-content" backgroundColor={AppColors.primary} />
 
@@ -583,7 +577,7 @@ export default function ProductAuditScreen({ route, navigation }) {
 
           <View style={GlobalStyles.container.card_pro}>
             <View style={GlobalStyles.container.summaryHeader}>
-              <SectionLabel label="AUDIT SUMMARY" />
+              <SectionLabelNew label="AUDIT SUMMARY" />
               <View style={[GlobalStyles.container.gradePill, { backgroundColor: gradeBg }]}>
                 <Text style={[GlobalStyles.text.gradeText, { color: gradeColor }]}>{grade}</Text>
               </View>

@@ -189,9 +189,7 @@ export default function ProcessAuditScreen({ route, navigation }) {
     />
   );
 
-  return (
-    // Plain View (not SafeAreaView): the header now owns the top inset, so iOS
-    // doesn't get a second, light-coloured strip above the teal header.
+  return ( 
     <View style={GlobalStyles.container.safe}>
       <StatusBar barStyle="light-content" backgroundColor={AppColors.primary} />
 
@@ -249,7 +247,7 @@ export default function ProcessAuditScreen({ route, navigation }) {
 
           <View style={GlobalStyles.container.card_pro}>
             <View style={{ marginLeft: 10 }}>
-              <SectionLabel label="QUALITY CHECKS" />
+              <SectionLabelNew label="QUALITY CHECKS" />
             </View>
             <View style={{ marginTop: verticalScale(10) }}>
               {QUALITY_CHECKS.map((check, idx) => (

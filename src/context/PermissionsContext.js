@@ -32,7 +32,8 @@ export const GROUP = {
   AQLAUDIT:         'AqlAudit',
   CHECKING:         'Checking',
   ESCALATION:       'MobileEscalation',
-  CONTINUITY:        'Continuitymapping'
+  CONTINUITY:        'Continuitymapping',
+  SWAPPING:'MobileDeviceSwapping'
 };
 
 const normalizeGroupName = (name = '') =>

@@ -4,6 +4,7 @@ import Dimensions from '../../theme/dimensions';
 import { bottomSpace,scale,verticalScale,moderateScale,moderateVerticalScale,fontScale,  ms,mvs,fs,screen} from '../../utils/scale';
 
 const CARD_RADIUS   = Dimensions.radius.card;
+const CARD_RADIUS_LARGE = Dimensions.radius.cardL;
 const HEADER_RADIUS = Dimensions.radius.header;
 const TEAL = AppColors.primary;
 const PURPLE_LIGHT = '#EFE9FE';
@@ -18,11 +19,15 @@ const ContainerStyles = StyleSheet.create({
      scroll_bgLarge:{ flex: 1, backgroundColor: AppColors.background
         },
     scrollContent: {   paddingTop: Dimensions.spacing.scrollContentPaddingTop 
-      , padding: Dimensions.spacing.screenPaddingH, maxWidth: 640, alignSelf: 'center', width: '100%',},
+      , padding: Dimensions.spacing.screenPaddingH, maxWidth:  screen.isTablet ? '100%' : 640, alignSelf: 'center', width: '100%',},
       scrollContentLarge: {   paddingTop: Dimensions.spacing.scrollContentPaddingTop 
-      , padding: Dimensions.spacing.screenPaddingH, maxWidth: 800, alignSelf: 'center', width: '100%',},
+      , padding: Dimensions.spacing.screenPaddingH, maxWidth: 950, alignSelf: 'center', width: '100%',},
        scrollContentLand: {   paddingTop: Dimensions.spacing.scrollContentPaddingTop 
-      , padding: Dimensions.spacing.screenPaddingH, maxWidth: 1200, alignSelf: 'center', width: '100%',},
+      , padding: Dimensions.spacing.screenPaddingH, maxWidth: 1350, alignSelf: 'center', width: '100%',},
+       scrollContentLargeL: {   paddingTop: Dimensions.spacing.scrollContentPaddingTop 
+      , padding: Dimensions.spacing.screenPaddingH, alignSelf: 'center', width: '100%',},
+       scrollContentLandL: {   paddingTop: Dimensions.spacing.scrollContentPaddingTop 
+      , padding: Dimensions.spacing.screenPaddingH,  alignSelf: 'center', width: '100%',},
     heroWrapper: {
         width: '100%', height: Dimensions.spacing.heroHeight,
         backgroundColor: AppColors.heroBg, overflow: 'hidden',
@@ -162,7 +167,7 @@ const ContainerStyles = StyleSheet.create({
   },
   card_proLarge: {
     backgroundColor: AppColors.surface,
-    borderRadius: CARD_RADIUS,
+    borderRadius: CARD_RADIUS_LARGE,
     overflow: 'hidden', // important
     marginBottom: Dimensions.spacing.cardProMarginBottom,
     borderWidth: Dimensions.border.cardPro,
@@ -249,7 +254,7 @@ const ContainerStyles = StyleSheet.create({
       justifyContent: 'space-between',
       alignItems: 'center',
       backgroundColor: AppColors.primaryLight ?? '#E6F6F5',
-      paddingVertical: mvs(11),
+      paddingVertical: mvs(5),
       paddingHorizontal: ms(14),
     },
 
@@ -285,7 +290,7 @@ const ContainerStyles = StyleSheet.create({
   severityBadge: {
     flex: 1,
     borderRadius: Dimensions.radius.severityBadge,
-    paddingVertical: Dimensions.spacing.severityBadgePaddingV,
+    paddingVertical:  screen.isTablet ? Dimensions.spacing.summaryHeaderMarginBottom :Dimensions.spacing.severityBadgePaddingV,
     alignItems: 'center',
   },
    summaryHeader: {
@@ -368,7 +373,7 @@ const ContainerStyles = StyleSheet.create({
       paddingBottom: Platform.OS === 'ios' ? Dimensions.spacing.footerPaddingBottomIOS : Dimensions.spacing.footerPaddingBottomAndroid,
       borderTopWidth: Dimensions.border.footerTop,
       borderTopColor: AppColors.border,
-      maxWidth: 640,
+      maxWidth:  screen.isTablet ? '100%' : 640,
       alignSelf: 'center',
       width: '100%',
       ...Platform.select({
@@ -412,7 +417,7 @@ const ContainerStyles = StyleSheet.create({
       paddingBottom: Platform.OS === 'ios' ? Dimensions.spacing.footerPaddingBottomIOS : Dimensions.spacing.footerPaddingBottomAndroid,
       borderTopWidth: Dimensions.border.footerTop,
       borderTopColor: AppColors.border,
-      maxWidth: 800,
+      maxWidth: 950,
       alignSelf: 'center',
       width: '100%',
       ...Platform.select({
@@ -431,24 +436,21 @@ const ContainerStyles = StyleSheet.create({
         paddingHorizontal: Dimensions.spacing.screenPaddingH,
         paddingTop: Dimensions.spacing.fixedCardWrapPaddingTop,
         backgroundColor: AppColors.background,
-        maxWidth: 640,
+        maxWidth:   screen.isTablet ? '100%' : 640,
         alignSelf: 'center',
         width: '100%',
       },
       fixedCardWrapLarge: {
-        paddingHorizontal: Dimensions.spacing.screenPaddingH,
-        paddingTop: Dimensions.spacing.fixedCardWrapPaddingTop,
+         paddingTop: Dimensions.spacing.fixedCardWrapPaddingTop,
         backgroundColor: AppColors.background,
-        maxWidth: 800,
-        alignSelf: 'center',
+         alignSelf: 'center',
         width: '100%',
       },
        fixedCardWrapLand: {
         paddingHorizontal: Dimensions.spacing.screenPaddingH,
         paddingTop: Dimensions.spacing.fixedCardWrapPaddingTop,
         backgroundColor: AppColors.background,
-        maxWidth: 1200,
-        alignSelf: 'center',
+         alignSelf: 'center',
         width: '100%',
       },
       spiHeaderRow: {
@@ -461,11 +463,13 @@ const ContainerStyles = StyleSheet.create({
       },
       spiValueWrap: { flexDirection: 'row', alignItems: 'baseline' },
       sliderRow:  { flexDirection: 'row', alignItems: 'center', gap: Dimensions.spacing.sliderRowGap, marginLeft: Dimensions.spacing.sliderRowMarginLeft },
-      slider: { flex: 1, height: Dimensions.spacing.sliderHeight, marginBottom: Dimensions.spacing.sliderMarginBottom },
+      slider: { flex: 1, 
+        height: screen.isTablet ? Dimensions.spacing.sliderHeightLarge : Dimensions.spacing.sliderHeight,
+         marginBottom: Dimensions.spacing.sliderMarginBottom },
        qcRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: Dimensions.spacing.qcRowGap,
+        gap: screen.isTablet ? Dimensions.spacing.fixedCardWrapPaddingTop :  Dimensions.spacing.qcRowGap,
         paddingVertical: Dimensions.spacing.qcRowPaddingV,
       },
        qcAccent: {
@@ -474,9 +478,9 @@ const ContainerStyles = StyleSheet.create({
         marginLeft: Dimensions.spacing.qcAccentMarginLeft,
         marginRight: Dimensions.spacing.qcAccentMarginRight,
         borderRadius: Dimensions.radius.qcAccent,
-        minHeight: Dimensions.spacing.qcAccentMinHeight,
+        minHeight: screen.isTablet ? Dimensions.spacing.sliderHeightLarge :  Dimensions.spacing.qcAccentMinHeight,
       },
-        qcBtns: { flexDirection: 'row', gap: Dimensions.spacing.qcBtnsGap, marginRight: Dimensions.spacing.qcBtnsMarginRight },
+        qcBtns: { flexDirection: 'row', gap:screen.isTablet ? Dimensions.spacing.qcRowPaddingV: Dimensions.spacing.qcBtnsGap, marginRight: Dimensions.spacing.qcBtnsMarginRight },
 
     sectionBody: { paddingHorizontal: ms(14), paddingVertical: mvs(6) },
           sectionBodyLarger: { paddingHorizontal: ms(5), paddingVertical: mvs(6) },
@@ -502,9 +506,13 @@ const ContainerStyles = StyleSheet.create({
     width: '100%',
   },
     detailRowBorder: { borderTopWidth: 1, borderTopColor: '#EEF2F2' },
-    detailLabel: { color: AppColors.textSecondary, fontSize: fs(14), flexShrink: 0, paddingRight: ms(10),paddingLeft:ms(4) },
+    detailLabel: { color: AppColors.textSecondary,
+       fontSize: screen.isTablet? fs(22) : fs(14), flexShrink: 0,
+       paddingRight: ms(10),paddingLeft:ms(4) },
+       detailLabelLarger: { color: AppColors.textSecondary, fontSize: fs(22), flexShrink: 0,
+       paddingRight: ms(10),paddingLeft:ms(4) },
     detailValue: { color: AppColors.textPrimary, fontSize: fs(14.5), fontWeight: '500', textAlign: 'right', flexShrink: 1,flex: 1 },
-    detailValueItalic: { fontStyle: 'italic', fontWeight: '500', color: AppColors.textPrimary },
+    detailValueItalic: { fontSize: screen.isTablet? fs(22) : fs(14), fontStyle: 'italic', fontWeight: '500', color: AppColors.textPrimary },
     liveDot: { width: ms(7), height: ms(7), borderRadius: ms(3.5), backgroundColor: AppColors.error, marginRight: ms(5) },
     liveValueRow: { flexDirection: 'row', alignItems: 'center' },
     liveValueText: { color: AppColors.error, fontSize: fs(14.5), fontWeight: '500' },

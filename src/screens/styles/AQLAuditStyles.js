@@ -32,6 +32,36 @@ const DISABLED_TEXT = AppColors.onSurfaceDisabled;
       paddingHorizontal: ms(16),
       paddingTop: mvs(6),
     },
+    manualTitle:{
+      fontSize: 16, fontWeight: '700', color: AppColors.textPrimary ?? '#111827', marginBottom: 4 ,fontFamily:'Inter-Regular'
+    },
+    manualTitleLarge:{
+      fontSize: 20, fontWeight: '700', color: AppColors.textPrimary ?? '#111827', marginBottom: 4 ,fontFamily:'Inter-Regular'
+    },
+    limit:{
+       fontSize: 12, color: AppColors.textTertiary ?? '#9CA3AF', marginBottom: 12 ,fontFamily:'Inter-Regular'    },
+        limitLarge:{
+       fontSize: 15, color: AppColors.textTertiary ?? '#9CA3AF', marginBottom: 12 ,fontFamily:'Inter-Regular'    },
+       btncancel:{ flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 10, backgroundColor: '#F1F5F9' },
+       btncancellarge:{ flex: 1, paddingVertical: 16, alignItems: 'center', borderRadius: 10, backgroundColor: '#F1F5F9' },
+       btnsubmitt:{ flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 10, backgroundColor: TEAL },
+        btnsubmittlarge:{ flex: 1, paddingVertical: 16, alignItems: 'center', borderRadius: 10, backgroundColor: TEAL },
+
+        btncantext:{ fontWeight: '600', color: AppColors.textSecondary ?? '#475569',fontFamily:'Inter-Regular',fontSize:12 },
+        btncantextlarge:{ fontWeight: '600', color: AppColors.textSecondary ?? '#475569' ,fontFamily:'Inter-Regular',fontSize:17},
+        btnsavetxt:{ fontWeight: '700', color: '#fff' ,fontFamily:'Inter-Regular',fontSize:12},
+        btnsavetxtlarge:{ fontWeight: '700', color: '#fff' ,fontFamily:'Inter-Regular',fontSize:17},
+        
+        manbg:{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 24 },
+         manbglng:{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 70 },
+
+     headerTopRowLarge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: ms(16),
+      paddingTop: mvs(45),
+    },
     headerTopLeft: { flexDirection: 'row', alignItems: 'center' },
     backBtn: {
       width: ms(30),

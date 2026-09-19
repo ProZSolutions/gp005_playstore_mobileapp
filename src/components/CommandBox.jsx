@@ -74,7 +74,7 @@
                 multiline && {
                 minHeight:        numberOfLines * 22,
                 textAlignVertical:'top',
-                paddingTop:       Platform.OS === 'ios' ? 14 : 10,
+                paddingTop:       Platform.OS === 'ios' ? 14 : 12,
                 },
                 style,
             ]}
@@ -126,6 +126,7 @@
         marginBottom:  6,
         marginLeft:    16,
         marginTop:10
+        ,fontFamily:'Inter-Regular'
     },
     box: {
         flexDirection: 'row',
@@ -137,11 +138,12 @@
     },
     input: {
         flex:          1,
-        fontSize:      15,
+        fontSize:      16,
         fontWeight:    '400',
         color:         '#1A1D23',
         letterSpacing: 0.1,
-        paddingVertical: Platform.OS === 'ios' ? 12 : 10,
+        paddingVertical: Platform.OS === 'ios' ? 12 : 10
+        ,fontFamily:'Inter-Regular'
     },
     sideIcon:  { marginHorizontal: 4 },
     showHide: {
@@ -156,7 +158,7 @@
         marginTop:      4,
         paddingHorizontal: 2,
     },
-    errorText: { fontSize: 12, color: '#DC2626', flex: 1 },
-    hintText:  { fontSize: 12, color: '#9CA3AF', flex: 1 },
-    counter:   { fontSize: 11, color: '#9CA3AF',marginBottom:5,marginRight:5 },
+    errorText: { fontSize: 12, color: '#DC2626', flex: 1,fontFamily:'Inter-Regular' },
+    hintText:  { fontSize: 12, color: '#9CA3AF', flex: 1 ,fontFamily:'Inter-Regular'},
+    counter:   { fontSize: 12, color: '#9CA3AF',marginBottom:5,marginRight:8 ,fontFamily:'Inter-Regular'},
     });

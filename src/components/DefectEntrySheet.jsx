@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { AppColors } from '../theme/theme';
-import { scale, verticalScale, fontScale, moderateScale } from '../utils/scale';
 import { GRADE_COLORS, GRADE_BG } from '../utils/auditData';
 import { getDefectList, getSeverityDropdown } from '../api/services/tlsService';
 import {
@@ -17,6 +16,8 @@ import {
   addRecentDefect,
 } from '../api/storage/authStorage';
 import BottomSheet from './BottomSheet';
+import { useOrientation } from '../hooks/useOrientation';
+import { useResponsive } from '../utils/responsive';
 
 const TEAL = '#0D939D';
 const TEAL_LIGHT = '#0D939D1A';
@@ -33,7 +34,7 @@ const SEVERITY_PALETTE = [
 
 const severityLabel = (s) => s?.value ?? s?.name ?? s?.label ?? String(s?.id ?? '');
 
-function Counter({ value, onInc, onDec }) {
+function Counter({ value, onInc, onDec, styles }) {
   return (
     <View style={styles.counterBox}>
       <TouchableOpacity
@@ -69,7 +70,14 @@ export default function DefectEntrySheet({
   severities: severitiesProp,               // optional — pass from parent to keep in sync
   loadingSeverities: loadingSeveritiesProp,  // optional — parent's loading flag
 }) {
-  // ── Severity: use parent-provided list if given, else self-fetch ──────
+     const { isLandscape } = useOrientation();
+     const { scale, verticalScale, fontScale, moderateScale, isLargeScreen } = useResponsive();
+
+  const styles = useMemo(
+    () => createStyles({ scale, verticalScale, fontScale, moderateScale, isLargeScreen }),
+    [scale, verticalScale, fontScale, moderateScale, isLargeScreen],
+  );
+
   const [severitiesOwn, setSeveritiesOwn] = useState([]);
   const [loadingSeveritiesOwn, setLoadingSeveritiesOwn] = useState(false);
   const [activeSeverityId, setActiveSeverityId] = useState(null);
@@ -295,12 +303,12 @@ export default function DefectEntrySheet({
       onClose={handleClose}
       title="Defect Entry"
       subtitle="Select category · Count by severity"
-      maxHeight={verticalScale(620)}
+      maxHeight={isLargeScreen ? 700 : verticalScale(620)}
     >
       <View style={styles.totalsRow}>
         {severities.length === 0 ? (
           loadingSeverities ? (
-            <ActivityIndicator color={AppColors.primary} style={{ paddingVertical: verticalScale(10) }} />
+            <ActivityIndicator color={AppColors.primary} style={{ paddingVertical: isLargeScreen ? 12 : verticalScale(10) }} />
           ) : (
             <Text style={styles.emptyText}>No severities configured.</Text>
           )
@@ -353,7 +361,7 @@ export default function DefectEntrySheet({
         <View style={styles.rightContent}>
           <View style={styles.tabRow}>
             {loadingSeverities ? (
-              <ActivityIndicator color={AppColors.primary} style={{ paddingVertical: verticalScale(8) }} />
+              <ActivityIndicator color={AppColors.primary} style={{ paddingVertical: isLargeScreen ? 10 : verticalScale(8) }} />
             ) : (
               severities.map((sev) => (
                 <TouchableOpacity
@@ -376,12 +384,12 @@ export default function DefectEntrySheet({
           </View>
 
           <ScrollView
-            style={{ maxHeight: verticalScale(300) }}
+            style={{ maxHeight: isLargeScreen ? 360 : verticalScale(300) }}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
           >
             {(selectedCategoryId === RECENT_CATEGORY_ID ? loadingRecent : loadingDefects) ? (
-              <ActivityIndicator color={AppColors.primary} style={{ marginTop: verticalScale(24) }} />
+              <ActivityIndicator color={AppColors.primary} style={{ marginTop: isLargeScreen ? 28 : verticalScale(24) }} />
             ) : defectList.length === 0 ? (
               <Text style={styles.emptyText}>{emptyDefectListText}</Text>
             ) : (
@@ -400,6 +408,7 @@ export default function DefectEntrySheet({
                       value={entries[key]?.qty ?? 0}
                       onInc={() => handleChange(def, +1)}
                       onDec={() => handleChange(def, -1)}
+                      styles={styles}
                     />
                   </View>
                 );
@@ -418,129 +427,193 @@ export default function DefectEntrySheet({
   );
 }
 
-const styles = StyleSheet.create({
-  totalsRow: {
-    flexDirection: 'row',
-    paddingHorizontal: scale(20),
-    paddingTop: verticalScale(14),
-    paddingBottom: verticalScale(10),
-    gap: scale(8),
-  },
-  totalCell: { flex: 1, borderRadius: moderateScale(10), paddingVertical: verticalScale(8), alignItems: 'center' },
-  totalLabel: { fontSize: fontScale(14), fontWeight: '700', color: AppColors.labrlcolo },
-  totalCount: { fontSize: fontScale(20), fontWeight: '600', letterSpacing: -0.5 },
+const createStyles = ({ scale, verticalScale, fontScale, moderateScale, isLargeScreen }) =>
+  StyleSheet.create({
+    totalsRow: {
+      flexDirection: 'row',
+      paddingHorizontal: isLargeScreen ? 6 : scale(20),
+      paddingTop: isLargeScreen ? 16 : verticalScale(14),
+      paddingBottom: isLargeScreen ? 12 : verticalScale(10),
+      gap: isLargeScreen ? 10 : scale(8),
+      maxWidth: isLargeScreen ? 750 : undefined,
+      alignSelf: isLargeScreen ? 'center' : 'stretch',
+      width: '100%',
+    },
+    totalCell: {
+      flex: 1,
+      borderRadius: isLargeScreen ? 12 : moderateScale(10),
+      paddingVertical: isLargeScreen ? 15 : verticalScale(8),
+      alignItems: 'center',
+    },
+    totalLabel: {
+      fontSize: isLargeScreen ? 18 : fontScale(14),
+      fontWeight: '700',
+      color: AppColors.labrlcolo,
+    },
+    totalCount: {
+      fontSize: isLargeScreen ? 22 : fontScale(20),
+      fontWeight: '800',
+      letterSpacing: -0.5,
+    },
 
-  body: { flexDirection: 'row', height: verticalScale(330) },
+    body: {
+      flexDirection: 'row',
+      height: isLargeScreen ? 380 : verticalScale(330),
+      maxWidth: isLargeScreen ? 750 : undefined,
+      alignSelf: isLargeScreen ? 'center' : 'stretch',
+      width: '100%',
+    },
 
-  leftNav: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-    borderRightWidth: 1,
-    borderRightColor: AppColors.divider,
-  },
-  leftNavItem: {
-    paddingVertical: verticalScale(14),
-    paddingLeft: scale(10),
-    paddingRight: scale(4),
-  },
-  leftNavItemActive: { backgroundColor: TEAL_LIGHT },
-  leftNavLabel: { fontSize: fontScale(13.5), fontWeight: '600', color: AppColors.textTertiary },
-  leftNavLabelRow: { flexDirection: 'row', alignItems: 'center', gap: scale(4), flexWrap: 'nowrap' },
-  leftNavDot: { width: scale(6), height: scale(6), borderRadius: scale(3), backgroundColor: GRADE_COLORS.Red },
-  leftNavLabelActive: { color: TEAL, fontWeight: '800' },
-  leftNavIndicator: { width: scale(3), height: verticalScale(4), backgroundColor: 'transparent', marginTop: verticalScale(4) },
-  leftNavIndicatorActive: { backgroundColor: TEAL },
+    leftNav: {
+      flex: 1,
+      backgroundColor: '#F8FAFC',
+      borderRightWidth: 1,
+      borderRightColor: AppColors.divider,
+    },
+    leftNavItem: {
+      paddingVertical: isLargeScreen ? 16 : verticalScale(14),
+      paddingLeft: isLargeScreen ? 12 : scale(10),
+      paddingRight: isLargeScreen ? 6 : scale(4),
+    },
+    leftNavItemActive: { backgroundColor: TEAL_LIGHT },
+    leftNavLabel: {
+      fontSize: isLargeScreen ? 17 : fontScale(13.5),
+      fontWeight: '600',
+      color: AppColors.textTertiary,
+    },
+    leftNavLabelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: isLargeScreen ? 5 : scale(4),
+      flexWrap: 'nowrap',
+    },
+    leftNavDot: {
+      width: isLargeScreen ? 7 : scale(6),
+      height: isLargeScreen ? 7 : scale(6),
+      borderRadius: isLargeScreen ? 3.5 : scale(3),
+      backgroundColor: GRADE_COLORS.Red,
+    },
+    leftNavLabelActive: { color: TEAL, fontWeight: '800' },
+    leftNavIndicator: {
+      width: isLargeScreen ? 3 : scale(3),
+      height: isLargeScreen ? 4 : verticalScale(4),
+      backgroundColor: 'transparent',
+      marginTop: isLargeScreen ? 5 : verticalScale(4),
+    },
+    leftNavIndicatorActive: { backgroundColor: TEAL },
 
-  rightContent: { flex: 3, paddingLeft: scale(14), paddingRight: scale(16), paddingTop: verticalScale(10) },
+    rightContent: {
+      flex: 3,
+      paddingLeft: isLargeScreen ? 18 : scale(14),
+      paddingRight: isLargeScreen ? 20 : scale(16),
+      paddingTop: isLargeScreen ? 14 : verticalScale(10),
+    },
 
-  tabRow: {
-    flexDirection: 'row',
-    marginBottom: verticalScale(10),
-    backgroundColor: '#F1F5F9',
-    borderRadius: moderateScale(10),
-    padding: scale(3),
-  },
-  tab: {
-    flex: 1,
-    minWidth: 0,
-    paddingVertical: verticalScale(8),
-    paddingHorizontal: scale(4),
-    borderRadius: moderateScale(8),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabActive: { backgroundColor: TEAL },
-  tabText: { fontSize: fontScale(14), fontWeight: '600', color: AppColors.textSecondary, textAlign: 'center' },
-  tabTextActive: { color: AppColors.onPrimary, fontWeight: '700' },
+    tabRow: {
+      flexDirection: 'row',
+      marginBottom: isLargeScreen ? 14 : verticalScale(10),
+      backgroundColor: '#F1F5F9',
+      borderRadius: isLargeScreen ? 12 : moderateScale(10),
+      padding: isLargeScreen ? 4 : scale(3),
+      gap: isLargeScreen ? 6 : scale(4),
+    },
+    tab: {
+      flex: 1,
+      minWidth: 0,
+      minHeight: isLargeScreen ? 44 : scale(42),
+      paddingVertical: isLargeScreen ? 15 : verticalScale(8),
+      paddingHorizontal: isLargeScreen ? 12 : scale(4),
+      borderRadius: isLargeScreen ? 10 : moderateScale(8),
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    tabActive: {
+      backgroundColor: TEAL,
+      ...Platform.select({
+        ios: { shadowColor: TEAL, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4 },
+        android: { elevation: 2 },
+      }),
+    },
+    tabText: {
+      fontSize: isLargeScreen ? 17 : fontScale(14),
+      fontWeight: '600',
+      color: AppColors.textSecondary,
+      textAlign: 'center',
+    },
+    tabTextActive: { color: AppColors.onPrimary, fontWeight: '700' },
 
-  listContent: { paddingBottom: verticalScale(8) },
-  emptyText: {
-    fontSize: fontScale(15.5),
-    color: AppColors.textTertiary,
-    paddingVertical: verticalScale(16),
-    textAlign: 'center',
-  },
-  defectRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: verticalScale(11),
-    gap: scale(8),
-  },
-  defectLabel: {
-    fontSize: fontScale(15),
-    color: AppColors.textPrimary,
-    fontWeight: '500',
-    flex: 1,
-    flexShrink: 1,
-  },
-  counterBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: AppColors.border,
-    borderRadius: moderateScale(8),
-    paddingHorizontal: scale(6),
-    width: scale(88),
-    height: scale(34),
-    backgroundColor: AppColors.surface,
-    flexShrink: 0,
-  },
-  counterBtn: {
-    width: scale(22),
-    height: scale(30),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  counterBtnText: {
-    fontSize: fontScale(20),
-    fontWeight: '500',
-    color: AppColors.textSecondary,
-    lineHeight: fontScale(18),
-    includeFontPadding: false,
-  },
-  counterValue: {
-    flex: 1,
-    fontSize: fontScale(16.5),
-    fontWeight: '700',
-    color: AppColors.labrlcolo,
-    textAlign: 'center',
-  },
-  applyWrap: {
-    paddingHorizontal: scale(20),
-    paddingTop: verticalScale(12),
-    borderTopWidth: 1,
-    borderTopColor: AppColors.divider,
-  },
-  applyBtn: {
-    backgroundColor: TEAL,
-    borderRadius: moderateScale(14),
-    paddingVertical: verticalScale(15),
-    alignItems: 'center',
-    ...Platform.select({
-      ios: { shadowColor: TEAL, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 10 },
-      android: { elevation: 5 },
-    }),
-  },
-  applyBtnText: { fontSize: fontScale(16), fontWeight: '600', color: AppColors.onPrimary },
-});
+    listContent: { paddingBottom: isLargeScreen ? 10 : verticalScale(8) },
+    emptyText: {
+      fontSize: isLargeScreen ? 16.5 : fontScale(15.5),
+      color: AppColors.textTertiary,
+      paddingVertical: isLargeScreen ? 18 : verticalScale(16),
+      textAlign: 'center',
+    },
+    defectRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: isLargeScreen ? 13 : verticalScale(11),
+      gap: isLargeScreen ? 10 : scale(8),
+    },
+    defectLabel: {
+      fontSize: isLargeScreen ? 18 : fontScale(15),
+      color: AppColors.textPrimary,
+      fontWeight: '500',
+      flex: 1,
+      flexShrink: 1,
+    },
+    counterBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: AppColors.border,
+      borderRadius: isLargeScreen ? 9 : moderateScale(8),
+      paddingHorizontal: isLargeScreen ? 7 : scale(6),
+      width: isLargeScreen ? 96 : scale(88),
+      height: isLargeScreen ? 38 : scale(34),
+      backgroundColor: AppColors.surface,
+      flexShrink: 0,
+    },
+    counterBtn: {
+      width: isLargeScreen ? 24 : scale(22),
+      height: isLargeScreen ? 32 : scale(30),
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    counterBtnText: {
+      fontSize: isLargeScreen ? 21 : fontScale(20),
+      fontWeight: '500',
+      color: AppColors.textSecondary,
+      lineHeight: isLargeScreen ? 19 : fontScale(18),
+      includeFontPadding: false,
+    },
+    counterValue: {
+      flex: 1,
+      fontSize: isLargeScreen ? 17.5 : fontScale(16.5),
+      fontWeight: '700',
+      color: AppColors.labrlcolo,
+      textAlign: 'center',
+    },
+    applyWrap: {
+      paddingHorizontal: isLargeScreen ? 24 : scale(20),
+      paddingTop: isLargeScreen ? 14 : verticalScale(12),
+      borderTopWidth: 1,
+      borderTopColor: AppColors.divider,
+    },
+    applyBtn: {
+      backgroundColor: TEAL,
+      borderRadius: isLargeScreen ? 16 : moderateScale(14),
+      paddingVertical: isLargeScreen ? 17 : verticalScale(15),
+      alignItems: 'center',
+      ...Platform.select({
+        ios: { shadowColor: TEAL, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 10 },
+        android: { elevation: 5 },
+      }),
+    },
+    applyBtnText: {
+      fontSize: isLargeScreen ? 18 : fontScale(16),
+      fontWeight: '600',
+      color: AppColors.onPrimary,
+    },
+  });

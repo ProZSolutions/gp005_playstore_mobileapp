@@ -72,7 +72,9 @@ import EscalationDetails from '../screens/Escalation/EscalationDetails';
 
 //-------Continuity Screen-----
 import OrderContinuityMappingScreen from '../screens/ContinetyMapping/OrderContinuityMappingScreen';
-
+//-------- Device Swapping ----------
+import TLSDeviceMappingScreen from '../screens/DeviceSwapping/TLSDeviceMappingScreen';
+import TLSDeviceSwapReviewScreen from '../screens/DeviceSwapping/TLSDeviceSwapReviewScreen';
 
 //--about us
 import AboutUsScreen from '../screens/AboutUsScreen';
@@ -205,6 +207,11 @@ export function AppNavigator({ toggleTheme, isDark }) {
           initialParams={{ toggleTheme, isDark }}
         />
         <Stack.Screen
+          name="TLSDeviceSwapReviewScreen"
+          component={TLSDeviceSwapReviewScreen}
+          initialParams={{ toggleTheme, isDark }}
+        />
+        <Stack.Screen
           name="AboutUsScreen"
           component={AboutUsScreen}
           initialParams={{ toggleTheme, isDark }}
@@ -281,6 +288,10 @@ export function AppNavigator({ toggleTheme, isDark }) {
         name="OperationDetailsScreen"
         component={OperationDetailsScreen} 
         initialParams={{toggleTheme,isDark}} /> 
+        <Stack.Screen
+        name="TLSDeviceMappingScreen"
+        component={TLSDeviceMappingScreen}
+        initialParams={{toggleTheme,isDark}}/>
 
 
         <Stack.Screen

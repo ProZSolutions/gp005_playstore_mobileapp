@@ -13,8 +13,16 @@ const ContainerStyles = StyleSheet.create({
 
     kav:    { flex: 1 },
     scroll: { flexGrow: 1 },
-    scroll_bg:        { flex: 1, backgroundColor: AppColors.background, padding: Dimensions.spacing.screenPaddingH },
-    scrollContent: {   paddingTop: Dimensions.spacing.scrollContentPaddingTop , padding: Dimensions.spacing.screenPaddingH, maxWidth: 640, alignSelf: 'center', width: '100%',},
+    scroll_bg:        { flex: 1, backgroundColor: AppColors.background,
+       padding: Dimensions.spacing.screenPaddingH },
+     scroll_bgLarge:{ flex: 1, backgroundColor: AppColors.background
+        },
+    scrollContent: {   paddingTop: Dimensions.spacing.scrollContentPaddingTop 
+      , padding: Dimensions.spacing.screenPaddingH, maxWidth: 640, alignSelf: 'center', width: '100%',},
+      scrollContentLarge: {   paddingTop: Dimensions.spacing.scrollContentPaddingTop 
+      , padding: Dimensions.spacing.screenPaddingH, maxWidth: 800, alignSelf: 'center', width: '100%',},
+       scrollContentLand: {   paddingTop: Dimensions.spacing.scrollContentPaddingTop 
+      , padding: Dimensions.spacing.screenPaddingH, maxWidth: 1200, alignSelf: 'center', width: '100%',},
     heroWrapper: {
         width: '100%', height: Dimensions.spacing.heroHeight,
         backgroundColor: AppColors.heroBg, overflow: 'hidden',
@@ -79,12 +87,26 @@ const ContainerStyles = StyleSheet.create({
     borderBottomLeftRadius: HEADER_RADIUS,
     borderBottomRightRadius: HEADER_RADIUS,
   },
+  headerlarge: {
+    backgroundColor: AppColors.primary,
+    paddingHorizontal: Dimensions.spacing.headerPaddingH,
+    paddingTop: Platform.OS === 'android' ? Dimensions.spacing.headerPaddingTopAndroidLar : Dimensions.spacing.headerPaddingTopIOSLar,
+    paddingBottom: Dimensions.spacing.headerPaddingBottom,
+    borderBottomLeftRadius: HEADER_RADIUS,
+    borderBottomRightRadius: HEADER_RADIUS,
+  },
   headerTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: Dimensions.spacing.headerTopRowMarginBottom,
   },
+   headerTopRowL: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop:20,
+   },
   headerPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -94,7 +116,24 @@ const ContainerStyles = StyleSheet.create({
     paddingVertical: Dimensions.spacing.headerPillPaddingV,
     gap: Dimensions.spacing.headerPillGap,
   },
-    headerPillBack: {
+  headerPillL: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: `rgba(255,255,255,${Dimensions.opacity.headerPillBg})`,
+    borderRadius: Dimensions.radius.headerPill,
+    paddingHorizontal: Dimensions.spacing.headerPillPaddingHL,
+    paddingVertical: Dimensions.spacing.headerPillPaddingVL,
+    gap: Dimensions.spacing.headerPillGap,
+  },
+  headerPillBack: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: `rgba(255,255,255,${Dimensions.opacity.headerPillBg})`,
+    borderRadius: Dimensions.radius.gradePill,
+    paddingHorizontal: Dimensions.spacing.headerPillPaddingH,
+    paddingVertical: Dimensions.spacing.headerPillPaddingVBack,
+   },
+    headerPillBackLarge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: `rgba(255,255,255,${Dimensions.opacity.headerPillBg})`,
@@ -107,7 +146,25 @@ const ContainerStyles = StyleSheet.create({
     borderRadius: CARD_RADIUS,
     overflow: 'hidden', // important
     marginBottom: Dimensions.spacing.cardProMarginBottom,
-
+    borderWidth: Dimensions.border.cardPro,
+    borderColor: `rgba(0,0,0,${Dimensions.opacity.cardProBorder})`,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOpacity: Dimensions.shadow.cardPro.opacity,
+        shadowRadius: Dimensions.shadow.cardPro.radius,
+        shadowOffset: { width: 0, height: Dimensions.shadow.cardPro.offsetY },
+      },
+      android: {
+        elevation: Dimensions.elevation.cardPro,
+      },
+    }),
+  },
+  card_proLarge: {
+    backgroundColor: AppColors.surface,
+    borderRadius: CARD_RADIUS,
+    overflow: 'hidden', // important
+    marginBottom: Dimensions.spacing.cardProMarginBottom,
     borderWidth: Dimensions.border.cardPro,
     borderColor: `rgba(0,0,0,${Dimensions.opacity.cardProBorder})`,
     ...Platform.select({
@@ -180,6 +237,14 @@ const ContainerStyles = StyleSheet.create({
       },
     }),},
      sectionHeaderRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: AppColors.primaryLight ?? '#E6F6F5',
+      paddingVertical: mvs(11),
+      paddingHorizontal: ms(14),
+    },
+       sectionHeaderRowL: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -316,6 +381,50 @@ const ContainerStyles = StyleSheet.create({
         android: { elevation: Dimensions.elevation.footer },
       }),
     },
+    footerLand: {
+      flexDirection: 'row',
+      gap: Dimensions.spacing.footerGap,
+      backgroundColor: AppColors.surface,
+      paddingHorizontal: Dimensions.spacing.footerPaddingH,
+      paddingTop: Dimensions.spacing.footerPaddingTop,
+      paddingBottom: Platform.OS === 'ios' ? Dimensions.spacing.footerPaddingBottomIOS : Dimensions.spacing.footerPaddingBottomAndroid,
+      borderTopWidth: Dimensions.border.footerTop,
+      borderTopColor: AppColors.border,
+      maxWidth: 1350,
+      alignSelf: 'center',
+      width: '100%',
+      ...Platform.select({
+        ios: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: Dimensions.shadow.footer.offsetY },
+          shadowOpacity: Dimensions.shadow.footer.opacity,
+          shadowRadius: Dimensions.shadow.footer.radius,
+        },
+        android: { elevation: Dimensions.elevation.footer },
+      }),
+    },
+    footerpor: {
+      flexDirection: 'row',
+      gap: Dimensions.spacing.footerGap,
+      backgroundColor: AppColors.surface,
+      paddingHorizontal: Dimensions.spacing.footerPaddingH,
+      paddingTop: Dimensions.spacing.footerPaddingTop,
+      paddingBottom: Platform.OS === 'ios' ? Dimensions.spacing.footerPaddingBottomIOS : Dimensions.spacing.footerPaddingBottomAndroid,
+      borderTopWidth: Dimensions.border.footerTop,
+      borderTopColor: AppColors.border,
+      maxWidth: 800,
+      alignSelf: 'center',
+      width: '100%',
+      ...Platform.select({
+        ios: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: Dimensions.shadow.footer.offsetY },
+          shadowOpacity: Dimensions.shadow.footer.opacity,
+          shadowRadius: Dimensions.shadow.footer.radius,
+        },
+        android: { elevation: Dimensions.elevation.footer },
+      }),
+    },
     //product audit
     //process Audit
       fixedCardWrap: {
@@ -323,6 +432,22 @@ const ContainerStyles = StyleSheet.create({
         paddingTop: Dimensions.spacing.fixedCardWrapPaddingTop,
         backgroundColor: AppColors.background,
         maxWidth: 640,
+        alignSelf: 'center',
+        width: '100%',
+      },
+      fixedCardWrapLarge: {
+        paddingHorizontal: Dimensions.spacing.screenPaddingH,
+        paddingTop: Dimensions.spacing.fixedCardWrapPaddingTop,
+        backgroundColor: AppColors.background,
+        maxWidth: 800,
+        alignSelf: 'center',
+        width: '100%',
+      },
+       fixedCardWrapLand: {
+        paddingHorizontal: Dimensions.spacing.screenPaddingH,
+        paddingTop: Dimensions.spacing.fixedCardWrapPaddingTop,
+        backgroundColor: AppColors.background,
+        maxWidth: 1200,
         alignSelf: 'center',
         width: '100%',
       },
@@ -354,6 +479,7 @@ const ContainerStyles = StyleSheet.create({
         qcBtns: { flexDirection: 'row', gap: Dimensions.spacing.qcBtnsGap, marginRight: Dimensions.spacing.qcBtnsMarginRight },
 
     sectionBody: { paddingHorizontal: ms(14), paddingVertical: mvs(6) },
+          sectionBodyLarger: { paddingHorizontal: ms(5), paddingVertical: mvs(6) },
 
     detailRow: {
       flexDirection: 'row',

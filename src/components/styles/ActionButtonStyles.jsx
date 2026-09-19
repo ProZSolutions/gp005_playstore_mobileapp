@@ -13,6 +13,14 @@ export default StyleSheet.create({
     justifyContent:  'center',
     minHeight:       46,    
   },
+    btnLarge: {
+    flex:            1,
+    borderRadius:    10,
+    paddingVertical: 22,
+    alignItems:      'center',
+    justifyContent:  'center',
+    minHeight:       72,    
+  },
   primary: {
     backgroundColor: TEAL,
   },
@@ -30,6 +38,13 @@ export default StyleSheet.create({
   },
   label: {
     fontSize:      17,
+    fontWeight:    '600',
+    color:         '#fff',
+    letterSpacing: 0.1,
+     fontFamily: 'Inter-Bold' 
+  },
+   labellarge: {
+    fontSize:      20,
     fontWeight:    '600',
     color:         '#fff',
     letterSpacing: 0.1,

@@ -19,7 +19,7 @@ import {
   saveDefectEntries,
 } from '../api/storage/authStorage';
 import BottomSheet from './BottomSheet';
-
+ import { useOrientation } from '../hooks/useOrientation';
 const SEVERITY_PALETTE = [
   { color: GRADE_COLORS.Blue, bg: GRADE_BG.Blue },
   { color: GRADE_COLORS.Yellow, bg: GRADE_BG.Yellow },
@@ -87,6 +87,10 @@ export default function DefectEntrySheet({
     () => createStyles({ scale, verticalScale, fontScale, moderateScale, isLargeScreen }),
     [scale, verticalScale, fontScale, moderateScale, isLargeScreen],
   );
+      const { isLandscape } = useOrientation();
+
+const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
+(isLandscape ? mobileLandscape : mobilePortrait);
 
   const isSingleSelect = maxSelections === 1;
 
@@ -474,41 +478,32 @@ export default function DefectEntrySheet({
   );
 }
 
-// Mobile keeps the original ratio-based scale() path untouched. Tablet
-// uses small FIXED bumps instead of scale()/verticalScale(), for the
-// same reason as OrderDetailsSheet/BottomSheet: those functions multiply
-// by the width/height ratio vs a 375x812 baseline, which compounds badly
-// on a wide tablet if you also hand them an already-bigger number.
-// The two-pane body height (`body`) and the inner defect-list scroll
-// height are given fixed tablet values rather than verticalScale(),
-// since verticalScale can actually SHRINK on a landscape tablet (where
-// height is often less than the 812 baseline) — a fixed value avoids
-// that inversion.
+ 
 const createStyles = ({ scale, verticalScale, fontScale, moderateScale, isLargeScreen }) =>
   StyleSheet.create({
     totalsRow: {
       flexDirection: 'row',
-      paddingHorizontal: isLargeScreen ? 24 : scale(20),
+      paddingHorizontal: isLargeScreen ? 6 : scale(20),
       paddingTop: isLargeScreen ? 16 : verticalScale(14),
       paddingBottom: isLargeScreen ? 12 : verticalScale(10),
       gap: isLargeScreen ? 10 : scale(8),
-      maxWidth: isLargeScreen ? 640 : undefined,
+      maxWidth: isLargeScreen ? 750 : undefined,
       alignSelf: isLargeScreen ? 'center' : 'stretch',
       width: '100%',
     },
     totalCell: {
       flex: 1,
       borderRadius: isLargeScreen ? 12 : moderateScale(10),
-      paddingVertical: isLargeScreen ? 10 : verticalScale(8),
+      paddingVertical: isLargeScreen ? 15 : verticalScale(8),
       alignItems: 'center',
     },
-    totalLabel: { fontSize: isLargeScreen ? 15 : fontScale(14), fontWeight: '700', color: AppColors.labrlcolo },
-    totalCount: { fontSize: isLargeScreen ? 22 : fontScale(20), fontWeight: '600', letterSpacing: -0.5 },
+    totalLabel: { fontSize: isLargeScreen ? 18 : fontScale(14), fontWeight: '700', color: AppColors.labrlcolo,fontFamily:'Inter-Regular' },
+    totalCount: { fontSize: isLargeScreen ? 22 : fontScale(20), fontWeight: '800', letterSpacing: -0.5,fontFamily:'Inter-Regular' },
 
     body: {
       flexDirection: 'row',
       height: isLargeScreen ? 380 : verticalScale(330),
-      maxWidth: isLargeScreen ? 640 : undefined,
+      maxWidth: isLargeScreen ? 750 : undefined,
       alignSelf: isLargeScreen ? 'center' : 'stretch',
       width: '100%',
     },
@@ -525,7 +520,7 @@ const createStyles = ({ scale, verticalScale, fontScale, moderateScale, isLargeS
       paddingRight: isLargeScreen ? 6 : scale(4),
     },
     leftNavItemActive: { backgroundColor: TEAL_LIGHT },
-    leftNavLabel: { fontSize: isLargeScreen ? 15 : fontScale(13.5), fontWeight: '600', color: AppColors.textTertiary },
+    leftNavLabel: { fontSize: isLargeScreen ? 17 : fontScale(13.5), fontWeight: '600', color: AppColors.textTertiary,fontFamily:'Inter-Regular' },
     leftNavLabelRow: { flexDirection: 'row', alignItems: 'center', gap: isLargeScreen ? 5 : scale(4), flexWrap: 'nowrap' },
     leftNavDot: {
       width: isLargeScreen ? 7 : scale(6),
@@ -561,8 +556,8 @@ const createStyles = ({ scale, verticalScale, fontScale, moderateScale, isLargeS
       flex: 1,
       minWidth: 0,
       minHeight: isLargeScreen ? 44 : scale(42),
-      paddingVertical: isLargeScreen ? 12 : verticalScale(11),
-      paddingHorizontal: isLargeScreen ? 8 : scale(6),
+      paddingVertical: isLargeScreen ? 15 : verticalScale(11),
+      paddingHorizontal: isLargeScreen ? 12 : scale(6),
       borderRadius: isLargeScreen ? 10 : moderateScale(8),
       alignItems: 'center',
       justifyContent: 'center',
@@ -575,15 +570,16 @@ const createStyles = ({ scale, verticalScale, fontScale, moderateScale, isLargeS
       }),
     },
     tabText: {
-      fontSize: isLargeScreen ? 16 : fontScale(15),
+      fontSize: isLargeScreen ? 17 : fontScale(15),
       fontWeight: '600',
       color: AppColors.textSecondary,
       textAlign: 'center',
+      fontFamily:'Inter-Regular'
     },
     tabTextActive: { color: AppColors.onPrimary, fontWeight: '700' },
 
     singleSelectHint: {
-      fontSize: isLargeScreen ? 13 : fontScale(11.5),
+      fontSize: isLargeScreen ? 16 : fontScale(11.5),
       color: AppColors.textTertiary,
       marginBottom: isLargeScreen ? 8 : verticalScale(6),
     },
@@ -603,7 +599,7 @@ const createStyles = ({ scale, verticalScale, fontScale, moderateScale, isLargeS
       gap: isLargeScreen ? 10 : scale(8),
     },
     defectLabel: {
-      fontSize: isLargeScreen ? 16 : fontScale(15),
+      fontSize: isLargeScreen ? 18 : fontScale(15),
       color: AppColors.textPrimary,
       fontWeight: '500',
       flex: 1,

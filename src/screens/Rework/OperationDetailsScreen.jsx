@@ -30,8 +30,14 @@ function DetailRow({ label, value, placeholder = '—', styles }) {
   const isEmpty = value === undefined || value === null || value === '';
   return (
     <View style={styles.detailRow}>
-      <Text style={styles.detailLabel}>{label}</Text>
-      <Text style={[styles.detailValue, isEmpty && styles.detailValuePlaceholder]}>
+      <Text style={styles.detailLabel} numberOfLines={1}>
+        {label}
+      </Text>
+      <Text
+        style={[styles.detailValue, isEmpty && styles.detailValuePlaceholder]}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
         {isEmpty ? placeholder : value}
       </Text>
     </View>

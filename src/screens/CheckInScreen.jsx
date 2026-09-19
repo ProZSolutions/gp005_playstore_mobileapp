@@ -20,6 +20,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getZones, getLinesByZoneIds } from '../api/services/dropdownApi';
 import { useOrientation } from '../hooks/useOrientation';
+import { useResponsive } from '../utils/responsive';
+
 
 import { SkeletonList } from '../components/SkeletonListItem';
 import { AppColors } from '../theme/theme';
@@ -132,11 +134,11 @@ function HeaderBackButton({ onPress }) {
   );
 }
 
-function SelectedChip({ label }) {
+function SelectedChip({ label ,isLandscape}) {
   return (
-    <View style={chipStyles.chip}>
+    <View style={[chipStyles.chip ]}>
       <Ionicons name="checkmark" size={11} color="#fff" style={{ marginRight: 3 }} />
-      <Text style={chipStyles.text}>{label}</Text>
+      <Text style={[chipStyles.text,isLandscape&&chipStyles.textLarge]}>{label}</Text>
     </View>
   );
 }
@@ -154,6 +156,7 @@ export default function ZoneLineCheckInScreen({ route, navigation }) {
     currentLineNames: rawCurrentLineNames = [],
     branch_screen
   } = route.params ?? {};
+  const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs, isLargeScreen } = useResponsive();
 
   const { isLandscape } = useOrientation();
   const insets = useSafeAreaInsets();
@@ -170,6 +173,12 @@ export default function ZoneLineCheckInScreen({ route, navigation }) {
   const [lines,           setLines]           = useState([]);
   const [linesLoading,    setLinesLoading]    = useState(false);
   const [selectedLineIds, setSelectedLineIds] = useState(currentLineIds);
+
+   const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen
+      ? (isLandscape ? largeLandscape : largePortrait)
+      : (isLandscape ? mobileLandscape : mobilePortrait);
+
 
   const hydratedRef = useRef(false);
 
@@ -343,6 +352,12 @@ export default function ZoneLineCheckInScreen({ route, navigation }) {
     setStep(STEP_LINES);
     loadLines(selectedZoneIds);
   };
+   const headertitleStyle = pickStyle(
+    landscapeStyles.portitle,
+    landscapeStyles.title,
+    null,
+     screenStyles.title,
+  );
 
   const zoneNameById = new Map(asArray(zones).map((z) => [z.id, z.name]));
   const selectedZoneNames = asArray(selectedZoneIds).map(
@@ -398,16 +413,16 @@ export default function ZoneLineCheckInScreen({ route, navigation }) {
           <HeaderBackButton onPress={handleBackPress} />
         </View>
 
-        <Text style={[screenStyles.title, isLandscape && landscapeStyles.title]}>
+        <Text style={[screenStyles.title,headertitleStyle]}>
           {isZoneStep ? 'Select Zones' : 'Select Lines'}
         </Text>
-        <Text style={[screenStyles.subtitle, isLandscape && landscapeStyles.subtitle]}>
+        <Text style={[screenStyles.subtitle, isLandscape && landscapeStyles.subtitle ,isLargeScreen &&landscapeStyles.subtitleLand]}>
           {isZoneStep ? 'Choose one or more zones' : 'Choose lines within your selected zones'}
         </Text>
 
         {chipNames.length > 0 && (
           <View style={screenStyles.chipRow}>
-            {chipNames.map((n) => <SelectedChip key={n} label={n} />)}
+            {chipNames.map((n) => <SelectedChip key={n} label={n} isLandscape/>)}
           </View>
         )}
       </View>

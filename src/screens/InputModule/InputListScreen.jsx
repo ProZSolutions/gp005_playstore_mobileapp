@@ -14,6 +14,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useFocusEffect } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useBackToDashboard } from '../../hooks/useBackToDashboard';
+import { useOrientation } from '../../hooks/useOrientation';
 
 import { AppColors } from '../../theme/theme';
 import { useResponsive } from '../../utils/responsive';
@@ -26,8 +27,16 @@ import createStyles from '../../screens/styles/TLSAuditStyles';
 const TEAL = AppColors.primary;
 const SEARCH_DEBOUNCE_MS = 400;
 
-function OrderCard({ order, processing, disabled, onPress, styles }) {
+function OrderCard({ order, processing, disabled, onPress, styles ,isLandscape,isLargeScreen}) {
   const { moderateScale: ms } = useResponsive();
+  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen
+      ? (isLandscape ? largeLandscape : largePortrait)
+      : (isLandscape ? mobileLandscape : mobilePortrait);
+  const tlsCodeStyle = pickStyle(styles.tlsCodeLarge,styles.tlsCodeLarge, null,styles.tlsCode,);
+   const tlsValueStyle = pickStyle(styles.fieldValueLarge,styles.fieldValueLarge, null,styles.fieldValue,);
+   const tlsdateStyle = pickStyle(styles.createdOnTextLarge,styles.createdOnTextLarge, null,styles.createdOnText,);
+
   return (
     <Pressable
       onPress={disabled ? undefined : onPress}
@@ -41,7 +50,7 @@ function OrderCard({ order, processing, disabled, onPress, styles }) {
       accessibilityState={{ disabled }}
     >
       <View style={styles.cardTopRow}>
-        <Text style={styles.tlsCode}>{order.orderNo}</Text>
+        <Text  style={[styles.tlsCode,tlsCodeStyle]}>{order.orderNo}</Text>
         {processing ? (
           <ActivityIndicator size="small" color={AppColors.primary} />
         ) : (
@@ -54,14 +63,14 @@ function OrderCard({ order, processing, disabled, onPress, styles }) {
           <Text style={styles.fieldLabel}>COLOUR</Text>
           <View style={styles.fieldValueRow}>
             <View style={[styles.colourDot, { backgroundColor: order.colourHex }]} />
-            <Text style={styles.fieldValue} numberOfLines={1}>{order.colour}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]}numberOfLines={1}>{order.colour}</Text>
           </View>
         </View>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>BUYER</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="people-outline" size={ms(13)} color={AppColors.primary} />
-            <Text style={[styles.fieldValue, { marginLeft: ms(5) }]} numberOfLines={1}>{order.buyer}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.buyer}</Text>
           </View>
         </View>
       </View>
@@ -71,14 +80,14 @@ function OrderCard({ order, processing, disabled, onPress, styles }) {
           <Text style={styles.fieldLabel}>STYLE</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="shirt-outline" size={ms(13)} color={AppColors.primary} />
-            <Text style={[styles.fieldValue, { marginLeft: ms(5) }]} numberOfLines={1}>{order.style}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.style}</Text>
           </View>
         </View>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>STYLE NO.</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="pricetag-outline" size={ms(13)} color={AppColors.primary} />
-            <Text style={[styles.fieldValue, { marginLeft: ms(5) }]} numberOfLines={1}>{order.styleNo}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.styleNo}</Text>
           </View>
         </View>
       </View>
@@ -89,7 +98,7 @@ function OrderCard({ order, processing, disabled, onPress, styles }) {
 
       <View style={styles.cardFooterRow}>
         <Ionicons name="time-outline" size={ms(12)} color={AppColors.textTertiary} />
-        <Text style={styles.createdOnText}>Created On {order.createdOn}</Text>
+        <Text style={[styles.createdOnText,tlsdateStyle]}>Created On {order.createdOn}</Text>
       </View>
     </Pressable>
   );
@@ -98,6 +107,7 @@ function OrderCard({ order, processing, disabled, onPress, styles }) {
 export default function InputListScreen({ navigation, route }) {
 
   const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs, isLargeScreen } = useResponsive();
+    const { isLandscape } = useOrientation();
   const styles = createStyles(ms, mvs, fs, isLargeScreen);
   const insets = useSafeAreaInsets();
   const [selname,Setselname] = useState(null);
@@ -151,12 +161,37 @@ export default function InputListScreen({ navigation, route }) {
     setPage(1);
     setHasMore(true);
   }, [setLineSelection]);
+ const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen
+      ? (isLandscape ? largeLandscape : largePortrait)
+      : (isLandscape ? mobileLandscape : mobilePortrait);
 
-  // Monotonically increasing token identifying the "latest" fetch request.
-  // Any response that resolves after a newer request has started is stale
-  // and must not be allowed to overwrite state — this is what fixes the
-  // "list doesn't update / shows wrong line's data" symptom caused by
-  // out-of-order network responses when switching lines quickly.
+ const tlsTitleStyle = pickStyle(styles.titlelarge,
+    styles.titlelandscape,
+    null,
+    styles.title, 
+  ); 
+const tlsSearchStyle = pickStyle(styles.searchOuterlarge,
+    styles.searchOuterlarge,
+    null,
+    styles.searchOuter,
+  );
+const tlsSearchBarStyle = pickStyle(styles.searchBarLarge,
+    styles.searchBarLarge,
+    null,
+    styles.searchBar,
+  );
+  const tlsSearchBarInput = pickStyle(styles.searchInputLarge,
+    styles.searchInputLarge,
+    null,
+    styles.searchInput,
+  );
+ const tlsSearchChio= pickStyle(styles.lineChipTextLarge,
+    styles.lineChipTextLarge,
+    null,
+    styles.lineChipText,
+  );
+
   const fetchIdRef = useRef(0);
 
   const fetchPage = useCallback(async ({ lineId, pageNum, searchTerm, append }) => {
@@ -380,7 +415,8 @@ export default function InputListScreen({ navigation, route }) {
             disabled={!!navigatingOrderId || !canCreateAudit}
             onPress={() => handleOrderPress(item)}
             styles={styles}
-          />
+            isLandscape
+            isLargeScreen          />
         )}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
@@ -414,21 +450,21 @@ export default function InputListScreen({ navigation, route }) {
 
           <View style={styles.headerTopRow}>
             <View>
-              <Text style={styles.title}>Input</Text>
+              <Text style={[styles.title,tlsTitleStyle]}>Input</Text>
              </View>
              
           </View>
         </SafeAreaView>
 
-        <View style={styles.searchOuter}>
-          <View style={styles.searchBar}>
+        <View style={[styles.searchOuter,tlsSearchStyle]}>
+          <View style={[styles.searchBar,tlsSearchBarStyle]}>
             <Ionicons name="search-outline" size={ms(16)} color={AppColors.textTertiary} />
             <TextInput
               value={query}
               onChangeText={setQuery}
               placeholder="Search"
               placeholderTextColor={AppColors.textTertiary}
-              style={styles.searchInput}
+              style={[styles.searchInput,tlsSearchBarInput]}
               returnKeyType="search"
               autoCorrect={false}
             />
@@ -463,7 +499,7 @@ export default function InputListScreen({ navigation, route }) {
                       />
                     )}
                     <Text
-                      style={[styles.lineChipText, active && styles.lineChipTextActive]}
+                     style={[styles.lineChipText,tlsSearchChio, active && styles.lineChipTextActive]}
                       numberOfLines={1}
                     >
                       {line.name}

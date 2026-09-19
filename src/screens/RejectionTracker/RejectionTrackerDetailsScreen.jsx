@@ -1,5 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, ScrollView, Pressable, StatusBar, TextInput, Switch, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  StatusBar,
+  TextInput,
+  Switch,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
@@ -120,6 +131,17 @@ export default function RejectionTrackerDetailsScreen({ navigation, route }) {
   const [submitting, setSubmitting] = useState(false);
   const [shiftData, setShiftData] = useState(null);
 
+  // Keyboard-aware scrolling so the Notes field never ends up hidden behind
+  // the keyboard.
+  const scrollRef = useRef(null);
+  const notesInputRef = useRef(null);
+
+  const handleNotesFocus = useCallback(() => {
+    // slight delay so this runs after the keyboard has started animating in
+    setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  }, []);
 
   const createdAt = issue?.raw?.created_at ?? null;
 const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -137,41 +159,7 @@ const [elapsedSeconds, setElapsedSeconds] = useState(0);
       })();
       return () => { cancelled = true; };
     }, []);
-  /*const entryKey = getEntryKey(issue);
-  const [capturedTime, setCapturedTime] = useState(null);
-  const [resolvingEntryTime, setResolvingEntryTime] = useState(true);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0); 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setResolvingEntryTime(true);
-      if (!entryKey) {
-        if (!cancelled) {
-          setCapturedTime(new Date().toISOString());
-          setResolvingEntryTime(false);
-        }
-        return;
-      }
-      try {
-        const existing = await getDefectEntryTime(entryKey);
-        if (cancelled) return;
-        if (existing) {
-          setCapturedTime(existing);
-        } else {
-          const now = new Date().toISOString();
-          await setDefectEntryTime(entryKey, now);
-          if (!cancelled) setCapturedTime(now);
-        }
-      } catch (e) {
-        console.warn('Failed to resolve rejection entry time:', e.message);
-        if (!cancelled) setCapturedTime(new Date().toISOString());
-      } finally {
-        if (!cancelled) setResolvingEntryTime(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [entryKey]);
-*/
+ 
    useEffect(() => {
   if (!createdAt) return;
 
@@ -351,8 +339,17 @@ const submitDisabled =
         </SafeAreaView>
       </View>
 
-      <View style={styles.body}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <KeyboardAvoidingView
+        style={styles.body}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? mvs(90) : 0}
+      >
+        <ScrollView
+          ref={scrollRef}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
 
             <View style={styles.sectionCard}>
             <View style={styles.sectionHeaderRow}>
@@ -441,16 +438,18 @@ const submitDisabled =
           <View style={styles.notesWrap}>
             <Text style={styles.notesLabel}>NOTES</Text>
             <TextInput
+              ref={notesInputRef}
               style={styles.notesInput}
               placeholder="Add any observations or notes..."
               placeholderTextColor={AppColors.textTertiary}
               multiline
               value={notes}
               onChangeText={setNotes}
+              onFocus={handleNotesFocus}
             />
           </View>
         </ScrollView>
-      </View>
+      </KeyboardAvoidingView>
 
       <View style={styles.footer}>
         <Pressable

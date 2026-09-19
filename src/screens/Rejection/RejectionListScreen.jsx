@@ -20,6 +20,8 @@ import { AppColors } from '../../theme/theme';
 import { useResponsive } from '../../utils/responsive';
 import reworkService from '../../api/services/rejectionService';
 import rejectionService from '../../api/services/reworkService';
+import { useOrientation } from '../../hooks/useOrientation';
+
 import {
   getShiftData,
   getLineIds,
@@ -43,8 +45,16 @@ const toArray = (v) => (Array.isArray(v) ? v : []);
 
  
 
-function OrderCard({ order, selected, onPress, styles }) {
+function OrderCard({ order, selected, onPress, styles ,isLandscape,isLargeScreen }) {
   const { moderateScale: ms } = useResponsive();
+   const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen
+      ? (isLandscape ? largeLandscape : largePortrait)
+      : (isLandscape ? mobileLandscape : mobilePortrait);
+  const tlsCodeStyle = pickStyle(styles.tlsCodeLarge,styles.tlsCodeLarge, null,styles.tlsCode,);
+   const tlsValueStyle = pickStyle(styles.fieldValueLarge,styles.fieldValueLarge, null,styles.fieldValue,);
+   const tlsdateStyle = pickStyle(styles.createdOnTextLarge,styles.createdOnTextLarge, null,styles.createdOnText,);
+
   return (
     <Pressable
       onPress={onPress}
@@ -58,7 +68,7 @@ function OrderCard({ order, selected, onPress, styles }) {
       accessibilityState={{ checked: selected }}
     >
       <View style={styles.cardTopRow}>
-        <Text style={styles.tlsCode}>{order.tlsCode}</Text>
+        <Text style={[styles.tlsCode,tlsCodeStyle]}>{order.tlsCode}</Text>
         <View
           style={[
             styles.radioOuter,
@@ -75,14 +85,14 @@ function OrderCard({ order, selected, onPress, styles }) {
           <Text style={styles.fieldLabel}>COLOUR</Text>
           <View style={styles.fieldValueRow}>
             <View style={[styles.colourDot, { backgroundColor: order.colourHex }]} />
-            <Text style={styles.fieldValue} numberOfLines={1}>{order.colour}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.colour}</Text>
           </View>
         </View>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>BUYER</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="people-outline" size={ms(13)} color={AppColors.primary} />
-            <Text style={[styles.fieldValue, { marginLeft: ms(5) }]} numberOfLines={1}>{order.buyer}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.buyer}</Text>
           </View>
         </View>
       </View>
@@ -92,14 +102,14 @@ function OrderCard({ order, selected, onPress, styles }) {
           <Text style={styles.fieldLabel}>STYLE</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="shirt-outline" size={ms(13)} color={AppColors.primary} />
-            <Text style={[styles.fieldValue, { marginLeft: ms(5) }]} numberOfLines={1}>{order.style}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]}  numberOfLines={1}>{order.style}</Text>
           </View>
         </View>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>STYLE NO.</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="pricetag-outline" size={ms(13)} color={AppColors.primary} />
-            <Text style={[styles.fieldValue, { marginLeft: ms(5) }]} numberOfLines={1}>{order.styleNo}</Text>
+            <Text  style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]}   numberOfLines={1}>{order.styleNo}</Text>
           </View>
         </View>
       </View>
@@ -108,7 +118,7 @@ function OrderCard({ order, selected, onPress, styles }) {
 
       <View style={styles.cardFooterRow}>
         <Ionicons name="time-outline" size={ms(12)} color={AppColors.textTertiary} />
-        <Text style={styles.createdOnText}>Created on {order.createdOn}</Text>
+        <Text style={[styles.createdOnText,tlsdateStyle]}>Created on {order.createdOn}</Text>
       </View>
     </Pressable>
   );
@@ -118,6 +128,8 @@ export default function RejectionList({ navigation, route }) {
 
   const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs, isLargeScreen } = useResponsive();
   const styles = createStyles(ms, mvs, fs, isLargeScreen);
+    const { isLandscape } = useOrientation();
+  
   const insets = useSafeAreaInsets();
   const [scannerVisible, setScannerVisible] = useState(false);
   const [checkingDevice, setCheckingDevice] = useState(false);
@@ -126,6 +138,37 @@ export default function RejectionList({ navigation, route }) {
   const canListTlsAudit = can(GROUP.REJECTION, ACTION.LIST); 
   const canCreateRework = can(GROUP.REJECTION, ACTION.CREATE);
   const goBack = useBackToDashboard(navigation);
+
+  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen
+      ? (isLandscape ? largeLandscape : largePortrait)
+      : (isLandscape ? mobileLandscape : mobilePortrait);
+
+ const tlsTitleStyle = pickStyle(styles.titlelarge,
+    styles.titlelandscape,
+    null,
+    styles.title, 
+  ); 
+const tlsSearchStyle = pickStyle(styles.searchOuterlarge,
+    styles.searchOuterlarge,
+    null,
+    styles.searchOuter,
+  );
+const tlsSearchBarStyle = pickStyle(styles.searchBarLarge,
+    styles.searchBarLarge,
+    null,
+    styles.searchBar,
+  );
+  const tlsSearchBarInput = pickStyle(styles.searchInputLarge,
+    styles.searchInputLarge,
+    null,
+    styles.searchInput,
+  );
+ const tlsSearchChio= pickStyle(styles.lineChipTextLarge,
+    styles.lineChipTextLarge,
+    null,
+    styles.lineChipText,
+  );
 
   const {
     user,
@@ -484,21 +527,21 @@ const handleScanSuccess = useCallback(async (data) => {
 
           <View style={styles.headerTopRow}>
             <View>
-              <Text style={styles.title}>Rejection</Text>
+              <Text style={[styles.title,tlsTitleStyle]}>Rejection</Text>
              </View>
             
           </View>
         </SafeAreaView>
 
-        <View style={styles.searchOuter}>
-          <View style={styles.searchBar}>
+        <View style={[styles.searchOuter,tlsSearchStyle]}>
+          <View style={[styles.searchBar,tlsSearchBarStyle]}>
             <Ionicons name="search-outline" size={ms(16)} color={AppColors.textTertiary} />
             <TextInput
               value={query}
               onChangeText={setQuery}
               placeholder="Search"
               placeholderTextColor={AppColors.textTertiary}
-              style={styles.searchInput}
+              style={[styles.searchInput,tlsSearchBarInput]}
               returnKeyType="search"
               autoCorrect={false}
             />
@@ -533,7 +576,7 @@ const handleScanSuccess = useCallback(async (data) => {
                       />
                     )}
                     <Text
-                      style={[styles.lineChipText, active && styles.lineChipTextActive]}
+                      style={[styles.lineChipText,tlsSearchChio, active && styles.lineChipTextActive]}
                       numberOfLines={1}
                     >
                       {line.name}
@@ -578,6 +621,8 @@ const handleScanSuccess = useCallback(async (data) => {
                 selected={selectedOrderId === order.id}
                 onPress={() => setSelectedOrderId(order.id)}
                 styles={styles}
+                isLandscape
+                isLargeScreen 
               />
             )}
             contentContainerStyle={styles.listContent}

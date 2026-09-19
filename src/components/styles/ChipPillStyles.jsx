@@ -16,9 +16,24 @@ const TEAL = AppColors.onPrimary ?? '#0A9E96';
     marginRight:       6,
     marginBottom:      6,
   },
+   chipLarge: {
+    flexDirection:     'row',
+    alignItems:        'center',
+    backgroundColor:   'rgba(255,255,255,0.20)',
+    borderRadius:      14,
+    paddingHorizontal: 10,
+    paddingVertical:   5,
+    marginRight:       6,
+    marginBottom:      6,
+  },
   text: {
     color:      '#fff',
-    fontSize:   13,
+    fontSize:   fontScale(13),
+    fontWeight: '600',
+  },
+  textLarge: {
+    color:      '#fff',
+    fontSize:   fontScale(16),
     fontWeight: '600',
   },
 });
@@ -49,8 +64,9 @@ export const badgeStyles = StyleSheet.create({
   },
   text: {
     color:         '#fff',
-    fontSize:      13,
+    fontSize:      fontScale(13),
     fontWeight:    '700',
     letterSpacing: 0.4,
+    fontFamily:'Inter-Regular'
   },
 });

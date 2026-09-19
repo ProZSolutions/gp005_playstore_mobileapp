@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, ScrollView, Pressable, StatusBar, ActivityIndicator, SafeAreaView,TextInput, StyleSheet ,Switch, BackHandler } from 'react-native';
+import { View, Text, ScrollView, Pressable, StatusBar, ActivityIndicator, SafeAreaView,TextInput, 
+  StyleSheet ,Switch, BackHandler } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -11,6 +12,7 @@ import DefectEntrySheet from '../../components/DefectEntrySheet';
 import { submitAqlAudit } from '../../api/services/aqlAuditService'; 
 import { getCategoryDropdown, getSeverityDropdown } from '../../api/services/tlsService';
 import createStyless from '../styles/ReworkTrackerDetailsStyles';
+import { useOrientation } from '../../hooks/useOrientation';
 
 const TEAL = AppColors.primary;
 
@@ -47,10 +49,14 @@ function ResultRow({ styles, label, value, bordered, danger, onPress, chevron })
 }
 
 export default function AQLAuditDetailsScreen({ navigation, route }) {
-  const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs } = useResponsive();
+  const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs ,isLargeScreen} = useResponsive();
   const styles = createStyles(ms, mvs, fs);
    const styles_re = createStyless(ms, mvs, fs);
   const [notes, setNotes] = useState('');
+  const { isLandscape } = useOrientation();
+  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
+(isLandscape ? mobileLandscape : mobilePortrait);
+ const textStyle = pickStyle(styles.headerTopRowLarge,styles.headerTopRowLarge,null,styles.headerTopRow);
 
 const { orderInfo, styleInfo, user, lineId, inspectionSetup, settingstype, output } = route?.params ?? {};
   const {
@@ -251,7 +257,7 @@ const handleSubmit = useCallback(async (destination = 'list') => {
 
       <View style={styles.headerWrap}>
         <View edges={['top']} style={{ backgroundColor: 'transparent' }}>
-          <View style={styles.headerTopRow}>
+          <View style={[styles.headerTopRow,textStyle]}>
             <View style={styles.headerTopLeft}>
               <Pressable
                 onPress={() => navigation.goBack()}
@@ -273,11 +279,7 @@ const handleSubmit = useCallback(async (destination = 'list') => {
             <View style={[styles.progressSeg, styles.progressSegActive]} />
           </View>
 
-          {/* Order / line / style summary — moved up here from the old
-              "ORDER & INSPECTION DETAILS" body card, same meta-row layout
-              RejectionTrackerDetailsScreen and ReworkTrackerDetailsScreen
-              use in their headers (styles_re comes from the same
-              ReworkTrackerDetailsStyles those screens use for this). */}
+           
           <View style={styles_re.metaWrap}>
             <View style={styles_re.metaRow}>
               <Ionicons name="layers-outline" size={ms(14)} color={AppColors.onPrimary} style={styles_re.metaIcon} />

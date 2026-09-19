@@ -16,6 +16,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SkeletonList } from '../../components/SkeletonListItem';
 import { AppColors } from '../../theme/theme';
 import { useResponsive } from '../../utils/responsive';
+import { useOrientation } from '../../hooks/useOrientation';
+ 
 import {
   getShiftData,
   PAGE_SIZE,
@@ -30,8 +32,16 @@ import { useBackToDashboard } from '../../hooks/useBackToDashboard';
 const TEAL = AppColors.primary;
 const SEARCH_DEBOUNCE_MS = 400; 
 
-function OrderCard({ order, processing, disabled, onPress, styles }) {
+function OrderCard({ order, processing, disabled, onPress, styles ,isLandscape,isLargeScreen}) {
   const { moderateScale: ms } = useResponsive();
+  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen
+      ? (isLandscape ? largeLandscape : largePortrait)
+      : (isLandscape ? mobileLandscape : mobilePortrait);
+  const tlsCodeStyle = pickStyle(styles.tlsCodeLarge,styles.tlsCodeLarge, null,styles.tlsCode,);
+   const tlsValueStyle = pickStyle(styles.fieldValueLarge,styles.fieldValueLarge, null,styles.fieldValue,);
+   const tlsdateStyle = pickStyle(styles.createdOnTextLarge,styles.createdOnTextLarge, null,styles.createdOnText,);
+
   return (
     <Pressable
       onPress={disabled ? undefined : onPress}
@@ -45,7 +55,7 @@ function OrderCard({ order, processing, disabled, onPress, styles }) {
       accessibilityState={{ disabled }}
     >
       <View style={styles.cardTopRow}>
-        <Text style={styles.tlsCode}>{order.orderNo}</Text>
+        <Text style={[styles.tlsCode,tlsCodeStyle]}>{order.orderNo}</Text>
         {processing ? (
           <ActivityIndicator size="small" color={AppColors.primary} />
         ) : (
@@ -58,14 +68,14 @@ function OrderCard({ order, processing, disabled, onPress, styles }) {
           <Text style={styles.fieldLabel}>COLOUR</Text>
           <View style={styles.fieldValueRow}>
             <View style={[styles.colourDot, { backgroundColor: order.colourHex }]} />
-            <Text style={styles.fieldValue} numberOfLines={1}>{order.colour}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.colour}</Text>
           </View>
         </View>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>BUYER</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="people-outline" size={ms(13)} color={AppColors.primary} />
-            <Text style={[styles.fieldValue, { marginLeft: ms(5) }]} numberOfLines={1}>{order.buyer}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.buyer}</Text>
           </View>
         </View>
       </View>
@@ -75,14 +85,14 @@ function OrderCard({ order, processing, disabled, onPress, styles }) {
           <Text style={styles.fieldLabel}>STYLE</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="shirt-outline" size={ms(13)} color={AppColors.primary} />
-            <Text style={[styles.fieldValue, { marginLeft: ms(5) }]} numberOfLines={1}>{order.style}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.style}</Text>
           </View>
         </View>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>STYLE NO.</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="pricetag-outline" size={ms(13)} color={AppColors.primary} />
-            <Text style={[styles.fieldValue, { marginLeft: ms(5) }]} numberOfLines={1}>{order.styleNo}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.styleNo}</Text>
           </View>
         </View>
       </View>
@@ -93,13 +103,14 @@ function OrderCard({ order, processing, disabled, onPress, styles }) {
 
       <View style={styles.cardFooterRow}>
         <Ionicons name="time-outline" size={ms(12)} color={AppColors.textTertiary} />
-        <Text style={styles.createdOnText}>Created On {order.createdOn}</Text>
+        <Text style={[styles.createdOnText,tlsdateStyle]}>Created On {order.createdOn}</Text>
       </View>
     </Pressable>
   );
 }
 
 export default function InputListScreen({ navigation, route }) {
+  const { isLandscape } = useOrientation();
 
   const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs, isLargeScreen } = useResponsive();
   const styles = createStyles(ms, mvs, fs, isLargeScreen);
@@ -160,6 +171,37 @@ export default function InputListScreen({ navigation, route }) {
 
 
 
+  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen
+      ? (isLandscape ? largeLandscape : largePortrait)
+      : (isLandscape ? mobileLandscape : mobilePortrait);
+
+ const tlsTitleStyle = pickStyle(styles.titlelarge,
+    styles.titlelandscape,
+    null,
+    styles.title, 
+  ); 
+const tlsSearchStyle = pickStyle(styles.searchOuterlarge,
+    styles.searchOuterlarge,
+    null,
+    styles.searchOuter,
+  );
+const tlsSearchBarStyle = pickStyle(styles.searchBarLarge,
+    styles.searchBarLarge,
+    null,
+    styles.searchBar,
+  );
+  const tlsSearchBarInput = pickStyle(styles.searchInputLarge,
+    styles.searchInputLarge,
+    null,
+    styles.searchInput,
+  );
+ const tlsSearchChio= pickStyle(styles.lineChipTextLarge,
+    styles.lineChipTextLarge,
+    null,
+    styles.lineChipText,
+  );
+
 
   const fetchPage = useCallback(async ({ lineId, pageNum, searchTerm, append }) => {
     if (!lineId) return;
@@ -175,6 +217,36 @@ export default function InputListScreen({ navigation, route }) {
         pageSize: PAGE_SIZE,
         search: searchTerm,
       });
+ const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen
+      ? (isLandscape ? largeLandscape : largePortrait)
+      : (isLandscape ? mobileLandscape : mobilePortrait);
+
+ const tlsTitleStyle = pickStyle(styles.titlelarge,
+    styles.titlelandscape,
+    null,
+    styles.title, 
+  ); 
+const tlsSearchStyle = pickStyle(styles.searchOuterlarge,
+    styles.searchOuterlarge,
+    null,
+    styles.searchOuter,
+  );
+const tlsSearchBarStyle = pickStyle(styles.searchBarLarge,
+    styles.searchBarLarge,
+    null,
+    styles.searchBar,
+  );
+  const tlsSearchBarInput = pickStyle(styles.searchInputLarge,
+    styles.searchInputLarge,
+    null,
+    styles.searchInput,
+  );
+ const tlsSearchChio= pickStyle(styles.lineChipTextLarge,
+    styles.lineChipTextLarge,
+    null,
+    styles.lineChipText,
+  );
 
  
       const records = Array.isArray(payload?.data?.records) ? payload.data.records : [];
@@ -395,7 +467,8 @@ export default function InputListScreen({ navigation, route }) {
             disabled={!!navigatingOrderId || !canCreateAudit}
             onPress={() => handleOrderPress(item)}
             styles={styles}
-          />
+            isLandscape
+            isLargeScreen          />
         )}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
@@ -429,21 +502,21 @@ export default function InputListScreen({ navigation, route }) {
 
           <View style={styles.headerTopRow}>
             <View>
-              <Text style={styles.title}>AQL Audit List</Text>
+              <Text style={[styles.title,tlsTitleStyle]}>AQL Audit List</Text>
              </View>
              
           </View>
         </SafeAreaView>
 
-        <View style={styles.searchOuter}>
-          <View style={styles.searchBar}>
+        <View style={[styles.searchOuter,tlsSearchStyle]}>
+          <View style={[styles.searchBar,tlsSearchBarStyle]}>
             <Ionicons name="search-outline" size={ms(16)} color={AppColors.textTertiary} />
             <TextInput
               value={query}
               onChangeText={setQuery}
               placeholder="Search"
               placeholderTextColor={AppColors.textTertiary}
-              style={styles.searchInput}
+             style={[styles.searchInput,tlsSearchBarInput]}
               returnKeyType="search"
               autoCorrect={false}
             />
@@ -478,7 +551,7 @@ export default function InputListScreen({ navigation, route }) {
                       />
                     )}
                     <Text
-                      style={[styles.lineChipText, active && styles.lineChipTextActive]}
+                      style={[styles.lineChipText,tlsSearchChio, active && styles.lineChipTextActive]}
                       numberOfLines={1}
                     >
                       {line.name}

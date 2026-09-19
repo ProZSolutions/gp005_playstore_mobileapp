@@ -9,6 +9,7 @@ import { useResponsive } from '../../utils/responsive';
 import { STATUS_STYLES, lineAbbrev } from '../../utils/tlsIssueData';
 import { getQCAuditList } from '../../api/services/tlsService';
 import { useBackToDashboard } from '../../hooks/useBackToDashboard';
+import { useOrientation } from '../../hooks/useOrientation';
 
 import {
   getLineIds,

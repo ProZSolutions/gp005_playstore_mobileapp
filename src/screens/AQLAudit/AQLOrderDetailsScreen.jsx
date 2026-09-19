@@ -16,6 +16,7 @@ import {
   buildOrderAndStyleInfo,
 } from '../../api/services/aqlAuditService';
 import { useBackToDashboard } from '../../hooks/useBackToDashboard'; // adjust path
+import { useOrientation } from '../../hooks/useOrientation';
 
 const TEAL = AppColors.primary;
 
@@ -63,9 +64,18 @@ function SelectableRow({ label, value, placeholder = 'Select', styles, bordered,
   );
 }
 
-function ManualQtyModal({ visible, initialValue, maxValue, onClose, onSave, settingstype, wip, output }) {
+function ManualQtyModal({ visible, initialValue, maxValue, onClose, onSave, settingstype, wip, output ,isLandscape,isLargeScreen,styles}) {
   
+  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
+  (isLandscape ? mobileLandscape : mobilePortrait);
   const [text, setText] = useState(String(initialValue ?? ''));
+   const textStyle = pickStyle(styles.manualTitleLarge,styles.manualTitleLarge,null,styles.manualTitle);
+   const limitStyle = pickStyle(styles.limitLarge,styles.limitLarge,null,styles.limit);
+   const btncancelStyle = pickStyle(styles.btncancellarge,styles.btncancellarge,null,styles.btncancel);
+   const btnsubmitStyle = pickStyle(styles.btnsubmittlarge,styles.btnsubmittlarge,null,styles.btnsubmitt);
+   const btncantxt = pickStyle(styles.btncantextlarge,styles.btncantextlarge,null,styles.btncantext);
+   const btnsubtxt = pickStyle(styles.btnsavetxtlarge,styles.btnsavetxtlarge,null,styles.btnsavetxt);
+   const mnyy = pickStyle(styles.manbglng,styles.manbglng,null,styles.manbg);
 
   useEffect(() => {
     if (visible) setText(String(initialValue ?? ''));
@@ -116,14 +126,14 @@ function ManualQtyModal({ visible, initialValue, maxValue, onClose, onSave, sett
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 24 }}
+        style={mnyy}
       >
         <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 20 }}>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: AppColors.textPrimary ?? '#111827', marginBottom: 4 }}>
+          <Text style={textStyle}>
             Manual Inspection Qty
           </Text>
           {hasLimit && (
-            <Text style={{ fontSize: 12, color: AppColors.textTertiary ?? '#9CA3AF', marginBottom: 12 }}>
+            <Text style={limitStyle}>
               Max allowed for this size: {maxValue}
             </Text>
           )}
@@ -147,15 +157,15 @@ function ManualQtyModal({ visible, initialValue, maxValue, onClose, onSave, sett
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <Pressable
               onPress={onClose}
-              style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 10, backgroundColor: '#F1F5F9' }}
+              style={btncancelStyle}
             >
-              <Text style={{ fontWeight: '600', color: AppColors.textSecondary ?? '#475569' }}>Cancel</Text>
+              <Text style={btncantxt}>Cancel</Text>
             </Pressable>
             <Pressable
               onPress={handleSave}
-              style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 10, backgroundColor: TEAL }}
+              style={btnsubmitStyle}
             >
-              <Text style={{ fontWeight: '700', color: '#fff' }}>Save</Text>
+              <Text style={btnsubtxt}>Save</Text>
             </Pressable>
           </View>
         </View>
@@ -165,7 +175,8 @@ function ManualQtyModal({ visible, initialValue, maxValue, onClose, onSave, sett
 }
 
 export default function AQLOrderDetailsScreen({ navigation, route }) {
-  const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs } = useResponsive();
+  const { isLandscape } = useOrientation();
+  const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs,isLargeScreen } = useResponsive();
   const styles = createStyles(ms, mvs, fs);
   const {
     orderInfo: initialOrderInfo,
@@ -414,13 +425,19 @@ export default function AQLOrderDetailsScreen({ navigation, route }) {
     return () => sub.remove();
   }, [navigation]);
 
+
+  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
+(isLandscape ? mobileLandscape : mobilePortrait);
+ const textStyle = pickStyle(styles.headerTopRowLarge,styles.headerTopRowLarge,null,styles.headerTopRow);
+
+
   return (
     <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={TEAL} />
 
       <View style={styles.headerWrap}>
         <SafeAreaView edges={['top']} style={{ backgroundColor: 'transparent' }}>
-          <View style={styles.headerTopRow}>
+          <View style={[styles.headerTopRow,textStyle]}>
             <View style={styles.headerTopLeft}>
               <Pressable
                 onPress={() => navigation.goBack()}
@@ -579,6 +596,9 @@ export default function AQLOrderDetailsScreen({ navigation, route }) {
         output={output}
         onClose={() => setManualQtyVisible(false)}
         onSave={(n) => { setQty(n); setQtyManual(true); }}
+        isLandscape
+        isLargeScreen
+        styles={styles}
       />
     </View>
   );

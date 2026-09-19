@@ -10,6 +10,7 @@ import SelectOptionSheet from '../../components/SelectOptionSheet';
 import continuityService, { isSelected } from '../../api/services/continuityService';
 import { showAlert } from '../../utils/AlertService';
 import { usePermissions, GROUP, ACTION } from '../../context/PermissionsContext';
+import { useOrientation } from '../../hooks/useOrientation';
 
 const TEAL = AppColors.primary;
 
@@ -63,7 +64,17 @@ const UNSET = { id: 0, label: null };
 
 export default function OrderContinuityMappingScreen({ navigation }) {
   const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs, isLargeScreen } = useResponsive();
-  const styles = createStyles(ms, mvs, fs, isLargeScreen);
+  const { isLandscape } = useOrientation();
+
+  // Side-by-side ONLY when it's a large screen AND in landscape.
+  // Large+portrait, mobile+portrait, mobile+landscape all stack.
+  const useSideBySide = isLargeScreen && isLandscape;
+
+  // IMPORTANT: pass `useSideBySide` into the 4th param — createStyles only
+  // takes 4 args (ms, mvs, fs, isLargeScreen) and uses that 4th value to
+  // decide row vs column layout. Passing the raw `isLargeScreen` here was
+  // the bug that kept tablet-portrait side-by-side.
+  const styles = createStyles(ms, mvs, fs, useSideBySide);
 
   const { canView, can, loading: permissionsLoading } = usePermissions();
   const canCreateAudit = can(GROUP.CONTINUITY, ACTION.CREATE);
@@ -370,7 +381,7 @@ export default function OrderContinuityMappingScreen({ navigation }) {
                 </View>
               </View>
 
-              {!isLargeScreen && (
+              {!useSideBySide && (
                 <View style={styles.flowDivider}>
                   <View style={styles.flowDividerLine} />
                   <View style={styles.flowDividerIconWrap}>

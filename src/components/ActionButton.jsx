@@ -9,11 +9,18 @@ import { useOrientation } from '../hooks/useOrientation';
 export function ActionButton({ label, onPress, disabled, loading }) {
   const { isLargeScreen } = useResponsive();
  const { isLandscape } = useOrientation();
-
-  // Only apply the tablet-portrait "large" styling when we're NOT
-  // in landscape — otherwise a tablet rotated sideways still gets
-  // the 95px-tall button meant for a tall portrait screen.
+ 
   const applyLarge = isLargeScreen && !isLandscape;
+const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen
+      ? (isLandscape ? largeLandscape : largePortrait)
+      : (isLandscape ? mobileLandscape : mobilePortrait);
+
+  const textStyle = pickStyle(btnStyles.labellarge,btnStyles.labellarge,null,btnStyles.label);
+    const btnStyle = pickStyle(btnStyles.btnLarge,btnStyles.btnLarge,null,btnStyles.btn);
+
+
+
 
   return (
     <Pressable
@@ -24,8 +31,7 @@ export function ActionButton({ label, onPress, disabled, loading }) {
         btnStyles.primary,
         disabled && btnStyles.disabled,
         pressed && !disabled && btnStyles.pressed,
-        applyLarge && tabletStyles.btnLarge,
-        isLandscape && tabletStyles.btnLandscape,
+        btnStyle
       ]}
       accessibilityRole="button"
       accessibilityState={{ disabled }}
@@ -36,9 +42,9 @@ export function ActionButton({ label, onPress, disabled, loading }) {
         <Text
           style={[
             btnStyles.label,
+            textStyle,
             disabled && btnStyles.labelDisabled,
-            applyLarge && tabletStyles.labelLarge,
-            isLandscape && tabletStyles.labelLandscape,
+            
           ]}
           numberOfLines={1}
         >
@@ -53,20 +59,19 @@ export default ActionButton;
 
 const tabletStyles = StyleSheet.create({
   btnLarge: {
-    minHeight: 95,
-    paddingVertical: 10,
-    borderRadius: 25,
-  },
+    minHeight: 60,
+     borderRadius: 25,
+     paddingVertical: 20,  },
   labelLarge: {
-    fontSize: 25,
+    fontSize: 15,
   },
   // Compact footer button for landscape, phone or tablet alike
   btnLandscape: {
-    minHeight: 44,
-    paddingVertical: 10,
+    minHeight: 60,
+    paddingVertical: 20,
     borderRadius: 12,
   },
   labelLandscape: {
-    fontSize: 16,
+    fontSize: 15,
   },
 });

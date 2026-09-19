@@ -20,6 +20,7 @@ import { AppColors } from '../../theme/theme';
 import { useResponsive } from '../../utils/responsive';
 import reworkService from '../../api/services/reworkService';
 import { useBackToDashboard } from '../../hooks/useBackToDashboard';
+import { useOrientation } from '../../hooks/useOrientation';
 
 import {
   getShiftData,
@@ -69,8 +70,16 @@ const toArray = (v) => (Array.isArray(v) ? v : []);
   );
 }
 */}
-function OrderCard({ order, selected, onPress, styles }) {
+function OrderCard({ order, selected, onPress, styles,isLandscape,isLargeScreen  }) {
   const { moderateScale: ms } = useResponsive();
+   const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen
+      ? (isLandscape ? largeLandscape : largePortrait)
+      : (isLandscape ? mobileLandscape : mobilePortrait);
+   const tlsCodeStyle = pickStyle(styles.tlsCodeLarge,styles.tlsCodeLarge, null,styles.tlsCode,);
+   const tlsValueStyle = pickStyle(styles.fieldValueLarge,styles.fieldValueLarge, null,styles.fieldValue,);
+   const tlsdateStyle = pickStyle(styles.createdOnTextLarge,styles.createdOnTextLarge, null,styles.createdOnText,);
+
   return (
     <Pressable
       onPress={onPress}
@@ -84,7 +93,7 @@ function OrderCard({ order, selected, onPress, styles }) {
       accessibilityState={{ checked: selected }}
     >
       <View style={styles.cardTopRow}>
-        <Text style={styles.tlsCode}>{order.tlsCode}</Text>
+        <Text style={[styles.tlsCode,tlsCodeStyle]}>{order.tlsCode}</Text>
         <View
           style={[
             styles.radioOuter,
@@ -101,14 +110,14 @@ function OrderCard({ order, selected, onPress, styles }) {
           <Text style={styles.fieldLabel}>COLOUR</Text>
           <View style={styles.fieldValueRow}>
             <View style={[styles.colourDot, { backgroundColor: order.colourHex }]} />
-            <Text style={styles.fieldValue} numberOfLines={1}>{order.colour}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.colour}</Text>
           </View>
         </View>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>BUYER</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="people-outline" size={ms(13)} color={AppColors.primary} />
-            <Text style={[styles.fieldValue, { marginLeft: ms(5) }]} numberOfLines={1}>{order.buyer}</Text>
+            <Text  style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.buyer}</Text>
           </View>
         </View>
       </View>
@@ -118,14 +127,14 @@ function OrderCard({ order, selected, onPress, styles }) {
           <Text style={styles.fieldLabel}>STYLE</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="shirt-outline" size={ms(13)} color={AppColors.primary} />
-            <Text style={[styles.fieldValue, { marginLeft: ms(5) }]} numberOfLines={1}>{order.style}</Text>
+            <Text  style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.style}</Text>
           </View>
         </View>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>STYLE NO.</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="pricetag-outline" size={ms(13)} color={AppColors.primary} />
-            <Text style={[styles.fieldValue, { marginLeft: ms(5) }]} numberOfLines={1}>{order.styleNo}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.styleNo}</Text>
           </View>
         </View>
       </View>
@@ -134,7 +143,7 @@ function OrderCard({ order, selected, onPress, styles }) {
 
       <View style={styles.cardFooterRow}>
         <Ionicons name="time-outline" size={ms(12)} color={AppColors.textTertiary} />
-        <Text style={styles.createdOnText}>Created on {order.createdOn}</Text>
+        <Text style={[styles.createdOnText,tlsdateStyle]}>Created on {order.createdOn}</Text>
       </View>
     </Pressable>
   );
@@ -143,6 +152,7 @@ function OrderCard({ order, selected, onPress, styles }) {
 export default function ReworkList({ navigation, route }) {
 
   const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs, isLargeScreen } = useResponsive();
+  const { isLandscape } = useOrientation();
   const styles = createStyles(ms, mvs, fs, isLargeScreen);
   const insets = useSafeAreaInsets();
   const [scannerVisible, setScannerVisible] = useState(false);
@@ -155,7 +165,8 @@ export default function ReworkList({ navigation, route }) {
   // A user can be allowed to *view* rework orders without being allowed to
   // *create* a rework entry for one.
   const canCreateRework = can(GROUP.REWORK, ACTION.CREATE);
-
+const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
+(isLandscape ? mobileLandscape : mobilePortrait);
   const {
     user,
     lineIds: routeLineIds = [],
@@ -167,6 +178,33 @@ export default function ReworkList({ navigation, route }) {
     line: incomingLine,
     autoScan = false,
   } = route?.params ?? {};
+
+
+          const tlsTitleStyle = pickStyle(styles.titlelarge,
+            styles.titlelandscape,
+            null,
+            styles.title, 
+          ); 
+        const tlsSearchStyle = pickStyle(styles.searchOuterlarge,
+            styles.searchOuterlarge,
+            null,
+            styles.searchOuter,
+          );
+        const tlsSearchBarStyle = pickStyle(styles.searchBarLarge,
+            styles.searchBarLarge,
+            null,
+            styles.searchBar,
+          );
+          const tlsSearchBarInput = pickStyle(styles.searchInputLarge,
+            styles.searchInputLarge,
+            null,
+            styles.searchInput,
+          );
+        const tlsSearchChio= pickStyle(styles.lineChipTextLarge,
+            styles.lineChipTextLarge,
+            null,
+            styles.lineChipText,
+          );
 
   const [lineIds, setLineIds] = useState(routeLineIds);
   const [lineNames, setLineNames] = useState(routeLineNames);
@@ -538,21 +576,21 @@ export default function ReworkList({ navigation, route }) {
 
           <View style={styles.headerTopRow}>
             <View>
-              <Text style={styles.title}>Rework</Text>
+              <Text style={[styles.title,tlsTitleStyle]}>Rework</Text>
              </View>
             
           </View>
         </SafeAreaView>
 
-        <View style={styles.searchOuter}>
-          <View style={styles.searchBar}>
+        <View style={[styles.searchOuter,tlsSearchStyle]}>
+          <View style={[styles.searchBar,tlsSearchBarStyle]}>
             <Ionicons name="search-outline" size={ms(16)} color={AppColors.textTertiary} />
             <TextInput
               value={query}
               onChangeText={setQuery}
               placeholder="Search"
               placeholderTextColor={AppColors.textTertiary}
-              style={styles.searchInput}
+              style={[styles.searchInput,tlsSearchBarInput]}
               returnKeyType="search"
               autoCorrect={false}
             />
@@ -587,7 +625,7 @@ export default function ReworkList({ navigation, route }) {
                       />
                     )}
                     <Text
-                      style={[styles.lineChipText, active && styles.lineChipTextActive]}
+                      style={[styles.lineChipText,tlsSearchChio, active && styles.lineChipTextActive]}
                       numberOfLines={1}
                     >
                       {line.name}
@@ -632,6 +670,8 @@ export default function ReworkList({ navigation, route }) {
                 selected={selectedOrderId === order.id}
                 onPress={() => setSelectedOrderId(order.id)}
                 styles={styles}
+                 isLandscape
+                isLargeScreen
               />
             )}
             contentContainerStyle={styles.listContent}

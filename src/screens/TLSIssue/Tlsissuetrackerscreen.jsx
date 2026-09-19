@@ -8,6 +8,7 @@ import { AppColors } from '../../theme/theme';
 import { useResponsive } from '../../utils/responsive';
 import { STATUS_STYLES, lineAbbrev } from '../../utils/tlsIssueData';
 import { getAuditList } from '../../api/services/tlsService';
+import { useOrientation } from '../../hooks/useOrientation';
 import {
   getLineIds,
   getLineNames,
@@ -106,12 +107,24 @@ function IssueCard({ issue, onPress, styles, ms }) {
 export default function TLSIssueTrackerScreen({ navigation, route }) {
   const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs, isLargeScreen } = useResponsive();
   const styles = createStyles(ms, mvs, fs, isLargeScreen);
-
+ const { isLandscape } = useOrientation();
   // Permission gate: viewing the group at all, and specifically listing it.
   const { canView, can, loading: permsLoading } = usePermissions();
   const canViewGroup = canView(GROUP.TLSISSUE);
   const canListIssues = canViewGroup && can(GROUP.TLSISSUE, ACTION.LIST);
     const goBack = useBackToDashboard(navigation);
+
+
+  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
+(isLandscape ? mobileLandscape : mobilePortrait);
+   const textStyle = pickStyle(styles.titleLarge,styles.titleLarge,null,styles.title);
+
+
+
+
+
+
+
 
  
   const [lines, setLines] = useState(() => buildLineChips(route?.params?.lineIds, route?.params?.lineNames));
@@ -129,17 +142,9 @@ export default function TLSIssueTrackerScreen({ navigation, route }) {
   const [hasMore, setHasMore] = useState(() => (issuesCache.lineId ? issuesCache.hasMore : false));
 
   // Guards against an in-flight page fetch overlapping with a filter change.
-  const requestId = useRef(0);
-  // Tracks the last line+search combo we actually fetched, so returning to
-  // this screen with the same combo (e.g. via a back press) doesn't
-  // trigger another network request.
+  const requestId = useRef(0); 
   const lastFetchedKeyRef = useRef(issuesCache.lineId ? cacheKey(issuesCache.lineId, issuesCache.query) : null);
-
-  // NOTE: loadPage is declared here, BEFORE useFocusEffect below, because
-  // useFocusEffect's dependency array (and its inner callback) reference
-  // loadPage. Since loadPage is a const declared with useCallback, using it
-  // before this point would throw "Cannot access 'loadPage' before
-  // initialization" (temporal dead zone) the moment React evaluates the
+ 
   // dependency array during render.
   const loadPage = useCallback(async (targetPage, { append, lineId = activeLineId, search = debouncedQuery } = {}) => {
     if (!canListIssues || !lineId) return;
@@ -227,23 +232,16 @@ export default function TLSIssueTrackerScreen({ navigation, route }) {
         loadPage(1, { append: false, lineId: resolvedLineId, search: debouncedQuery });
       })();
       return () => { cancelled = true; };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [permsLoading, canListIssues, activeLineId, debouncedQuery, loadPage])
+     }, [permsLoading, canListIssues, activeLineId, debouncedQuery, loadPage])
   );
 
-  // Debounce the search text so we don't hit the API on every keystroke.
-  useEffect(() => {
+   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(query);
     }, SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [query]);
-
-  // Refetch from page 1 whenever the (debounced) search text changes — but
-  // skip it if we already have this exact line+search combo loaded (e.g.
-  // the focus-effect above just fetched it). Line changes are otherwise
-  // handled by handleLineSelect below, which calls the API directly with
-  // the newly selected line id.
+ 
   useEffect(() => {
     if (permsLoading) return;
     if (!canListIssues || !activeLineId) {
@@ -256,10 +254,7 @@ export default function TLSIssueTrackerScreen({ navigation, route }) {
     loadPage(1, { append: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedQuery, permsLoading, canListIssues, activeLineId]);
-
-  // Selecting a line chip calls the audit list API immediately with that
-  // line's id, rather than relying on an effect keyed off activeLineId
-  // (which would only fire after the next render once state settles).
+ 
   const handleLineSelect = useCallback((id) => {
     if (id === activeLineId) return;
     setActiveLineId(id);
@@ -298,7 +293,7 @@ export default function TLSIssueTrackerScreen({ navigation, route }) {
             </Pressable>
           </View>
 
-          <Text style={styles.title}>TLS Issue Tracker</Text>
+          <Text style={textStyle}>TLS Issue Tracker</Text>
         </SafeAreaView>
 
         {canListIssues && (

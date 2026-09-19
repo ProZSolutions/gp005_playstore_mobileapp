@@ -53,7 +53,7 @@ export default function createStyles(ms, mvs, fs) {
     },
     orderIdText: {
       color: ON_PRIMARY,
-      fontSize: fs(15),
+      fontSize: fs(15),fontFamily:'Inter-Regular',
       fontWeight: '700',
       flexShrink: 1,
     },
@@ -83,14 +83,14 @@ export default function createStyles(ms, mvs, fs) {
     },
     badgeText: {
       color: ON_PRIMARY,
-      fontSize: fs(10.5),
+      fontSize: fs(10.5),fontFamily:'Inter-Regular',
       fontWeight: '700',
       flexShrink: 1,
     },
 
     titleText: {
       color: ON_PRIMARY,
-      fontSize: fs(20),
+      fontSize: fs(20),fontFamily:'Inter-Regular',
       fontWeight: '800',
       paddingHorizontal: ms(16),
       marginTop: mvs(8),
@@ -111,12 +111,12 @@ export default function createStyles(ms, mvs, fs) {
     },
     metaText: {
       color: 'rgba(255,255,255,0.92)',
-      fontSize: fs(12.5),
+      fontSize: fs(12.5),fontFamily:'Inter-Regular',
       fontWeight: '500',
     },
     metaDot: {
       color: 'rgba(255,255,255,0.6)',
-      fontSize: fs(12),
+      fontSize: fs(12),fontFamily:'Inter-Regular',
       marginHorizontal: ms(6),
     },
 
@@ -136,7 +136,7 @@ export default function createStyles(ms, mvs, fs) {
       overflow: 'hidden',
     },
     notesLabel: {
-      fontSize: fs(12),
+      fontSize: fs(12),fontFamily:'Inter-Regular',
       fontWeight: '700',
       letterSpacing: 0.4,
       color: TEXT_SECONDARY,
@@ -166,7 +166,7 @@ export default function createStyles(ms, mvs, fs) {
     },
     sectionHeaderText: {
       marginLeft: ms(8),
-      fontSize: fs(12),
+      fontSize: fs(12),fontFamily:'Inter-Regular',
       fontWeight: '700',
       letterSpacing: 0.4,
       color: TEAL_DARK,
@@ -176,7 +176,7 @@ export default function createStyles(ms, mvs, fs) {
     },
     requiredDot: {
       color: DANGER,
-      fontSize: fs(12),
+      fontSize: fs(12),fontFamily:'Inter-Regular',
       marginLeft: ms(3),
     },
     sectionBody: {
@@ -188,39 +188,52 @@ export default function createStyles(ms, mvs, fs) {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingVertical: mvs(11),
+      paddingVertical: mvs(12),
     },
     detailRowBorder: {
       borderTopWidth: 1,
       borderTopColor: BORDER,
     },
     detailLabel: {
-      fontSize: fs(13),
+      fontSize: fs(12.5),fontFamily:'Inter-Regular',
       color: TEXT_SECONDARY,
+       flexShrink: 0,  
       fontWeight: '500',
+      marginRight: ms(10),
     },
     detailLabelDisabled: {
       color: TEXT_TERTIARY,
+      fontSize: fs(12.5),fontFamily:'Inter-Regular',
     },
     detailValueRow: {
       flexDirection: 'row',
       alignItems: 'center',
+      
+       flex: 1,  
+        justifyContent: 'flex-end',
+         overflow: 'visible',
     },
     detailValue: {
-      fontSize: fs(13.5),
-      color: TEXT_PRIMARY,
-      fontWeight: '700',
+      marginTop:2,      
+      fontSize: fs(12.5),fontFamily:'Inter-Bold',
+       color: TEXT_PRIMARY,
+      fontWeight: '500',
+       flexShrink: 1,  
     },
     detailValueAccent: {
       color: TEAL_DARK,
     },
     detailValuePlaceholder: {
       color: TEXT_TERTIARY,
+       paddingRight: ms(4),
       fontWeight: '500',
-      fontStyle: 'italic',
+       fontSize: fs(12.5)
+       ,fontFamily:'Inter-Regular',
+       
     },
     detailValueDisabled: {
       color: TEXT_TERTIARY,
+       fontSize: fs(12.5),fontFamily:'Inter-Regular',
     },
     detailChevron: {
       marginLeft: ms(4),
@@ -233,7 +246,7 @@ export default function createStyles(ms, mvs, fs) {
       paddingVertical: mvs(10),
     },
     enterQtyLabel: {
-      fontSize: fs(13.5),
+      fontSize: fs(13.5),fontFamily:'Inter-Regular',
       color: TEXT_SECONDARY,
       fontWeight: '400',
     },
@@ -242,7 +255,7 @@ export default function createStyles(ms, mvs, fs) {
       alignItems: 'center',
     },
     enterQtyValue: {
-      fontSize: fs(13),
+      fontSize: fs(13),fontFamily:'Inter-Regular',
       color: AppColors.black,
       marginRight: ms(4),
       fontWeight: '500',
@@ -267,12 +280,12 @@ export default function createStyles(ms, mvs, fs) {
       flexDirection:'row'
     },
     sizeChipText: {
-      fontSize: fs(11.5),
+      fontSize: fs(11.5),fontFamily:'Inter-Regular',
       color: TEXT_PRIMARY,
       fontWeight: '600',
     },
      sizeChipQty: {
-      fontSize: fs(11.5),
+      fontSize: fs(11.5),fontFamily:'Inter-Regular',
       color: TEXT_SECONDARY,
       fontWeight: '600',
     },
@@ -290,7 +303,7 @@ export default function createStyles(ms, mvs, fs) {
     },
 
      notesLabel: {
-      fontSize: fs(12),
+      fontSize: fs(12),fontFamily:'Inter-Regular',
       fontWeight: '700',
       letterSpacing: 0.4,
       color: TEXT_SECONDARY,
@@ -307,7 +320,7 @@ export default function createStyles(ms, mvs, fs) {
       padding: ms(10),
     },
     notesInput: {
-      fontSize: fs(13),
+      fontSize: fs(13),fontFamily:'Inter-Regular',
       color: TEXT_PRIMARY,
       textAlignVertical: 'top',
       minHeight: mvs(44),
@@ -315,7 +328,7 @@ export default function createStyles(ms, mvs, fs) {
     },
     // Read-only notes display (OperationDetailsScreen confirmation view).
     notesText: {
-      fontSize: fs(13.5),
+      fontSize: fs(13.5),fontFamily:'Inter-Regular',
       color: TEXT_PRIMARY,
       lineHeight: fs(19),
       paddingHorizontal: ms(14),
@@ -346,7 +359,7 @@ export default function createStyles(ms, mvs, fs) {
     },
     submitBtnText: {
       color: ON_PRIMARY,
-      fontSize: fs(15),
+      fontSize: fs(15),fontFamily:'Inter-Regular',
       fontWeight: '700',
     },
     submitBtnTextDisabled: {
@@ -362,7 +375,7 @@ export default function createStyles(ms, mvs, fs) {
     },
     emptyText: {
       marginTop: mvs(8),
-      fontSize: fs(13),
+      fontSize: fs(13),fontFamily:'Inter-Regular',
       color: TEXT_TERTIARY,
       textAlign: 'center',
     },
@@ -376,16 +389,10 @@ export default function createStyles(ms, mvs, fs) {
     emptyBtnText: {
       color: ON_PRIMARY,
       fontWeight: '600',
-      fontSize: fs(13.5),
+      fontSize: fs(13.5),fontFamily:'Inter-Regular',
     },
 
-     // Overflow menu backdrop — was AppColors.scrim, which reads as a
-     // near-black dim over the whole screen. Swapped to a fully
-     // transparent backdrop (it only exists to catch outside taps to
-     // dismiss the menu) so the screen stays exactly as it looked before
-     // the menu opened. The pill itself also moved up slightly (top
-     // reduced) so it sits closer under the header row instead of lower
-     // down the screen.
+      
      menuBackdrop: {
       flex: 1,
       backgroundColor: 'transparent',
@@ -411,7 +418,7 @@ export default function createStyles(ms, mvs, fs) {
       color: RETURN_ACCENT,
     },
     menuPillText: {
-      fontSize: fs(13.5),
+      fontSize: fs(13.5),fontFamily:'Inter-Regular',
       fontWeight: '700',
       color: RETURN_ACCENT,
     },

@@ -17,6 +17,11 @@ const DISABLED_TEXT = AppColors.onSurfaceDisabled;
 const SUCCESS = AppColors.success ?? '#16A34A';
 const SUCCESS_BG = AppColors.successLight ?? '#ECFDF5';
 
+// NOTE: the 4th param is named `isLargeScreen` for backward compatibility,
+// but the caller now passes `useSideBySide` (isLargeScreen && isLandscape)
+// into this slot. It only controls layout DIRECTION (row vs column) here —
+// it does NOT mean "is a tablet" anymore, it means "should sections sit
+// side by side right now".
 export default function createStyles(ms, mvs, fs, isLargeScreen) {
   return StyleSheet.create({
     root: {
@@ -60,8 +65,8 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
       paddingBottom: mvs(24),
     },
 
-    // On tablets the From/To sections sit side by side (as in the web
-    // reference); on phones they stack vertically.
+    // Side by side only when useSideBySide (large screen AND landscape)
+    // is true; otherwise the From/To sections stack vertically.
     sectionsRow: {
       flexDirection: isLargeScreen ? 'row' : 'column',
       alignItems: isLargeScreen ? 'flex-start' : 'stretch',
@@ -189,7 +194,8 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
       fontWeight: '700',
     },
 
-    // Divider with an arrow icon between From Order and To Order on phones.
+    // Divider with an arrow icon between From Order and To Order when
+    // sections are stacked (i.e. NOT useSideBySide).
     flowDivider: {
       flexDirection: 'row',
       alignItems: 'center',

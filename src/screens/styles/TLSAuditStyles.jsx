@@ -79,6 +79,20 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
       marginTop: mvs(10),
       marginHorizontal: ms(16),
     },
+     titlelarge: {
+      color: AppColors.onPrimary,
+      fontSize: fs(20),
+      fontWeight: '800',
+      marginTop: mvs(10),
+      marginHorizontal: ms(16),
+    },
+     titlelandscape: {
+      color: AppColors.onPrimary,
+      fontSize: fs(18),
+      fontWeight: '800',
+      marginTop: mvs(10),
+      marginHorizontal: ms(16),
+    },
     subtitle: {
       color: 'rgba(255,255,255,0.85)',
       fontSize: fs(15.5),
@@ -87,6 +101,7 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
 
     /* ── Search bar ── */
     searchOuter: { marginHorizontal: ms(16), marginTop: mvs(14) },
+    searchOuterlarge: { marginHorizontal: ms(16), marginTop: mvs(14) },
     searchBar: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -100,10 +115,30 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
       shadowOffset: { width: 0, height: mvs(2) },
       elevation: 2,
     },
+     searchBarLarge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: AppColors.surface,
+      borderRadius: ms(22),
+      paddingHorizontal: ms(14),
+      height: mvs(42),
+      shadowColor: '#000',
+      shadowOpacity: 0.08,
+      shadowRadius: ms(6),
+      shadowOffset: { width: 0, height: mvs(2) },
+      elevation: 2,
+    },
     searchInput: {
       flex: 1,
       marginLeft: ms(8),
       fontSize: fs(17.5),
+      color: AppColors.textPrimary,
+      padding: 0,
+    },
+     searchInputLarge: {
+      flex: 1,
+      marginLeft: ms(8),
+      fontSize: fs(15),
       color: AppColors.textPrimary,
       padding: 0,
     },
@@ -127,6 +162,7 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
       backgroundColor: CHIP_ACTIVE_BG,
     },
     lineChipText: { color: AppColors.textPrimary, fontSize: fs(13.5), fontWeight: '600' },
+     lineChipTextLarge: { color: AppColors.textPrimary, fontSize: fs(11.5), fontWeight: '600' },
     lineChipTextActive: { color: AppColors.onPrimary },
 
     /* ── Body / list ── */
@@ -160,6 +196,7 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
       marginBottom: mvs(12),
     },
     tlsCode: { color: AppColors.textPrimary, fontSize: fs(15.5), fontWeight: '800',marginRight:ms(7) },
+    tlsCodeLarge: { color: AppColors.textPrimary, fontSize: fs(13.5), fontWeight: '800',marginRight:ms(7) },
     cardCheckbox: { marginLeft: ms(8) },
 
     /* Radio control for single-select order cards.
@@ -189,7 +226,8 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
       flexDirection: 'row',
       marginBottom: mvs(10),
     },
-    cardGridCell: { flex: 1 },
+    cardGridCell: { flex: 1, minWidth: 0,        // NEW — lets flex children actually shrink below content size
+  paddingRight: ms(10),},
     fieldLabel: {
       color: AppColors.textTertiary,
       fontSize: fs(12.5),
@@ -197,14 +235,16 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
       letterSpacing: 0.4,
       marginBottom: mvs(4),
     },
-    fieldValueRow: { flexDirection: 'row', alignItems: 'center' },
-    fieldValue: { color: AppColors.textPrimary, fontSize: fs(16), fontWeight: '600' },
+    fieldValueRow: { flexDirection: 'row', alignItems: 'center',minWidth: 0,     },
+    fieldValue: { color: AppColors.textPrimary, fontSize: fs(16), fontWeight: '600',flexShrink: 1,  },
+    fieldValueLarge: { color: AppColors.textPrimary, fontSize: fs(13), fontWeight: '600',flexShrink: 1,  },
     colourDot: { width: ms(15), height: ms(15), borderRadius: ms(8.5), marginRight: ms(6) },
 
     cardDivider: { height: 1, backgroundColor: HAIRLINE, marginVertical: mvs(8) },
 
     cardFooterRow: { flexDirection: 'row', alignItems: 'center' },
     createdOnText: { color: AppColors.textTertiary, fontSize: fs(14), marginLeft: ms(5) },
+    createdOnTextLarge: { color: AppColors.textTertiary, fontSize: fs(13), marginLeft: ms(5) },
 
      footer: {
         backgroundColor:   AppColors.surface ?? '#fff',

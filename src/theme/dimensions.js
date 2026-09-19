@@ -2,7 +2,8 @@ import { bottomSpace,scale,verticalScale,moderateScale,moderateVerticalScale,fon
 
 const Dimensions = {
   radius: {
-    card: ms(16),          // CARD_RADIUS
+    card: ms(16),
+     cardL: ms(10),          // CARD_RADIUS
     header: ms(24),        // HEADER_RADIUS
     cardBg: ms(10),
     cardTop: ms(28),       // card borderTopLeft/RightRadius
@@ -36,6 +37,7 @@ const Dimensions = {
 
     // global screen padding (scroll_bg, scrollContent, fixedCardWrap)
     screenPaddingH: scale(14),
+    screenPaddingHL: scale(0),
     scrollContentPaddingTop: verticalScale(8),
 
     cardMarginTop: -ms(28),
@@ -82,11 +84,17 @@ const Dimensions = {
     // ── header (product audit) ──
     headerPaddingH: ms(16),
     headerPaddingTopAndroid: mvs(15),
+     headerPaddingTopAndroidLar: mvs(50),
     headerPaddingTopIOS: mvs(7),
+     headerPaddingTopIOSL: mvs(2),
+     headerPaddingTopIOSLar: mvs(12),
     headerPaddingBottom: mvs(22),
     headerTopRowMarginBottom: mvs(10),
+     headerTopRowMarginBottomL: mvs(20),
     headerPillPaddingH: ms(14),
+    headerPillPaddingHL: ms(10),
     headerPillPaddingV: mvs(7),
+    headerPillPaddingVL: mvs(2),
     headerPillPaddingVBack: mvs(4),
     headerPillGap: ms(5),
 
@@ -319,14 +327,18 @@ const Dimensions = {
     chevronMarginTop: verticalScale(4),
     chipTextFontSize: fontScale(14),
     placeholderTextFontSize: fontScale(14.5),
-    pillTextFontSize: fs(18),
+    pillTextFontSize: fs(20),
     headerTitleFontSize: fs(22),
     sectionLabelFontSize: fs(14.5),
     viewAllTextFontSize: fs(14),
+     viewAllTextFontSizeL: fs(25),
     fieldValueFontSize: fs(16),
     fieldSepFontSize: fs(16),
     detailLabelFontSize: fs(13),
+    detailLabelFontSizeL: fs(17),
     detailValueFontSize: fs(16),
+     detailValueFontSizeL: fs(19),
+     detailValueFontSizeL: fs(20),
     severityLabelFontSize: fs(15),
     severityCountFontSize: fs(18),
     gradeTextFontSize: fontScale(10),
@@ -338,7 +350,7 @@ const Dimensions = {
     spiUnitFontSize: fontScale(12),
     sliderBoundFontSize: fontScale(16),
     qcNameFontSize: fontScale(17.8),
-    qcDescFontSize: fontScale(14),
+    qcDescFontSize: fontScale(15),
     qcDescLineHeight: fontScale(22),
     qcBtnTextFontSize: fontScale(16),
 

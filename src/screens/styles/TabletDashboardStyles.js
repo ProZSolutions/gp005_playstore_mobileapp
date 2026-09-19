@@ -1,45 +1,46 @@
 import { StyleSheet } from 'react-native';
 import { AppColors } from '../../theme/theme';
 import Dimensions from '../../theme/dimensions';
-
-// Applied ONLY when isLargeScreen is true. Mobile keeps using
-// GlobalStyles.container / GlobalStyles.text exactly as-is.
+ 
 const TabletDashboardStyles = StyleSheet.create({ 
   mainOpCard: {
-    width: '31%',
-    height: 172,
-    maxWidth: 260,
-    padding: 20,
+    width: '29%',
+    height: 215,
+     padding: 40,
     justifyContent: 'flex-start',
   },
   mainOpIconWrap: {
     width: 56,
     height: 56,
     borderRadius: 16,
-    marginBottom: 14,
+    marginBottom: 5,
   },
   mainOpTitle: {
+    fontFamily: 'Inter-Regular',
     fontSize: 22.5,
     marginBottom: 3,
   },
   mainOpSubtitle: {
+    fontFamily: 'Inter-Regular',
     fontSize: 18.5,
     lineHeight: 20,
   },
 
-  // Config tools grid — same fixed-height treatment
-  configCard: {
-    width: '31%',
-    height: 150,
+   configCard: {
+    width: '29%',
+    height: 165,
     maxWidth: 260,
     justifyContent: 'space-between',
      flexDirection: 'row',
   },
   configTitle: {
+    fontFamily: 'Inter-Regular',
+    fontWeight:800,
     fontSize: 20,
-    marginBottom:60
+    marginBottom:20
   },
- 
+     configIcon: { alignSelf: 'flex-end', marginTop:'auto' },
+ configIconP: { alignSelf: 'flex-end', marginTop:'auto' ,marginBottom:10,marginRight:10},
   body: {
     maxWidth: 900,
     alignSelf: 'center',
@@ -55,11 +56,11 @@ const TabletDashboardStyles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 22,
   },
-  // Header row: "Change Zone" pill text + zone summary + bell/profile icons
-  changeZoneText: {
+   changeZoneText: {
     fontSize: 20.5,
   },
   zoneSummaryText: {
+    fontFamily: 'Inter-Regular',
     fontSize: 18,
     marginTop: 4,
   },
@@ -74,8 +75,7 @@ const TabletDashboardStyles = StyleSheet.create({
     borderRadius: 22,
   },
 
-  // Inspector card: more breathing room + bigger avatar/badge
-  inspectorCard: {
+   inspectorCard: {
     marginTop: 10,
     marginHorizontal: 6,
   },
@@ -86,12 +86,13 @@ const TabletDashboardStyles = StyleSheet.create({
     marginRight: 16,
   },
   empBadge: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 25,
     paddingVertical: 4,
-    marginLeft: 8,
-  },
+   },
   empBadgeText: {
-    fontSize: 17,
+    fontFamily: 'Inter-Regular',
+    fontSize: 15,
+    fontWeight:600
   },
   shiftPill: {
     marginHorizontal: 6,
@@ -101,21 +102,85 @@ const TabletDashboardStyles = StyleSheet.create({
   },
 
   avatarText: {
+    fontFamily: 'Inter-Regular',
     fontSize: 25,
   },
   inspectorName: {
-    fontSize: 25,
+    fontSize: 22,
   },
   inspectorRole: {
     fontSize: 20,
   },
   shiftText: {
-    fontSize: 20,
+    fontFamily: 'Inter-Regular',
+    fontSize: 19,
   },
   sectionLabel_dash: {
     fontSize: 22,
     marginTop: 22,
     marginBottom: 14,
+  },
+
+  // ---- LANDSCAPE (large screen) variants ----
+  // 4 cards per row: narrower card, and text/icon sizes trimmed down to
+  // match the smaller card so nothing clips or wraps awkwardly.
+  mainOpCardLandscape: {
+    width: '22%',
+    height: 180,
+    padding: 28,
+    justifyContent: 'flex-start',
+  },
+  mainOpIconWrapLandscape: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    marginBottom: 4,
+  },
+  mainOpTitleLandscape: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 19,
+    marginBottom: 3,
+  },
+  mainOpSubtitleLandscape: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 15.5,
+    lineHeight: 18,
+  },
+  configCardLandscape: {
+    width: '25%',
+    height: 175,
+    maxWidth: 220,
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+  },
+    configCardPscape: {
+    width: '29%',
+    height: 175,
+    maxWidth: 220,
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+  },
+  configTitleLandscape: {
+    fontFamily: 'Inter-Regular',
+    fontWeight: 800,
+    fontSize: 18,
+    marginBottom: 12,
+    marginRight:12 
+  },
+  configIconLandscape: { alignSelf: 'flex-end', marginTop: 'auto',marginBottom: 12,marginRight:12 },
+  bodyLandscape: {
+    maxWidth: 1150,
+    alignSelf: 'center',
+    width: '100%',
+    paddingHorizontal: 24,
+  },
+  inspectionCardOuterLandscape: {
+    maxWidth: 1150  ,
+    alignSelf: 'center',
+    width: '100%',
+    marginHorizontal: 24,
+    paddingVertical: 14,
+    paddingHorizontal: 22,
   },
 });
 

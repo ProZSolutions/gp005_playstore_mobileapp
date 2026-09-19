@@ -12,7 +12,7 @@ import { getEscalationList } from '../../api/services/aqlAuditService';
 import { getUser, PAGE_SIZE } from '../../api/storage/authStorage';
 import { usePermissions, GROUP, ACTION } from '../../context/PermissionsContext';
 import createStyles from '../styles/TLSIssueTrackerStyles';
-
+ import { useOrientation } from '../../hooks/useOrientation';
 const TEAL = AppColors.primary;
 const SEARCH_DEBOUNCE_MS = 400;
 
@@ -394,8 +394,39 @@ function DateFilterModal({
 
 export default function TLSIssueTrackerScreen({ navigation, route }) {
   const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs, isLargeScreen } = useResponsive();
+   const { isLandscape } = useOrientation();
+  
   const styles = createStyles(ms, mvs, fs, isLargeScreen);
+ const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen
+      ? (isLandscape ? largeLandscape : largePortrait)
+      : (isLandscape ? mobileLandscape : mobilePortrait);
 
+ const tlsTitleStyle = pickStyle(styles.titlelarge,
+    styles.titlelandscape,
+    null,
+    styles.title, 
+  ); 
+const tlsSearchStyle = pickStyle(styles.searchOuterlarge,
+    styles.searchOuterlarge,
+    null,
+    styles.searchOuter,
+  );
+const tlsSearchBarStyle = pickStyle(styles.searchBarLarge,
+    styles.searchBarLarge,
+    null,
+    styles.searchBar,
+  );
+  const tlsSearchBarInput = pickStyle(styles.searchInputLarge,
+    styles.searchInputLarge,
+    null,
+    styles.searchInput,
+  );
+ const tlsSearchChio= pickStyle(styles.lineChipTextLarge,
+    styles.lineChipTextLarge,
+    null,
+    styles.lineChipText,
+  );
   const { canView, can, loading: permsLoading } = usePermissions();
   const canViewGroup = canView(GROUP.ESCALATION);
   const canListIssues = canViewGroup && can(GROUP.ESCALATION, ACTION.LISTES);
@@ -645,7 +676,7 @@ useFocusEffect(
           </View>
 
          <View style={styles.headerRow}>
-            <Text style={styles.title}>Escalation</Text>
+            <Text style={[styles.title,tlsTitleStyle]}>Escalation</Text>
 
             <Pressable
               onPress={openFilterModal}
@@ -667,15 +698,15 @@ useFocusEffect(
 
         {canListIssues && (
           <>
-            <View style={styles.searchOuter}>
-              <View style={styles.searchBar}>
+            <View style={[styles.searchOuter,tlsSearchStyle]}>
+              <View style={[styles.searchBar,tlsSearchBarStyle]}>
                 <Ionicons name="search-outline" size={ms(16)} color={AppColors.textTertiary} />
                 <TextInput
                   value={query}
                   onChangeText={setQuery}
                   placeholder="Search"
                   placeholderTextColor={AppColors.textTertiary}
-                  style={styles.searchInput}
+                  style={[styles.searchInput,tlsSearchBarInput]}
                   returnKeyType="search"
                   autoCorrect={false}
                 />
@@ -698,7 +729,7 @@ useFocusEffect(
                       {active && (
                         <Ionicons name="checkmark" size={ms(12)} color={AppColors.onPrimary} style={{ marginRight: ms(4) }} />
                       )}
-                      <Text style={[styles.lineChipText, active && styles.lineChipTextActive]} numberOfLines={1}>
+                      <Text  style={[styles.lineChipText,tlsSearchChio, active && styles.lineChipTextActive]} numberOfLines={1}>
                         {meta.label}
                       </Text>
                     </Pressable>

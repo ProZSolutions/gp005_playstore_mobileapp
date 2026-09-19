@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { AppColors } from '../theme/theme';
 import { useResponsive } from '../utils/responsive';
+import { useOrientation } from '../hooks/useOrientation';
 
 export default function BottomSheet({
   visible,
@@ -23,13 +24,16 @@ export default function BottomSheet({
 }) { 
   const { scale, verticalScale, fontScale, moderateScale, height: SCREEN_H, isLargeScreen } =
     useResponsive();
-
+  const { isLandscape } = useOrientation();
   const TOP_SAFE_MARGIN = verticalScale(40);
 
   const styles = useMemo(
     () => createStyles({ scale, verticalScale, fontScale, moderateScale, isLargeScreen }),
     [scale, verticalScale, fontScale, moderateScale, isLargeScreen],
   );
+
+  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
+(isLandscape ? mobileLandscape : mobilePortrait);
 
   const translateY = useRef(new Animated.Value(SCREEN_H)).current;
 
@@ -182,12 +186,15 @@ const createStyles = ({ scale, verticalScale, fontScale, moderateScale, isLargeS
       fontWeight: '800',
       color: AppColors.textPrimary,
       letterSpacing: -0.3,
+      fontFamily:'Inter-Regular'
     },
     subtitle: {
       fontSize: isLargeScreen ? 20 : fontScale(15),
       color: AppColors.textTertiary,
       marginTop: isLargeScreen ? 3 : verticalScale(2),
+      fontFamily:'Inter-Regular'
     },
+    
     closeBtn: {
       width: isLargeScreen ? 32 : scale(28),
       height: isLargeScreen ? 32 : scale(28),

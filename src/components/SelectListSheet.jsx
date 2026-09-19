@@ -4,7 +4,9 @@ import Icon from 'react-native-vector-icons/Feather';
 import { scale, verticalScale, fontScale, moderateScale } from '../utils/scale';
 import { AppColors } from '../theme/theme';
 import BottomSheet from './BottomSheet';
-
+import { useResponsive } from '../utils/responsive'; 
+import { useOrientation } from '../hooks/useOrientation';
+import { Dialog } from 'react-native-paper';
 const TEAL = AppColors.primary ?? '#0D939D';
 
 export default function SelectListSheet({
@@ -20,6 +22,22 @@ export default function SelectListSheet({
   emptyText = 'No options available.',
   getRightText,           // optional (item) => string — right-aligned subtext per row
 }) {
+  
+ const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs, isLargeScreen } = useResponsive();
+    const { isLandscape } = useOrientation();
+    const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
+(isLandscape ? mobileLandscape : mobilePortrait);
+
+
+    const textStyle = pickStyle(styles.searchInputLarge,styles.searchInputLarge,null,styles.searchInput);
+    const circlestyle = pickStyle(styles.checkCircleLarge,styles.checkCircleLarge,null,styles.checkCircle);
+    const checkedQTy = pickStyle(styles.rowRightTextLarge,styles.rowRightTextLarge,null,styles.rowRightText);
+    const rawte = pickStyle(styles.rowLabelLarge,styles.rowLabelLarge,null,styles.rowLabel);
+
+    const hgt = pickStyle(560,400,null,560);
+
+
+
   const [query, setQuery] = useState('');
   const [picked, setPicked] = useState(selectedId);
 
@@ -43,7 +61,7 @@ export default function SelectListSheet({
   };
 
   return (
-    <BottomSheet visible={visible} onClose={onClose} title={title} maxHeight={verticalScale(560)}>
+    <BottomSheet visible={visible} onClose={onClose} title={title} maxHeight={verticalScale(hgt)}>
       {searchable && (
         <View style={styles.searchBar}>
           <Icon name="search" size={scale(15)} color={AppColors.textTertiary ?? '#9CA3AF'} />
@@ -52,7 +70,7 @@ export default function SelectListSheet({
             onChangeText={setQuery}
             placeholder={searchPlaceholder}
             placeholderTextColor={AppColors.textTertiary ?? '#9CA3AF'}
-            style={styles.searchInput}
+            style={[styles.searchInput,textStyle]}
             autoCorrect={false}
           />
         </View>
@@ -73,12 +91,12 @@ export default function SelectListSheet({
                   onPress={() => setPicked(item.id)}
                   activeOpacity={0.7}
                 >
-                  <View style={[styles.checkCircle, active && styles.checkCircleActive]}>
+                  <View style={[styles.checkCircle,circlestyle, active && styles.checkCircleActive]}>
                     {active && <Icon name="check" size={scale(12)} color="#fff" />}
                   </View>
-                  <Text style={styles.rowLabel}>{item.value}</Text>
+                  <Text style={[styles.rowLabel,rawte]}>{item.value}</Text>
                   {rightText != null && (
-                    <Text style={styles.rowRightText} numberOfLines={1}>
+                    <Text style={[styles.rowRightText,checkedQTy]} numberOfLines={1}>
                       {rightText}
                     </Text>
                   )}
@@ -118,6 +136,8 @@ const styles = StyleSheet.create({
     gap: scale(8),
     marginBottom: verticalScale(12),
   },
+   
+  searchInputLarge: { flex: 1, fontSize: fontScale(18), color: AppColors.textPrimary ?? '#111827', padding: 0 },
   searchInput: { flex: 1, fontSize: fontScale(14), color: AppColors.textPrimary ?? '#111827', padding: 0 },
   list: { paddingHorizontal: scale(20), paddingBottom: verticalScale(10), gap: verticalScale(8) },
   row: {
@@ -140,11 +160,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: scale(12),
   },
+   checkCircleLarge: {
+    width: scale(15),
+    height: scale(15),
+    borderRadius: scale(10),
+    borderWidth: 2,
+    borderColor: '#CBD5E1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: scale(12),
+  },
   checkCircleActive: { borderColor: TEAL, backgroundColor: TEAL },
   rowLabel: { fontSize: fontScale(14.5), fontWeight: '600', color: AppColors.textPrimary ?? '#111827', flexShrink: 1 },
+  rowLabelLarge: { fontSize: fontScale(18.5), fontWeight: '600', color: AppColors.textPrimary ?? '#111827', flexShrink: 1 },
   rowRightText: {
     marginLeft: 'auto',
     fontSize: fontScale(12.5),
+    fontWeight: '500',
+    color: AppColors.textTertiary ?? '#9CA3AF',
+  },
+  rowRightTextLarge: {
+    marginLeft: 'auto',
+    fontSize: fontScale(15.5),
     fontWeight: '500',
     color: AppColors.textTertiary ?? '#9CA3AF',
   },

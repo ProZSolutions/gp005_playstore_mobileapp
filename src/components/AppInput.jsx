@@ -7,6 +7,7 @@ import {
 import { AppColors } from '../theme/theme';
 import { useResponsive } from '../utils/responsive';
 import { useOrientation } from '../hooks/useOrientation';
+import { fontScale } from 'src/utils/scale';
 
 export const AppInput = forwardRef(function AppInput(
   {
@@ -87,7 +88,7 @@ export const AppInput = forwardRef(function AppInput(
 
   const dynamicInputStyle = applyLarge
     ? {
-        fontSize:        fontScale(16),
+        fontSize:        fontScale(14),
         paddingVertical: Platform.OS === 'ios' ? moderateScale(15) : moderateScale(13),
       }
     : isLandscape
@@ -95,7 +96,7 @@ export const AppInput = forwardRef(function AppInput(
     : null;
 
   const dynamicLabelStyle = applyLarge
-    ? { fontSize: fontScale(14), marginBottom: moderateScale(8) }
+    ? { fontSize: fontScale(12), marginBottom: moderateScale(8) }
     : isLandscape
     ? styles.labelLandscape
     : null;
@@ -272,11 +273,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   inputLandscape: {
-    fontSize: 13,
-    paddingVertical: Platform.OS === 'ios' ? 7 : 5,
+    fontSize: 15,
+    paddingVertical: Platform.OS === 'ios' ? 7 : 8,
   },
   labelLandscape: {
-    fontSize: 12,
+    fontSize: 15,
     marginBottom: 3,
   },
   showHideLandscape: {

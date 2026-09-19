@@ -39,19 +39,13 @@ export function useLineSelection({
     const routeIsComplete =
       routeIdsArr.length > 0 &&
       routeNamesArr.length > 0 &&
-      routeIdsArr.length === routeNamesArr.length;
-
-    // Render whatever the route gave us for THIS screen instance, but do
-    // NOT treat it as the canonical "all lines" cache — it may be a
-    // deliberately partial, screen-scoped list.
+      routeIdsArr.length === routeNamesArr.length; 
     if (routeIsComplete) {
       setLineIds(routeIdsArr);
       setLineNames(routeNamesArr);
       return;
     }
-
-    // No usable route data — fall back to the canonical cache/storage,
-    // which always represents the user's FULL line list.
+ 
     if (lineOrderCache.ids && lineOrderCache.names) {
       setLineIds(lineOrderCache.ids);
       setLineNames(lineOrderCache.names);
@@ -60,9 +54,7 @@ export function useLineSelection({
 
     let cancelled = false;
     (async () => {
-      try {
-        // Single bulk read — id and name come back already paired, so
-        // there's no separate-array zip step that could misalign them.
+      try { 
         const storedPairs = await getLines(); // [{id, name}]
         if (cancelled) return;
 

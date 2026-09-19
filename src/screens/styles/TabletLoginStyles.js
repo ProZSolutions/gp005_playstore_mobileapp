@@ -13,7 +13,7 @@ const TabletLoginStyles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 30,
+    fontSize: 26,
     marginBottom: 6,
   },
   subtitle: {
@@ -26,7 +26,7 @@ const TabletLoginStyles = StyleSheet.create({
     marginBottom: 20,
   },
   forgot_title: {
-    fontSize: 24,
+    fontSize: 20,
   },
 
   helpContainer: {

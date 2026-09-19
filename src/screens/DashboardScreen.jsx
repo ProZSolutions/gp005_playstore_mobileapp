@@ -14,6 +14,8 @@ import { logoutUser, submitCheckIn } from '../api/services/authService';
 import {getSettingList} from '../api/services/checkingService';
 import { consumeShowWelcomeFlag } from '../api/storage/authStorage';
 import WelcomeToast from '../components/WelcomeToast';
+import { useOrientation } from '../hooks/useOrientation';
+
 import { clearEscalationDateFilter } from './Escalation/EscalationList';
 import {
   getShiftData,
@@ -28,6 +30,7 @@ import { usePermissions, GROUP } from '../context/PermissionsContext';
 import { clearSelectedLineId } from '../api/storage/authStorage'; 
 import TabletDashboardStyles from './styles/TabletDashboardStyles';
 import NotificationService from '../api/services/NotificationService';
+
 const TEAL = AppColors.primary;
 const PURPLE_LIGHT = '#EFE9FE';
  
@@ -140,12 +143,13 @@ const CONFIG_TOOLS = [
   { key: 'OrderMappingScreen', title: 'Order Mapping', icon: 'dashboard_5', iconColor: AppColors.lineBlue, group: GROUP.LINEMAPPING },
   { key: 'OrderContinuityMappingScreen', title: 'Continuity Mapping', icon: 'dashboard_6', iconColor: AppColors.lineGreen, group: GROUP.CONTINUITY },
   { key: 'InputListScreen', title: 'Input', icon: 'dashboard_8', iconColor: AppColors.linePurple, group: GROUP.INPUTMODULE },
-  { key: 'device_swapping', title: 'Device Swapping', icon: 'dashboard_9', iconColor: AppColors.warning, group: GROUP.DEVICESWAPPING },
+  { key: 'TLSDeviceMappingScreen', title: 'Device Swapping', icon: 'dashboard_9', iconColor: AppColors.warning, group: GROUP.INPUTMODULE },
   { key: 'DeviceMachineMappingScreen', title: 'Device & Machine Mapping', icon: 'dashboard_10', iconColor: AppColors.lineBlue, group: GROUP.DEVICEMAPPING },
 ];
 
 export default function DashboardScreen({ navigation, route }) {
   const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs, isLargeScreen } = useResponsive();
+  const { isLandscape } = useOrientation();
   const [loggingOut, setLoggingOut] = useState(false);
   const { canView, loading: permissionsLoading, refreshPermissions } = usePermissions();
   const {
@@ -414,7 +418,75 @@ export default function DashboardScreen({ navigation, route }) {
     return hasPermission;
   });
   const visibleConfigTools = CONFIG_TOOLS.filter((item) => !item.group || canView(item.group));
+ 
+  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen
+      ? (isLandscape ? largeLandscape : largePortrait)
+      : (isLandscape ? mobileLandscape : mobilePortrait);
 
+  const bodyStyle = pickStyle(
+    TabletDashboardStyles.body,
+    TabletDashboardStyles.bodyLandscape,
+    null,
+    styles.bodyLandscape,
+  );
+
+  const inspectionCardOuterStyle = pickStyle(
+    TabletDashboardStyles.inspectionCardOuter,
+    TabletDashboardStyles.inspectionCardOuterLandscape,
+    null,
+    null,
+  );
+
+  const mainOpCardStyle = pickStyle(
+    TabletDashboardStyles.mainOpCard,
+    TabletDashboardStyles.mainOpCardLandscape,
+    null,
+    styles.mainOpCardLandscape,
+  );
+
+  const mainOpIconWrapStyle = pickStyle(
+    TabletDashboardStyles.mainOpIconWrap,
+    TabletDashboardStyles.mainOpIconWrapLandscape,
+    null,
+    styles.mainOpIconWrapLandscape,
+  );
+
+  const mainOpTitleStyle = pickStyle(
+    TabletDashboardStyles.mainOpTitle,
+    TabletDashboardStyles.mainOpTitleLandscape,
+    null,
+    styles.mainOpTitleLandscape,
+  );
+
+  const mainOpSubtitleStyle = pickStyle(
+    TabletDashboardStyles.mainOpSubtitle,
+    TabletDashboardStyles.mainOpSubtitleLandscape,
+    null,
+    styles.mainOpSubtitleLandscape,
+  );
+
+  const configCardStyle = pickStyle(
+    TabletDashboardStyles.configCardPscape,
+    TabletDashboardStyles.configCardLandscape,
+    null,
+    styles.configCard,
+  );
+
+  const configTitleStyle = pickStyle(
+    TabletDashboardStyles.configTitle,
+    TabletDashboardStyles.configTitleLandscape,
+    GlobalStyles.text.configTitle,
+    styles.configTitleLandscape,
+  );
+
+  const configIconStyle = pickStyle(
+    TabletDashboardStyles.configIconP,
+    TabletDashboardStyles.configIconLandscape,
+    GlobalStyles.text.configIcon,
+    styles.configIconLandscape,
+  );
+   const sizess = pickStyle(ms(20),ms(22),null,ms(18));
   const openChangeZone = () => {
     navigation.navigate('CheckIn', {
       user,
@@ -540,7 +612,7 @@ export default function DashboardScreen({ navigation, route }) {
                 ]}
                 onPress={handleLogout}
               >
-                <Ionicons name="person-outline" size={isLargeScreen ? ms(22) : ms(17)} color={AppColors.onPrimary} />
+                <Ionicons name="person-outline" size={isLargeScreen ? ms(18) : ms(17)} color={AppColors.onPrimary} />
               </Pressable>
             </View>
           </View>
@@ -551,7 +623,7 @@ export default function DashboardScreen({ navigation, route }) {
         <View
           style={[
             GlobalStyles.container.inspectionCardOuter,
-            isLargeScreen && TabletDashboardStyles.inspectionCardOuter,
+            inspectionCardOuterStyle,
           ]}
         >
           <View
@@ -625,7 +697,7 @@ export default function DashboardScreen({ navigation, route }) {
       >
         {/* TABLET: body gets a centered max-width container on large
             screens only. Mobile style is unchanged. */}
-        <View style={[GlobalStyles.container.body, isLargeScreen && TabletDashboardStyles.body]}>
+        <View style={[GlobalStyles.container.body, bodyStyle]}>
           {visibleMainOps.length > 0 && (
             <View style={GlobalStyles.container.mainOpsSection}>
               <Text
@@ -642,7 +714,7 @@ export default function DashboardScreen({ navigation, route }) {
                     key={item.key}
                     style={({ pressed }) => [
                       GlobalStyles.container.mainOpCard,
-                      isLargeScreen && TabletDashboardStyles.mainOpCard,
+                      mainOpCardStyle,
                       pressed && { opacity: 0.9 },
                     ]}
                     onPress={() =>
@@ -661,7 +733,7 @@ export default function DashboardScreen({ navigation, route }) {
                       style={[
                         GlobalStyles.container.mainOpIconWrap,
                         { backgroundColor: item.iconBg },
-                        isLargeScreen && TabletDashboardStyles.mainOpIconWrap,
+                        mainOpIconWrapStyle,
                       ]}
                     >
                       <Icon name={item.icon} size={isLargeScreen ? ms(30) : ms(20)} />
@@ -669,7 +741,7 @@ export default function DashboardScreen({ navigation, route }) {
                     <Text
                       style={[
                         GlobalStyles.text.mainOpTitle,
-                        isLargeScreen && TabletDashboardStyles.mainOpTitle,
+                        mainOpTitleStyle,
                       ]}
                     >
                       {item.title}
@@ -677,7 +749,7 @@ export default function DashboardScreen({ navigation, route }) {
                     <Text
                       style={[
                         GlobalStyles.text.mainOpSubtitle,
-                        isLargeScreen && TabletDashboardStyles.mainOpSubtitle,
+                        mainOpSubtitleStyle,
                       ]}
                       numberOfLines={2}
                     >
@@ -705,7 +777,7 @@ export default function DashboardScreen({ navigation, route }) {
                     key={item.key}
                     style={({ pressed }) => [
                       GlobalStyles.container.configCard,
-                      isLargeScreen && TabletDashboardStyles.configCard,
+                      configCardStyle,
                       pressed && { opacity: 0.9 },
                     ]}
                     onPress={() =>
@@ -718,18 +790,13 @@ export default function DashboardScreen({ navigation, route }) {
                       })
                     }
                   >
-                    <Text
-                      style={[
-                        GlobalStyles.text.configTitle,
-                        isLargeScreen && TabletDashboardStyles.configTitle,
-                      ]}
-                    >
+                    <Text style={[GlobalStyles.text.configTitle, configTitleStyle]}>
                       {item.title}
                     </Text>
                     <Icon
                       name={item.icon}
-                      size={isLargeScreen ? ms(26) : ms(18)}
-                      style={GlobalStyles.text.configIcon}
+                      size={sizess}
+                      style={[GlobalStyles.text.configIcon, configIconStyle]}
                     />
                   </Pressable>
                 ))}
@@ -741,3 +808,40 @@ export default function DashboardScreen({ navigation, route }) {
     </View>
   );
 }
+
+// Mobile (small screen) landscape overrides — 3 cards per row.
+// Portrait mobile keeps using GlobalStyles untouched (no entry needed here).
+const styles = StyleSheet.create({
+  bodyLandscape: {
+    paddingHorizontal: 12,
+  },
+  mainOpCardLandscape: {
+    width: '30%',
+  },
+  mainOpIconWrapLandscape: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    marginBottom: 4,
+  },
+  mainOpTitleLandscape: {
+    fontSize: 13,
+    marginBottom: 2,
+  },
+  mainOpSubtitleLandscape: {
+    fontSize: 11,
+    lineHeight: 13,
+  },
+  configCardLandscape: {
+    width: '30%',
+    height: 170,
+  },
+  configTitleLandscape: {
+    fontSize: 13,
+    marginBottom: 10,
+  },
+  configIconLandscape: {
+    alignSelf: 'flex-end',
+    marginTop: 'auto',
+  },
+});

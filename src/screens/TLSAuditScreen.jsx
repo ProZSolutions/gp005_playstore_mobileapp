@@ -7,7 +7,7 @@ import {
   Pressable,
   StatusBar,
   Modal,
-  Platform,
+  Platform,  
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +16,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import ScannerScreen from '../components/ScannerScreen';
 import { AppColors } from '../theme/theme';
 import { useResponsive } from '../utils/responsive';
+import { useOrientation } from '../hooks/useOrientation';
+
 import { getLineMappingOrders ,getLineMappingOperation } from '../api/services/tlsService';
 import {
   getShiftData,
@@ -37,9 +39,35 @@ const normalizeCode = (v) => (v === null || v === undefined ? '' : String(v).tri
 let ordersCache = { lineId: null, query: '', page: 1, data: [] };
 const ordersCacheKey = (lineId, query, page) => `${lineId ?? ''}|${query ?? ''}|${page ?? 1}`;
 
- 
-function OrderCard({ order, selected, onPress, styles }) {
+// Same line-chip builder used by TLSIssueTrackerScreen, so both screens sort
+// and label line chips identically (numeric-aware sort, falls back to name).
+const buildLineChips = (ids, names) => {
+  if (!Array.isArray(ids) || !ids.length) return [];
+  return ids
+    .map((id, i) => ({ id, name: names?.[i] ?? id }))
+    .sort((a, b) => {
+      const numA = Number(a.id);
+      const numB = Number(b.id);
+      if (!Number.isNaN(numA) && !Number.isNaN(numB)) {
+        return numA - numB;
+      }
+      return String(a.id).localeCompare(String(b.id));
+    });
+};
+
+function OrderCard({ order, selected, onPress, styles,isLandscape,isLargeScreen }) {
   const { moderateScale: ms } = useResponsive();
+ const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen
+      ? (isLandscape ? largeLandscape : largePortrait)
+      : (isLandscape ? mobileLandscape : mobilePortrait);
+  const tlsCodeStyle = pickStyle(styles.tlsCodeLarge,styles.tlsCodeLarge, null,styles.tlsCode,);
+   const tlsValueStyle = pickStyle(styles.fieldValueLarge,styles.fieldValueLarge, null,styles.fieldValue,);
+   const tlsdateStyle = pickStyle(styles.createdOnTextLarge,styles.createdOnTextLarge, null,styles.createdOnText,);
+
+
+
+
   return (
     <Pressable
       onPress={onPress}
@@ -53,7 +81,7 @@ function OrderCard({ order, selected, onPress, styles }) {
       accessibilityState={{ checked: selected }}
     >
       <View style={styles.cardTopRow}>
-        <Text style={styles.tlsCode}>{order.orderrCode}</Text>
+        <Text style={[styles.tlsCode,tlsCodeStyle]}>{order.orderrCode}</Text>
         <View
           style={[
             styles.radioOuter,
@@ -70,14 +98,14 @@ function OrderCard({ order, selected, onPress, styles }) {
           <Text style={styles.fieldLabel}>COLOUR</Text>
           <View style={styles.fieldValueRow}>
             <View style={[styles.colourDot, { backgroundColor: order.colourHex }]} />
-            <Text style={styles.fieldValue} numberOfLines={1}>{order.colour}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.colour}</Text>
           </View>
         </View>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>BUYER</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="people-outline" size={ms(13)} color={AppColors.primary} />
-            <Text style={[styles.fieldValue, { marginLeft: ms(5) }]} numberOfLines={1}>{order.buyer}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.buyer}</Text>
           </View>
         </View>
       </View>
@@ -87,14 +115,14 @@ function OrderCard({ order, selected, onPress, styles }) {
           <Text style={styles.fieldLabel}>STYLE</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="shirt-outline" size={ms(13)} color={AppColors.primary} />
-            <Text style={[styles.fieldValue, { marginLeft: ms(5) }]} numberOfLines={1}>{order.style}</Text>
+            <Text style={[styles.fieldValue, tlsValueStyle,{ marginLeft: ms(5) }]} numberOfLines={1}>{order.style}</Text>
           </View>
         </View>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>STYLE NO.</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="pricetag-outline" size={ms(13)} color={AppColors.primary} />
-            <Text style={[styles.fieldValue, { marginLeft: ms(5) }]} numberOfLines={1}>{order.styleNo}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.styleNo}</Text>
           </View>
         </View>
       </View>
@@ -103,7 +131,7 @@ function OrderCard({ order, selected, onPress, styles }) {
 
       <View style={styles.cardFooterRow}>
         <Ionicons name="time-outline" size={ms(12)} color={AppColors.textTertiary} />
-        <Text style={styles.createdOnText}>Created on {order.createdOn}</Text>
+        <Text style={[styles.createdOnText,tlsdateStyle]}>Created on {order.createdOn}</Text>
       </View>
     </Pressable>
   );
@@ -112,6 +140,8 @@ function OrderCard({ order, selected, onPress, styles }) {
 export default function TLSAuditScreen({ navigation, route }) {
 
   const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs, isLargeScreen } = useResponsive();
+  const { isLandscape } = useOrientation();
+
   const styles = createStyles(ms, mvs, fs, isLargeScreen);
   const insets = useSafeAreaInsets();
   const [scannerVisible, setScannerVisible] = useState(false);
@@ -120,6 +150,7 @@ export default function TLSAuditScreen({ navigation, route }) {
   const { can } = usePermissions();
   const canListTlsAudit = can(GROUP.TLSAUDIT, ACTION.LIST);
   const goBack = useBackToDashboard(navigation);
+  
 
   const {
     user: routeUser,
@@ -156,11 +187,8 @@ export default function TLSAuditScreen({ navigation, route }) {
     return () => { cancelled = true; };
   }, []);
 
-  // Lazily hydrate from the module-level orders cache so a remounted screen
-  // (e.g. after a back press) shows the previously loaded orders' line
-  // immediately, without waiting on the hook's async restore-from-storage.
+   
   const {
-    lines,
     lineIds,
     lineNames,
     activeLineId,
@@ -173,8 +201,14 @@ export default function TLSAuditScreen({ navigation, route }) {
     persistSelection: true,
   });
 
-  // Lazily hydrate from the module-level cache so a remounted screen (e.g.
-  // after a back press) shows the previously loaded orders immediately.
+  // Derive chips the same way TLSIssueTrackerScreen does, instead of relying
+  // on whatever shape useLineSelection's own `lines` value happens to be in.
+  const lines = useMemo(
+    () => buildLineChips(lineIds, lineNames),
+    [lineIds, lineNames],
+  );
+
+   
   const [allOrders, setAllOrders] = useState(() => (ordersCache.lineId ? ordersCache.data : []));
   const [loading, setLoading] = useState(() => !ordersCache.lineId);
   const [query, setQuery] = useState(() => ordersCache.query ?? '');
@@ -183,10 +217,7 @@ export default function TLSAuditScreen({ navigation, route }) {
   const [lineCounts, setLineCounts] = useState({});
   const pendingOrderRef = useRef(null);
   const searchDebounceRef = useRef(null);
-  const requestSeqRef = useRef(0); // guards against out-of-order responses (slow page-1 response landing after a newer one)
-  // Tracks the last line+search+page combo we actually fetched, so a
-  // duplicate render/effect run with nothing actually changed doesn't
-  // trigger another network request.
+  const requestSeqRef = useRef(0);  
   const lastFetchedOrdersKeyRef = useRef(
     ordersCache.lineId ? ordersCacheKey(ordersCache.lineId, ordersCache.query, ordersCache.page) : null,
   );
@@ -198,10 +229,7 @@ export default function TLSAuditScreen({ navigation, route }) {
     setPage(1);
     lastFetchedOrdersKeyRef.current = null; // force a fresh fetch for the newly selected line
   }, [setLineSelection]);
-
-  // Fetches orders from the API for the current line, search text, and page.
-  // Called both immediately (line change / page change) and after a debounce
-  // (search text change) so typing doesn't fire a request per keystroke.
+ 
   const fetchOrders = useCallback(async (lineId, searchTerm, pageNum) => {
     if (!lineId || !canListTlsAudit) {
       setAllOrders([]);
@@ -216,7 +244,7 @@ export default function TLSAuditScreen({ navigation, route }) {
         search: searchTerm,
         page: pageNum,
       });
-      if (seq === requestSeqRef.current) {
+       if (seq === requestSeqRef.current) {
         setAllOrders(toArray(data));
         ordersCache = { lineId, query: searchTerm, page: pageNum, data: toArray(data) };
         lastFetchedOrdersKeyRef.current = ordersCacheKey(lineId, searchTerm, pageNum);
@@ -261,6 +289,38 @@ export default function TLSAuditScreen({ navigation, route }) {
       lastFetchedOrdersKeyRef.current = null;
       fetchOrders(activeLineId, query, page);
      }, [activeLineId, canListTlsAudit])
+  );
+
+
+  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen
+      ? (isLandscape ? largeLandscape : largePortrait)
+      : (isLandscape ? mobileLandscape : mobilePortrait);
+
+ const tlsTitleStyle = pickStyle(styles.titlelarge,
+    styles.titlelandscape,
+    null,
+    styles.title, 
+  ); 
+const tlsSearchStyle = pickStyle(styles.searchOuterlarge,
+    styles.searchOuterlarge,
+    null,
+    styles.searchOuter,
+  );
+const tlsSearchBarStyle = pickStyle(styles.searchBarLarge,
+    styles.searchBarLarge,
+    null,
+    styles.searchBar,
+  );
+  const tlsSearchBarInput = pickStyle(styles.searchInputLarge,
+    styles.searchInputLarge,
+    null,
+    styles.searchInput,
+  );
+ const tlsSearchChio= pickStyle(styles.lineChipTextLarge,
+    styles.lineChipTextLarge,
+    null,
+    styles.lineChipText,
   );
 
    const visibleOrders = allOrders;
@@ -417,7 +477,7 @@ export default function TLSAuditScreen({ navigation, route }) {
 
           <View style={styles.headerTopRow}>
             <View>
-              <Text style={styles.title}>TLS Audit</Text>
+              <Text style={[styles.title,tlsTitleStyle]}>TLS Audit</Text>
               <Text style={styles.subtitle}>Select an order to start audit</Text>
             </View>
            {/*<View style={styles.totalBadge}>
@@ -426,15 +486,15 @@ export default function TLSAuditScreen({ navigation, route }) {
           </View>
         </SafeAreaView>
 
-        <View style={styles.searchOuter}>
-          <View style={styles.searchBar}>
+        <View style={[styles.searchOuter,tlsSearchStyle]}>
+          <View style={[styles.searchBar,tlsSearchBarStyle]}>
             <Ionicons name="search-outline" size={ms(16)} color={AppColors.textTertiary} />
             <TextInput
               value={query}
               onChangeText={setQuery}
               placeholder="Search"
               placeholderTextColor={AppColors.textTertiary}
-              style={styles.searchInput}
+              style={[styles.searchInput,tlsSearchBarInput]}
               returnKeyType="search"
               autoCorrect={false}
             />
@@ -469,7 +529,7 @@ export default function TLSAuditScreen({ navigation, route }) {
                       />
                     )}
                     <Text
-                      style={[styles.lineChipText, active && styles.lineChipTextActive]}
+                      style={[styles.lineChipText,tlsSearchChio, active && styles.lineChipTextActive]}
                       numberOfLines={1}
                     >
                       {line.name}
@@ -513,7 +573,9 @@ export default function TLSAuditScreen({ navigation, route }) {
                 selected={selectedOrderId === order.id}
                 onPress={() => setSelectedOrderId(order.id)}
                 styles={styles}
-              />
+                isLandscape
+                isLargeScreen
+               />
             ))}
           </ScrollView>
         )}
@@ -527,7 +589,7 @@ export default function TLSAuditScreen({ navigation, route }) {
           onPress={handleStartAudit}
         />
       </View>
-
+ 
       <Modal
         visible={scannerVisible}
         animationType="slide"

@@ -11,14 +11,15 @@ import {
 } from 'react-native';
 import Slider from '../components/CustomSlider';
 import { ms, mvs, fs } from '../utils/scale';
-import {getSelectedLineId} from '../api/storage/authStorage';
+import { getSelectedLineId } from '../api/storage/authStorage';
 import { AppColors } from '../theme/theme';
 import { scale, verticalScale, fontScale, moderateScale } from '../utils/scale';
 import { QUALITY_CHECKS, SPI_MIN, SPI_MAX } from '../utils/auditData';
 import GlobalStyles from './styles';
 import { verifyAndGetSlot } from '../utils/slotVerification';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
+import { useResponsive } from '../utils/responsive';
+import { useOrientation } from '../hooks/useOrientation';
 import {
   AuditHeader,
   OperatorOrderCard,
@@ -29,7 +30,7 @@ import OrderDetailsSheet from '../components/OrderDetailsSheet';
 function QualityCheckRow({ check, result, onPass, onFail }) {
   const accentColor =
     result === 'pass' ? AppColors.success :
-    result === 'fail' ? AppColors.error   : AppColors.border;
+      result === 'fail' ? AppColors.error : AppColors.border;
 
   return (
     <View style={GlobalStyles.container.qcRow}>
@@ -72,75 +73,91 @@ function QualityCheckRow({ check, result, onPass, onFail }) {
 export default function ProcessAuditScreen({ route, navigation }) {
   const zone = route?.params?.zone ?? { id: 'zone_a', name: 'Zone A' };
   const line = route?.params?.line ?? { id: 'la1', name: 'Line A1' };
+  const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs, isLargeScreen } = useResponsive();
+  const { isLandscape } = useOrientation();
   const selectedLine = route?.params?.selectedLine;
-    console.log("selected line in process "+selectedLine);
+  console.log("selected line in process " + selectedLine);
 
-   const order = route?.params?.order ?? {
-    tlsCode:   'ORD-2026-0392',
-    colour:    'Golden Yellow',
+
+  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) => isLargeScreen ? (isLandscape ? largeLandscape : largePortrait) :
+    (isLandscape ? mobileLandscape : mobilePortrait);
+  const contaa = pickStyle(GlobalStyles.container.scrollContentLarge, GlobalStyles.container.scrollContentLand, null
+    , GlobalStyles.container.scrollContent);
+  const fixed = pickStyle(GlobalStyles.container.fixedCardWrapLarge, GlobalStyles.container.fixedCardWrapLand, null
+    , GlobalStyles.container.fixedCardWrap);
+  const foooo = pickStyle(GlobalStyles.container.footerpor, GlobalStyles.container.footerLand, null
+    , GlobalStyles.container.footer);
+
+
+
+
+
+  const order = route?.params?.order ?? {
+    tlsCode: 'ORD-2026-0392',
+    colour: 'Golden Yellow',
     colourHex: '#E8B400',
-    buyer:     'ABC Corp.',
-    style:     'Polo T-Shirt',
-    styleNo:   'ST-001',
+    buyer: 'ABC Corp.',
+    style: 'Polo T-Shirt',
+    styleNo: 'ST-001',
     createdOn: '30 May, 2026',
   };
-  const operator = route?.params?.operator ;
+  const operator = route?.params?.operator;
 
-  console.log(" operator details "+JSON.stringify(operator));
+  console.log(" operator details " + JSON.stringify(operator));
   const user = route?.params?.user ?? null;
   const scannedTlsId = route?.params?.scannedTlsId ?? null;
 
-   
-  const [spiCount, setSpiCount]     = useState(0);
-  const [qcResults, setQcResults]   = useState({ spi: null, trim: null, tension: null });
+
+  const [spiCount, setSpiCount] = useState(0);
+  const [qcResults, setQcResults] = useState({ spi: null, trim: null, tension: null });
   const [showDetails, setShowDetails] = useState(false);
   const [header, setHeader] = useState("Process Audit - " + operator.lineNo);
   const [slotInfo, setSlotInfo] = useState(null);
   const [slotChecked, setSlotChecked] = useState(false);
 
-/*useEffect(() => {
-  let isMounted = true;
+  /*useEffect(() => {
+    let isMounted = true;
+  
+    const checkSlot = async () => {
+      const storedLineId = await getSelectedLineId();
+  
+      if (!storedLineId) {
+        console.warn('ProcessAuditScreen: no stored lineId available for slot verification');
+        if (isMounted) setSlotChecked(true);
+        return;
+      }
+  
+      const { slot } = await verifyAndGetSlot({
+        lineId: storedLineId,
+        navigation,
+        listRouteName: 'TLSAuditScreen',
+      });
+  
+      if (isMounted) {
+        setSlotInfo(slot);
+        setSlotChecked(true);
+      }
+    };
+  
+    checkSlot();
+  
+    return () => {
+      isMounted = false;
+    };
+  }, [navigation]); */
 
-  const checkSlot = async () => {
-    const storedLineId = await getSelectedLineId();
-
-    if (!storedLineId) {
-      console.warn('ProcessAuditScreen: no stored lineId available for slot verification');
-      if (isMounted) setSlotChecked(true);
-      return;
-    }
-
-    const { slot } = await verifyAndGetSlot({
-      lineId: storedLineId,
-      navigation,
-      listRouteName: 'TLSAuditScreen',
-    });
-
-    if (isMounted) {
-      setSlotInfo(slot);
-      setSlotChecked(true);
-    }
-  };
-
-  checkSlot();
-
-  return () => {
-    isMounted = false;
-  };
-}, [navigation]); */
-
- /* const allChecked = useMemo(
-    () => QUALITY_CHECKS.every((c) => qcResults[c.id] !== null),
-    [qcResults],
-  ); */
+  /* const allChecked = useMemo(
+     () => QUALITY_CHECKS.every((c) => qcResults[c.id] !== null),
+     [qcResults],
+   ); */
   const allChecked = true;
 
- const handleQC = useCallback((id, result) => {
-  setQcResults((prev) => ({
-    ...prev,
-    [id]: prev[id] === result ? null : result,
-  }));
-}, []);
+  const handleQC = useCallback((id, result) => {
+    setQcResults((prev) => ({
+      ...prev,
+      [id]: prev[id] === result ? null : result,
+    }));
+  }, []);
   const handleProceed = useCallback(() => {
     if (!allChecked) return;
     navigation?.navigate('ProductAuditScreen', {
@@ -151,7 +168,7 @@ export default function ProcessAuditScreen({ route, navigation }) {
       operator,
       spiCount,
       qcResults,
-      scannedTlsId, 
+      scannedTlsId,
       selectedLine,
     });
   }, [allChecked, user, zone, line, order, operator, spiCount, qcResults, scannedTlsId, selectedLine, navigation]);
@@ -161,7 +178,7 @@ export default function ProcessAuditScreen({ route, navigation }) {
     () => ({
       ...operator,
       slot: slotInfo?.slot_name ?? operator.slot,
-     }),
+    }),
     [operator, slotInfo],
   );
 
@@ -175,10 +192,12 @@ export default function ProcessAuditScreen({ route, navigation }) {
         step={1}
         totalSteps={2}
         onCancel={() => navigation?.navigate('TLSAuditScreen')}
+        isLandscape
+        isLargeScreen
       />
- 
+
       <View style={GlobalStyles.container.safe}>
-        <View style={GlobalStyles.container.fixedCardWrap}>
+        <View style={[GlobalStyles.container.fixedCardWrap, fixed]}>
           <OperatorOrderCard
             order={order}
             operator={operatorWithSlot}
@@ -188,7 +207,7 @@ export default function ProcessAuditScreen({ route, navigation }) {
 
         <ScrollView
           style={GlobalStyles.container.scroll}
-          contentContainerStyle={GlobalStyles.container.scrollContent}
+          contentContainerStyle={[GlobalStyles.container.scrollContent, contaa]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -200,7 +219,7 @@ export default function ProcessAuditScreen({ route, navigation }) {
                 <Text style={GlobalStyles.text.spiUnit}> stitches / inch</Text>
               </View>
             </View>
-   
+
             <View style={GlobalStyles.container.sliderRow}>
               <Text style={GlobalStyles.text.sliderBound}>{SPI_MIN}</Text>
               <Slider
@@ -214,13 +233,13 @@ export default function ProcessAuditScreen({ route, navigation }) {
                 maximumTrackTintColor={AppColors.border}
                 thumbTintColor={AppColors.primary}
               />
-   
+
               <Text style={GlobalStyles.text.sliderBound}>{SPI_MAX}</Text>
             </View>
           </View>
 
           <View style={GlobalStyles.container.card_pro}>
-            <View style={{marginLeft:10}}>
+            <View style={{ marginLeft: 10 }}>
               <SectionLabel label="QUALITY CHECKS" />
             </View>
             <View style={{ marginTop: verticalScale(10) }}>
@@ -242,10 +261,10 @@ export default function ProcessAuditScreen({ route, navigation }) {
           <View style={GlobalStyles.text.warningBox}>
             <Ionicons
               name="alert-circle-outline"
-              style={[GlobalStyles.text.auditRowIconShield,GlobalStyles.text.mt]}
+              style={[GlobalStyles.text.auditRowIconShield, GlobalStyles.text.mt]}
             />
 
-            <Text style={[GlobalStyles.text.warningText,,GlobalStyles.text.mt]}>
+            <Text style={[GlobalStyles.text.warningText, , GlobalStyles.text.mt]}>
               Un-selected checks will be treated as{'\n'}
               <Text style={{ fontWeight: '700' }}>N/A</Text>
             </Text>
@@ -255,7 +274,7 @@ export default function ProcessAuditScreen({ route, navigation }) {
         </ScrollView>
       </View>
 
-      <View style={GlobalStyles.container.footer}>
+      <View style={[GlobalStyles.container.footer, foooo]}>
         <TouchableOpacity
           style={[GlobalStyles.button.submitBtn, allChecked && GlobalStyles.button.submitBtnActive]}
           onPress={handleProceed}
@@ -281,6 +300,8 @@ export default function ProcessAuditScreen({ route, navigation }) {
         navigation={navigation}
         lineId={selectedLine}
         listRouteName="TLSAuditScreen"
+        isLandscape
+        isLargeScreen
       />
     </SafeAreaView>
   );

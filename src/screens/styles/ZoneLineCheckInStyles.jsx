@@ -29,6 +29,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginTop: 10,
     marginBottom: 2,
+    fontFamily:'Inter-Regular'
   },
   subtitle: {
     fontSize: 15,
@@ -86,28 +87,50 @@ const styles = StyleSheet.create({
   },
 });
 
-// ── Landscape-only overrides ──────────────────────────────────────────────
-// Kept as a SEPARATE object rather than editing the values above, so
-// portrait is guaranteed untouched — the screen only merges these in
-// when width > height.
+ 
 export const landscapeStyles = StyleSheet.create({
   header: {
     paddingTop: 2,
     paddingBottom: 5,
   },
   title: {
-    fontSize: 19,
+    fontSize: 22,
     marginTop: 2,
     marginBottom: 0,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 15,
+    marginBottom: 6,
+  },
+  subtitleLand: {
+    fontSize: 18,
     marginBottom: 6,
   },
   body: {
     paddingTop: 10,
   },
   footer: {
+    paddingTop: 8,
+    paddingBottom: Platform.OS === 'ios' ? 10 : 25,
+  },
+
+  porheader: {
+    paddingTop: 2,
+    paddingBottom: 5,
+  },
+  portitle: {
+    fontSize: 22,
+    marginTop: 2,
+    marginBottom: 0,
+  },
+  porsubtitle: {
+    fontSize: 13,
+    marginBottom: 6,
+  },
+  porbody: {
+    paddingTop: 10,
+  },
+  porfooter: {
     paddingTop: 8,
     paddingBottom: Platform.OS === 'ios' ? 10 : 25,
   },

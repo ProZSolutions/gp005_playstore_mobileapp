@@ -337,7 +337,7 @@ export default function createStyles(ms, mvs, fs) {
 
     // --- Notes (Rejection Tracker) ------------------------------------------
     notesWrap: {
-      marginBottom: mvs(4),
+      marginBottom: mvs(20),
     },
     notesLabel: {
       fontSize: fs(12),

@@ -316,7 +316,7 @@ export const getLineMappingOrders = async (overrideLineIds, { search = '', page 
     endpoint: ENDPOINTS.DROPDOWN.LINEMAPPING,
     body: { shift_id: shiftId, line_id, search: search || '', page, limit: PAGE_SIZE },
   });
-
+  console.log("resukt  ","as "+JSON.stringify(result));
   if (!result.success) {
     showAlert('error', 'Load Failed', result.message ?? 'Could not load orders.');
     return { success: false, data: [], total: 0, page, hasMore: false };

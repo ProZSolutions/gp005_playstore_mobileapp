@@ -45,6 +45,14 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
       marginHorizontal: ms(16),
     },
 
+    titleLarge: {
+      color: AppColors.onPrimary,
+      fontSize: fs(17),
+      fontWeight: '800',
+      marginTop: mvs(10),
+      marginHorizontal: ms(16),
+    },
+
     searchOuter: { marginHorizontal: ms(16), marginTop: mvs(14) },
     searchBar: {
       flexDirection: 'row',

@@ -45,6 +45,7 @@ export default function OrderDetailsSheet({
   listRouteName = 'OrderList',
   listRouteParams,
   onSlotResolved,  
+  isLandscape, 
 }) {
   const [slotName, setSlotName] = useState('-'); 
   const requestIdRef = useRef(0);
@@ -55,6 +56,13 @@ export default function OrderDetailsSheet({
     () => createStyles({ scale, verticalScale, fontScale, moderateScale, isLargeScreen }),
     [scale, verticalScale, fontScale, moderateScale, isLargeScreen],
   );
+const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
+(isLandscape ? mobileLandscape : mobilePortrait);
+
+
+ 
+
+
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -205,10 +213,13 @@ const createStyles = ({ scale, verticalScale, fontScale, moderateScale, isLargeS
 
     rowLabel: {
       flex: 1,
-      fontSize: isLargeScreen ? 20 : fontScale(13.8),
+      fontSize: isLargeScreen ? 30 : fontScale(13.8),
       color: AppColors.textSecondary,
       fontWeight: '500',
+      fontFamily:'Inter-Regular'
     },
+    
+   
     valueWrap: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -221,7 +232,7 @@ const createStyles = ({ scale, verticalScale, fontScale, moderateScale, isLargeS
       borderRadius: isLargeScreen ? 7.5 : scale(5),
     },
     rowValue: {
-      fontSize: isLargeScreen ? 20 : fontScale(13.8),
+      fontSize: isLargeScreen ? 30 : fontScale(13.8),
       fontWeight: '700',
       color: AppColors.textPrimary,
       textAlign: 'right',

@@ -5,14 +5,14 @@ import { ms } from '../../utils/scale';
 
 const TextStyles = StyleSheet.create({
     //login style
-     shift_title: { marginLeft: Dimensions.text.shiftTitleMarginLeft, fontSize: Dimensions.text.shiftFontSize, fontWeight: '700', color: AppColors.primary },
-      shift_desc:  { marginLeft: Dimensions.text.shiftTitleMarginLeft, fontSize: Dimensions.text.shiftFontSize, fontWeight: '700', color: AppColors.onSurfaceDisabled },
-      title:    { fontSize: Dimensions.text.titleFontSize, 
+     shift_title: { marginLeft: Dimensions.text.shiftTitleMarginLeft,fontFamily:'Inter-Regular' , fontSize: Dimensions.text.shiftFontSize, fontWeight: '700', color: AppColors.primary },
+      shift_desc:  { marginLeft: Dimensions.text.shiftTitleMarginLeft,fontFamily:'Inter-Regular' , fontSize: Dimensions.text.shiftFontSize, fontWeight: '700', color: AppColors.onSurfaceDisabled },
+      title:    { fontSize: Dimensions.text.titleFontSize,fontFamily:'Inter-Regular' , 
         fontWeight: '700', color: AppColors.textPrimary, fontFamily:'Inter-Regular',
          marginBottom: Dimensions.text.titleMarginBottom, letterSpacing: Dimensions.letterSpacing.tight },
-      subtitle: { fontFamily: 'Inter-Regular',fontSize: Dimensions.text.subtitleFontSize, fontWeight: '400', color: AppColors.textSecondary,   marginBottom: Dimensions.text.subtitleMarginBottom, letterSpacing: Dimensions.letterSpacing.tight },
+      subtitle: { fontFamily: 'Inter-Regular',fontFamily:'Inter-Regular' ,fontSize: Dimensions.text.subtitleFontSize, fontWeight: '400', color: AppColors.textSecondary,   marginBottom: Dimensions.text.subtitleMarginBottom, letterSpacing: Dimensions.letterSpacing.tight },
       forgot_title: {
-        fontSize: Dimensions.text.forgotTitleFontSize,
+        fontSize: Dimensions.text.forgotTitleFontSize,fontFamily:'Inter-Regular' ,
         fontWeight: '800',
         color: AppColors.primary,
         textAlign: 'right',
@@ -20,13 +20,13 @@ const TextStyles = StyleSheet.create({
         letterSpacing: Dimensions.letterSpacing.narrow,
       },
       helpText: {
-        fontSize: Dimensions.text.helpTextFontSize,
+        fontSize: Dimensions.text.helpTextFontSize,fontFamily:'Inter-Regular' ,
         color: AppColors.helpText,
         fontWeight: '400',
       },
 
       contactText: {
-        fontSize: Dimensions.text.contactTextFontSize,
+        fontSize: Dimensions.text.contactTextFontSize,fontFamily:'Inter-Regular' ,
         color:AppColors.primary,
         fontWeight: '600',
         marginLeft: Dimensions.text.contactTextMarginLeft,
@@ -34,7 +34,7 @@ const TextStyles = StyleSheet.create({
     //login style
     //product audit
      auditRowLabel: {
-        fontSize: Dimensions.text.auditRowLabelFontSize,
+        fontSize: Dimensions.text.auditRowLabelFontSize,fontFamily:'Inter-Regular' ,
         fontWeight: '800',
         color: AppColors.textSecondary,
         letterSpacing: Dimensions.letterSpacing.wide,
@@ -55,12 +55,12 @@ const TextStyles = StyleSheet.create({
              marginTop: Dimensions.spacing.infoBadgeMarginTop,
         },
          chevron: {
-            fontSize: Dimensions.text.chevronFontSize,
+            fontSize: Dimensions.text.chevronFontSize,fontFamily:'Inter-Regular' ,
             color: AppColors.textTertiary,
             marginTop: Dimensions.text.chevronMarginTop,
           },
 
-            chipText: { fontSize: Dimensions.text.chipTextFontSize, fontWeight: '600' },
+            chipText: { fontSize: Dimensions.text.chipTextFontSize, fontWeight: '600' ,fontFamily:'Inter-Regular' },
          chipDefect:      { backgroundColor: AppColors.chipDefectBg, borderColor: AppColors.chipDefectBorder,borderRadius:Dimensions.text.pieceDefectPadding },
         chipTextDefect:  { color: AppColors.chipDefectText },
         chipPiece:       { backgroundColor: AppColors.errorContainer, borderColor: AppColors.error + '66',borderRadius:Dimensions.text.pieceDefectPadding },
@@ -73,16 +73,24 @@ const TextStyles = StyleSheet.create({
         chipMore:        { backgroundColor: AppColors.surfaceVariant, borderColor: AppColors.border,borderRadius:Dimensions.text.pieceDefectPadding },
         chipTextMore:    { color: AppColors.textSecondary },
         placeholderText: {
-            fontSize: Dimensions.text.placeholderTextFontSize,
+            fontSize: Dimensions.text.placeholderTextFontSize,fontFamily:'Inter-Regular' ,
             color: AppColors.textTertiary,
             fontStyle: 'italic',
           },
-          pillTextBack: { color: AppColors.onPrimary, fontSize: Dimensions.text.headerTitleFontSize, fontWeight: '600' },
+          pillTextBack: { color: AppColors.onPrimary, fontSize: Dimensions.text.headerTitleFontSize, fontWeight: '600' ,fontFamily:'Inter-Regular' },
 
-            pillText: { color: AppColors.onPrimary, fontSize: Dimensions.text.pillTextFontSize, fontWeight: '600' },
+            pillText: { color: AppColors.onPrimary, fontSize: Dimensions.text.pillTextFontSize,
+               fontWeight: '600',fontFamily:'Inter-Regular'  },
           headerTitle: {
             color: AppColors.onPrimary,
-            fontSize: Dimensions.text.headerTitleFontSize,
+            fontSize: Dimensions.text.headerTitleFontSize,fontFamily:'Inter-Regular' ,
+            fontWeight: '800',
+            marginBottom: Dimensions.spacing.headerTitleMarginBottom,
+            marginTop:Dimensions.spacing.headerPaddingTopIOS
+          },
+           headerTitleL: {
+            color: AppColors.onPrimary,
+            fontSize: Dimensions.text.headerTitleFontSize,fontFamily:'Inter-Regular' ,
             fontWeight: '800',
             marginBottom: Dimensions.spacing.headerTitleMarginBottom,
             marginTop:Dimensions.spacing.headerPaddingTopIOS
@@ -96,7 +104,7 @@ const TextStyles = StyleSheet.create({
           },
          dotActive: { width: Dimensions.spacing.dotActiveWidth, backgroundColor: AppColors.onPrimary },
           sectionLabel: {
-            fontSize: Dimensions.text.sectionLabelFontSize,
+            fontSize: Dimensions.text.sectionLabelFontSize,fontFamily:'Inter-Regular' ,
             fontWeight: '800',
             letterSpacing: Dimensions.letterSpacing.wide,
                color: AppColors.textSecondary,
@@ -105,14 +113,16 @@ const TextStyles = StyleSheet.create({
             marginLeft: Dimensions.spacing.sectionLabelMarginLeft
         },
          sectionLabelNew: {
-            fontSize: Dimensions.text.sectionLabelFontSize,
+            fontSize: Dimensions.text.sectionLabelFontSize,fontFamily:'Inter-Regular' ,
             fontWeight: '800',
             letterSpacing: Dimensions.letterSpacing.wide,
                color: AppColors.textSecondary,
             textTransform: 'uppercase',
              marginLeft: Dimensions.spacing.sectionLabelMarginLeft
         },
-          viewAllText: { fontSize: Dimensions.text.viewAllTextFontSize, fontWeight: '700', color: AppColors.primary },
+         viewAllTextLarge: { fontSize: Dimensions.text.viewAllTextFontSizeL,fontFamily:'Inter-Regular' , fontWeight: '700', color: AppColors.primary },
+
+          viewAllText: { fontSize: Dimensions.text.viewAllTextFontSize,fontFamily:'Inter-Regular' , fontWeight: '700', color: AppColors.primary },
           fieldValueRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
             gap: Dimensions.spacing.fieldValueRowGap, paddingBottom: Dimensions.spacing.fieldValueRowPaddingV, 
             paddingLeft: Dimensions.spacing.fieldValueRowPaddingLeft,
@@ -120,23 +130,38 @@ const TextStyles = StyleSheet.create({
                    paddingTop: Dimensions.spacing.fieldValueRowPaddingV,
                    paddingBottom:Dimensions.spacing.fieldValueRowPaddingV
           },
-          fieldValue: { fontSize: Dimensions.text.fieldValueFontSize, fontWeight: '500', color: AppColors.textPrimary },
-          fieldSep: { fontSize: Dimensions.text.fieldSepFontSize, color: AppColors.textTertiary, marginHorizontal: Dimensions.spacing.fieldSepMarginH },
+          fieldValue: { fontSize: Dimensions.text.fieldValueFontSize,fontFamily:'Inter-Regular' , fontWeight: '500', color: AppColors.textPrimary },
+          fieldSep: { fontSize: Dimensions.text.fieldSepFontSize,fontFamily:'Inter-Regular' , color: AppColors.textTertiary, marginHorizontal: Dimensions.spacing.fieldSepMarginH },
           detailLabel: {
-              fontSize: Dimensions.text.detailLabelFontSize,
+              fontSize: Dimensions.text.detailLabelFontSize,fontFamily:'Inter-Regular' ,
               fontWeight: '700',
               letterSpacing: Dimensions.letterSpacing.standard,
               color: AppColors.textTertiary,
               textTransform: 'uppercase',
               marginBottom: Dimensions.spacing.detailLabelMarginBottom,
           },
+          detailLabelLarge: {
+              fontSize: Dimensions.text.detailLabelFontSizeL,fontFamily:'Inter-Regular' ,
+              fontWeight: '700',
+              letterSpacing: Dimensions.letterSpacing.standard,
+              color: AppColors.textTertiary,
+              textTransform: 'uppercase',
+              marginBottom: Dimensions.spacing.detailLabelMarginBottom,
+          },
+
+
+
+
+
            detailValueRow: { flexDirection: 'row', alignItems: 'center', gap: Dimensions.spacing.detailValueRowGap },
           colourDot: { width: Dimensions.spacing.colourDotSize, height: Dimensions.spacing.colourDotSize, borderRadius: Dimensions.radius.colourDot },
-          detailValue: { fontSize: Dimensions.text.detailValueFontSize, fontWeight: '700', color: AppColors.textPrimary, flexShrink: 1 },
-          severityLabel: { fontSize: Dimensions.text.severityLabelFontSize, fontWeight: '400'},
-          severityCount: { fontSize: Dimensions.text.severityCountFontSize, fontWeight: '800' },
+          detailValue: { fontSize: Dimensions.text.detailValueFontSize,fontFamily:'Inter-Regular' , fontWeight: '700', color: AppColors.textPrimary, flexShrink: 1 },
+          detailValueLarge: { fontSize: Dimensions.text.detailValueFontSizeL,fontFamily:'Inter-Regular' , fontWeight: '700', color: AppColors.textPrimary, flexShrink: 1 },
+
+          severityLabel: { fontSize: Dimensions.text.severityLabelFontSize, fontWeight: '400',fontFamily:'Inter-Regular' },
+          severityCount: { fontSize: Dimensions.text.severityCountFontSize, fontWeight: '800',fontFamily:'Inter-Regular'  },
            label: {
-              fontSize:      Dimensions.text.labelFontSize,
+              fontSize:      Dimensions.text.labelFontSize,fontFamily:'Inter-Regular' ,
               fontWeight:    '400',
               letterSpacing: Dimensions.letterSpacing.wide,
               textTransform: 'uppercase',
@@ -149,13 +174,13 @@ const TextStyles = StyleSheet.create({
                 borderRadius: Dimensions.radius.gradeDot,
               },
               gradeText: {
-                fontSize: Dimensions.text.gradeTextFontSize,
+                fontSize: Dimensions.text.gradeTextFontSize,fontFamily:'Inter-Regular' ,
                 fontWeight: '600',
                 letterSpacing: Dimensions.letterSpacing.medium,
               },
               mt:{marginTop:10,marginBottom:10},
                
-            auditRowIconShield:  { fontSize: Dimensions.text.auditRowIconShieldFontSize, marginTop: Dimensions.spacing.auditRowIconShieldMarginTop, color:AppColors.labrlcolo ,textAlign:'center'},
+            auditRowIconShield:  { fontSize: Dimensions.text.auditRowIconShieldFontSize,fontFamily:'Inter-Regular' , marginTop: Dimensions.spacing.auditRowIconShieldMarginTop, color:AppColors.labrlcolo ,textAlign:'center'},
             warningLabel:{
               paddingRight: Dimensions.warningLabel.paddingH,
               paddingLeft: Dimensions.warningLabel.paddingH,
@@ -165,34 +190,34 @@ const TextStyles = StyleSheet.create({
               backgroundColor: AppColors.warningLabelBg,
             },
             pieceDotText: {
-              fontSize: Dimensions.text.pieceDotTextFontSize,
+              fontSize: Dimensions.text.pieceDotTextFontSize,fontFamily:'Inter-Regular' ,
               fontWeight: '700',
               color: AppColors.textSecondary,
             },
              submitExitText: {
-                fontSize: Dimensions.text.submitTextFontSize,
+                fontSize: Dimensions.text.submitTextFontSize,fontFamily:'Inter-Regular' ,
                 fontWeight: '700',
                 color: AppColors.textSecondary,
             },
-           submitBtnText:      { fontSize: Dimensions.text.submitTextFontSize, fontWeight: '800', color: AppColors.textTertiary },
+           submitBtnText:      { fontSize: Dimensions.text.submitTextFontSize,fontFamily:'Inter-Regular' , fontWeight: '800', color: AppColors.textTertiary },
             submitBtnTextActive:{ color: AppColors.onPrimary },
     //product audit
     //process audit
       spiValue: {
-          fontSize: Dimensions.text.spiValueFontSize,
+          fontSize: Dimensions.text.spiValueFontSize,fontFamily:'Inter-Regular' ,
           fontWeight: '800',
           color: AppColors.textPrimary,
           letterSpacing: Dimensions.letterSpacing.negativeTight,
       },
       spiUnit: {
-        fontSize: Dimensions.text.spiUnitFontSize,
+        fontSize: Dimensions.text.spiUnitFontSize,fontFamily:'Inter-Regular' ,
         marginRight: Dimensions.spacing.spiUnitMarginRight,
         color: AppColors.textTertiary,
         fontWeight: '500',
         marginLeft: Dimensions.spacing.spiUnitMarginLeft,
       },
         sliderBound:{
-          fontSize: Dimensions.text.sliderBoundFontSize,
+          fontSize: Dimensions.text.sliderBoundFontSize,fontFamily:'Inter-Regular' ,
           fontWeight: '600',
           color: AppColors.textTertiary,
           minWidth: Dimensions.spacing.sliderBoundMinWidth,
@@ -201,18 +226,18 @@ const TextStyles = StyleSheet.create({
           textAlign: 'center',
          },
         qcName: {
-              fontSize: Dimensions.text.qcNameFontSize,
+              fontSize: Dimensions.text.qcNameFontSize,fontFamily:'Inter-Regular' ,
               fontWeight: '700',
               color: AppColors.textPrimary,
               marginBottom: Dimensions.spacing.qcNameMarginBottom,
         },
          qcDesc: {
-            fontSize: Dimensions.text.qcDescFontSize,
+            fontSize: Dimensions.text.qcDescFontSize,fontFamily:'Inter-Regular' ,
             color: AppColors.textSecondary,
             lineHeight: Dimensions.text.qcDescLineHeight,
         },
         qcBtnText: {
-          fontSize: Dimensions.text.qcBtnTextFontSize,
+          fontSize: Dimensions.text.qcBtnTextFontSize,fontFamily:'Inter-Regular' ,
           fontWeight: '700',
           color: AppColors.textSecondary,
         },
@@ -228,24 +253,24 @@ const TextStyles = StyleSheet.create({
           qcBtnTextFail: { color: AppColors.error },
     //process audit
     //dashboard
-        changeZoneText: { color: AppColors.onPrimary, fontSize: Dimensions.text.changeZoneTextFontSize, fontWeight: '700', marginHorizontal: Dimensions.spacing.changeZoneTextMarginH },
+        changeZoneText: { color: AppColors.onPrimary, fontSize: Dimensions.text.changeZoneTextFontSize, fontWeight: '700', marginHorizontal: Dimensions.spacing.changeZoneTextMarginH,fontFamily:'Inter-Regular' },
         zoneSummaryText: {
       color: `rgba(255,255,255,${Dimensions.opacity.zoneSummaryText})`, fontSize: Dimensions.text.zoneSummaryTextFontSize,
       paddingHorizontal: Dimensions.spacing.zoneSummaryTextPaddingH, marginTop: Dimensions.spacing.zoneSummaryTextMarginTop,
     },
-        avatarText: { color: AppColors.onPrimary, fontSize: Dimensions.text.avatarTextFontSize, fontWeight: '700' },
+        avatarText: { color: AppColors.onPrimary, fontSize: Dimensions.text.avatarTextFontSize, fontWeight: '700',fontFamily:'Inter-Regular'  },
     inspectorName: { color: AppColors.textPrimary, fontSize: Dimensions.text.inspectorNameFontSize, fontWeight: '800', marginRight: Dimensions.spacing.inspectorNameMarginRight },
     empBadge: { backgroundColor: AppColors.primaryLight, paddingHorizontal: Dimensions.spacing.empBadgePaddingH, paddingVertical: Dimensions.spacing.empBadgePaddingV, borderRadius: Dimensions.radius.empBadge },
-    empBadgeText: { color: AppColors.primary, fontSize: Dimensions.text.empBadgeTextFontSize, fontWeight: '600' },
-    inspectorRole: { color: AppColors.textSecondary, fontSize: Dimensions.text.inspectorRoleFontSize, marginTop: Dimensions.spacing.inspectorRoleMarginTop },
- shiftText: { color: AppColors.textPrimary, fontSize: Dimensions.text.shiftTextFontSize, fontWeight: '400', marginLeft: Dimensions.spacing.shiftTextMarginLeft },
+    empBadgeText: { color: AppColors.primary, fontSize: Dimensions.text.empBadgeTextFontSize, fontWeight: '600' ,fontFamily:'Inter-Regular' },
+    inspectorRole: { color: AppColors.textSecondary, fontSize: Dimensions.text.inspectorRoleFontSize, marginTop: Dimensions.spacing.inspectorRoleMarginTop,fontFamily:'Inter-Regular'  },
+ shiftText: { color: AppColors.textPrimary, fontSize: Dimensions.text.shiftTextFontSize, fontWeight: '400', marginLeft: Dimensions.spacing.shiftTextMarginLeft ,fontFamily:'Inter-Regular' },
    sectionLabel_dash: {
       color: AppColors.textSecondary, fontSize: Dimensions.text.sectionLabelDashFontSize, fontWeight: '700',
-      letterSpacing: Dimensions.letterSpacing.standard, marginTop: Dimensions.spacing.sectionLabelDashMarginTop, marginBottom: Dimensions.spacing.sectionLabelDashMarginBottom,
+      letterSpacing: Dimensions.letterSpacing.standard, marginTop: Dimensions.spacing.sectionLabelDashMarginTop, marginBottom: Dimensions.spacing.sectionLabelDashMarginBottom,fontFamily:'Inter-Regular' 
     },
-     mainOpTitle: { color: AppColors.textPrimary, fontSize: Dimensions.text.mainOpTitleFontSize, fontWeight: '700' },
-    mainOpSubtitle: { color: AppColors.textTertiary, fontSize: Dimensions.text.mainOpSubtitleFontSize, marginTop: Dimensions.spacing.mainOpSubtitleMarginTop },
-    configTitle: { color: AppColors.textPrimary, fontSize: Dimensions.text.configTitleFontSize, fontWeight: '600' },
+     mainOpTitle: { color: AppColors.textPrimary,fontFamily:'Inter-Regular' , fontSize: Dimensions.text.mainOpTitleFontSize, fontWeight: '700' },
+    mainOpSubtitle: { color: AppColors.textTertiary,fontFamily:'Inter-Regular' , fontSize: Dimensions.text.mainOpSubtitleFontSize, marginTop: Dimensions.spacing.mainOpSubtitleMarginTop },
+    configTitle: { color: AppColors.textPrimary,fontFamily:'Inter-Regular' , fontSize: Dimensions.text.configTitleFontSize, fontWeight: '600',fontFamily:'Inter-Regular' },
     configIcon: { alignSelf: 'flex-end', marginTop:'auto' },
     //dashboard
 
@@ -253,7 +278,13 @@ const TextStyles = StyleSheet.create({
 // ── Device/Machine mapping (full-screen Add + Confirm) ──
   cardSectionTitle: {
     fontSize: Dimensions.text.detailValueFontSize,
-    fontWeight: '700',
+    fontWeight: '700',fontFamily:'Inter-Regular' ,
+    color: AppColors.primary,
+    marginLeft: Dimensions.spacing.auditRowLabelGap,
+  },
+   cardSectionTitleLarge: {
+    fontSize: Dimensions.text.detailValueFontSizeL,
+    fontWeight: '700',fontFamily:'Inter-Regular' ,
     color: AppColors.primary,
     marginLeft: Dimensions.spacing.auditRowLabelGap,
   },
@@ -271,14 +302,14 @@ const TextStyles = StyleSheet.create({
   },
   warningText: {
     flex: 1,
-    fontSize: Dimensions.text.qcDescFontSize,
+    fontSize: Dimensions.text.qcDescFontSize,fontFamily:'Inter-Regular' ,
     color: AppColors.textSecondary,
     lineHeight: Dimensions.text.qcDescLineHeight,
   },
    scanBtnText: {
     color: AppColors.onPrimary,
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 16,fontFamily:'Inter-Regular' ,
   },
     //device mapping
 

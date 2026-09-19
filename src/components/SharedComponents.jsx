@@ -77,17 +77,31 @@ function DetailRow({ label, value, styles, bordered, italic, live, multiline,ico
   );
 }
 
- export function OperatorOrderCard({ order, operator, onViewAll,styless }) {
+ export function OperatorOrderCard({ order, operator, onViewAll,styless,isLandscape,isLargeScreen }) {
+  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
+  (isLandscape ? mobileLandscape : mobilePortrait);
+ const card_pro = pickStyle(GlobalStyles.container.card_proLarge,GlobalStyles.container.card_proLarge,
+  null,GlobalStyles.container.card_pro);
+  const sectionHeaderRow = pickStyle(GlobalStyles.container.sectionHeaderRowL,GlobalStyles.container.sectionHeaderRowL,
+  null,GlobalStyles.container.sectionHeaderRow);
+  const viewAllText = pickStyle(GlobalStyles.text.viewAllTextLarge,GlobalStyles.text.viewAllTextLarge,
+  null,GlobalStyles.text.viewAllText);
+
+  const sectionBody = pickStyle(GlobalStyles.container.sectionBodyLarger,GlobalStyles.container.sectionBodyLarger,
+  null,GlobalStyles.container.sectionBody);
+ 
+
+
    return (
- <View style={GlobalStyles.container.card_pro}>
-  <View style={GlobalStyles.container.sectionHeaderRow}>
+ <View style={[GlobalStyles.container.card_pro,card_pro]}>
+  <View style={[GlobalStyles.container.sectionHeaderRow,sectionHeaderRow]}>
     <SectionLabelNew label="OPERATOR & ORDER DETAILS" style={{paddingTop:0}}/>
     <TouchableOpacity onPress={onViewAll}>
-      <Text style={GlobalStyles.text.viewAllText}>View all</Text>
+      <Text style={[GlobalStyles.text.viewAllText,viewAllText]}>View all</Text>
     </TouchableOpacity>
   </View>
 
-    <View style={GlobalStyles.container.sectionBody}>
+    <View style={[GlobalStyles.container.sectionBody,sectionBody]}>
           <DetailRow styles={GlobalStyles.container} label="Order No." value={order?.orderrCode ?? '—'} icon='hash' iconFamily='feather' />
           <DetailRow styles={GlobalStyles.container} label="Operation" value={operator?.operation ?? '—'} icon='tool' iconFamily='feather' />
           <DetailRow styles={GlobalStyles.container} label="Colour" value={order?.colour ?? '—'} icon='color-palette-outline' iconFamily='ionicon'  /> 
@@ -96,10 +110,19 @@ function DetailRow({ label, value, styles, bordered, italic, live, multiline,ico
   );
 }
 
-export function AuditHeader({ title, step, totalSteps = 2, onCancel, onBack,header }) {
-  return (
-    <View style={[GlobalStyles.container.header, !onBack && localHeaderStyles.compactHeader]}>
-      <View style={[GlobalStyles.container.headerTopRow, !onBack && localHeaderStyles.compactTopRow]}>
+export function AuditHeader({ title, step, totalSteps = 2, onCancel, onBack,header,isLandscape,isLargeScreen }) {
+  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
+  (isLandscape ? mobileLandscape : mobilePortrait);
+ const globalHeader = pickStyle(GlobalStyles.container.headerlarge,GlobalStyles.container.headerlarge,null,GlobalStyles.container.header);
+ const onBackSty =pickStyle(localHeaderStyles.compactHeaderL,localHeaderStyles.compactHeaderL,null, localHeaderStyles.compactHeader);
+ const compactTopRowL =pickStyle(localHeaderStyles.compactTopRowL,localHeaderStyles.compactTopRowL,null, localHeaderStyles.compactTopRow);
+ const headerTopRow =pickStyle(GlobalStyles.container.headerTopRowL,GlobalStyles.container.headerTopRowL,null,GlobalStyles.container.headerTopRow);
+ const headerPillLarge =pickStyle(GlobalStyles.container.headerPillL,GlobalStyles.container.headerPillL,null,GlobalStyles.container.headerPill);
+ const headerTitle =pickStyle(GlobalStyles.text.headerTitleL,GlobalStyles.text.headerTitleL,null,GlobalStyles.text.headerTitle);
+ 
+ return (
+    <View style={[ globalHeader, !onBack && onBackSty]}>
+      <View style={[headerTopRow, !onBack && compactTopRowL]}>
        {onBack && (
           <TouchableOpacity
             style={{ flexDirection: 'row', alignItems: 'center' }}
@@ -118,19 +141,17 @@ export function AuditHeader({ title, step, totalSteps = 2, onCancel, onBack,head
 
         {header && (
           <TouchableOpacity
-            style={{ flexDirection: 'row', alignItems: 'center' }}
-            
+            style={{ flexDirection: 'row', alignItems: 'center' }}            
             activeOpacity={0.8}
-          >
-            
-            <Text style={[GlobalStyles.text.pillText, { marginLeft: 8 }]}>
+          >            
+            <Text style={[GlobalStyles.text.pillText, { marginLeft: 8 ,fontFamily:'Inter-Bold'}]}>
               TLS Audit
             </Text>
           </TouchableOpacity>
         )}
  
         <TouchableOpacity
-          style={GlobalStyles.container.headerPill}
+          style={headerPillLarge}
           onPress={onCancel}
           activeOpacity={0.8}
         >
@@ -139,7 +160,7 @@ export function AuditHeader({ title, step, totalSteps = 2, onCancel, onBack,head
         </TouchableOpacity>
       </View>
  
-      <Text style={GlobalStyles.text.headerTitle}>{title}</Text>
+      <Text style={headerTitle}>{title}</Text>
  
       <View style={GlobalStyles.text.stepDots}>
         {Array.from({ length: totalSteps }).map((_, i) => (
@@ -205,9 +226,14 @@ const localHeaderStyles = StyleSheet.create({
   compactHeader: {
     paddingTop: Platform.OS === 'android' ? mvs(14) : mvs(10),
   },
+  compactHeaderL: {
+    paddingTop: Platform.OS === 'android' ? mvs(14) : mvs(10),
+  },
   compactTopRow: {
     marginBottom: mvs(6),
   },
+  compactTopRowL: {
+   },
 });
 // ─── Shared Styles ────────────────────────────────────────────────────────────
 

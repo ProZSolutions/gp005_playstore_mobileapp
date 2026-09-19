@@ -30,6 +30,7 @@ import { usePermissions, GROUP } from '../context/PermissionsContext';
 import { clearSelectedLineId } from '../api/storage/authStorage'; 
 import TabletDashboardStyles from './styles/TabletDashboardStyles';
 import NotificationService from '../api/services/NotificationService';
+import { sortIdNamePairs } from '../utils/sortById';
 
 const TEAL = AppColors.primary;
 const PURPLE_LIGHT = '#EFE9FE';
@@ -342,7 +343,7 @@ export default function DashboardScreen({ navigation, route }) {
   if (cancelled || loggedOutRef.current || loggingOutRef.current) return;
 
   if (result.success && result.data) { 
-    setCheckinData((prev) => ({
+    /*setCheckinData((prev) => ({
       ...prev,
       lineIds: (Array.isArray(result.data.line_id) && result.data.line_id.length)
         ? result.data.line_id
@@ -351,7 +352,13 @@ export default function DashboardScreen({ navigation, route }) {
         ? result.data.line_names
         : prev.lineNames,
     }));
- 
+    */
+
+     const { line_id, line_names } = result.data;
+    if (Array.isArray(line_id) && line_id.length && Array.isArray(line_names) && line_names.length) {
+      const fresh = sortIdNamePairs(line_id, line_names);
+      setCheckinData((prev) => ({ ...prev, lineIds: fresh.ids, lineNames: fresh.names }));
+    }
     try {
       const freshShift = await getShiftData();
       if (!cancelled && freshShift) setShiftData(freshShift);
@@ -427,66 +434,66 @@ export default function DashboardScreen({ navigation, route }) {
   const bodyStyle = pickStyle(
     TabletDashboardStyles.body,
     TabletDashboardStyles.bodyLandscape,
-    null,
+    styles.bodyLandscape,
     styles.bodyLandscape,
   );
 
   const inspectionCardOuterStyle = pickStyle(
     TabletDashboardStyles.inspectionCardOuter,
     TabletDashboardStyles.inspectionCardOuterLandscape,
-    null,
-    null,
+     GlobalStyles.container.inspectionCardOuter,
+     GlobalStyles.container.inspectionCardOuter,
   );
 
   const mainOpCardStyle = pickStyle(
     TabletDashboardStyles.mainOpCard,
     TabletDashboardStyles.mainOpCardLandscape,
-    null,
-    styles.mainOpCardLandscape,
+    GlobalStyles.container.mainOpCard,
+    GlobalStyles.container.mainOpCard,
   );
 
   const mainOpIconWrapStyle = pickStyle(
     TabletDashboardStyles.mainOpIconWrap,
     TabletDashboardStyles.mainOpIconWrapLandscape,
-    null,
-    styles.mainOpIconWrapLandscape,
+    GlobalStyles.container.mainOpIconWrap,
+   GlobalStyles.container.mainOpIconWrap,
   );
 
   const mainOpTitleStyle = pickStyle(
     TabletDashboardStyles.mainOpTitle,
     TabletDashboardStyles.mainOpTitleLandscape,
-    null,
-    styles.mainOpTitleLandscape,
+    GlobalStyles.text.mainOpTitle,
+    GlobalStyles.text.mainOpTitle,
   );
 
   const mainOpSubtitleStyle = pickStyle(
     TabletDashboardStyles.mainOpSubtitle,
     TabletDashboardStyles.mainOpSubtitleLandscape,
-    null,
-    styles.mainOpSubtitleLandscape,
+    GlobalStyles.text.mainOpSubtitle,
+   GlobalStyles.text.mainOpSubtitle,
   );
 
   const configCardStyle = pickStyle(
     TabletDashboardStyles.configCardPscape,
     TabletDashboardStyles.configCardLandscape,
-    null,
-    styles.configCard,
+    GlobalStyles.container.configCard,
+    GlobalStyles.container.configCard,
   );
 
   const configTitleStyle = pickStyle(
     TabletDashboardStyles.configTitle,
     TabletDashboardStyles.configTitleLandscape,
     GlobalStyles.text.configTitle,
-    styles.configTitleLandscape,
+   GlobalStyles.text.configTitle,
   );
 
   const configIconStyle = pickStyle(
     TabletDashboardStyles.configIconP,
     TabletDashboardStyles.configIconLandscape,
     GlobalStyles.text.configIcon,
-    styles.configIconLandscape,
+     GlobalStyles.text.configIcon,
   );
-   const sizess = pickStyle(ms(20),ms(22),null,ms(18));
+   const sizess = pickStyle(ms(20),ms(22),ms(18),ms(18));
   const openChangeZone = () => {
     navigation.navigate('CheckIn', {
       user,

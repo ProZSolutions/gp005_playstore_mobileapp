@@ -29,12 +29,12 @@ export default function SelectListSheet({
 (isLandscape ? mobileLandscape : mobilePortrait);
 
 
-    const textStyle = pickStyle(styles.searchInputLarge,styles.searchInputLarge,null,styles.searchInput);
-    const circlestyle = pickStyle(styles.checkCircleLarge,styles.checkCircleLarge,null,styles.checkCircle);
-    const checkedQTy = pickStyle(styles.rowRightTextLarge,styles.rowRightTextLarge,null,styles.rowRightText);
-    const rawte = pickStyle(styles.rowLabelLarge,styles.rowLabelLarge,null,styles.rowLabel);
+    const textStyle = pickStyle(styles.searchInputLarge,styles.searchInputLarge,styles.searchInput,styles.searchInput);
+    const circlestyle = pickStyle(styles.checkCircleLarge,styles.checkCircleLarge,styles.checkCircle,styles.checkCircle);
+    const checkedQTy = pickStyle(styles.rowRightTextLarge,styles.rowRightTextLarge,styles.rowRightText,styles.rowRightText);
+    const rawte = pickStyle(styles.rowLabelLarge,styles.rowLabelLarge,styles.rowLabel,styles.rowLabel);
 
-    const hgt = pickStyle(560,400,null,560);
+    const hgt = pickStyle(560,400,560,560);
 
 
 

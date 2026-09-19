@@ -54,7 +54,15 @@ function StatusPill({ status, status_name, styles }) {
   );
 }
 
-function IssueCard({ issue, onPress, styles, ms }) {
+function IssueCard({ issue, onPress, styles, ms ,isLandscape,isLargeScreen}) {
+   const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen
+      ? (isLandscape ? largeLandscape : largePortrait)
+      : (isLandscape ? mobileLandscape : mobilePortrait);
+  const tlsCodeStyle = pickStyle(styles.tlsCodeLarge,styles.tlsCodeLarge, styles.tlsCode,styles.tlsCode);
+   const tlsValueStyle = pickStyle(styles.fieldValueLarge,styles.fieldValueLarge, styles.fieldValue,styles.fieldValue);
+   const tlsdateStyle = pickStyle(styles.createdOnTextLarge,styles.createdOnTextLarge, styles.createdOnText,styles.createdOnText);
+
   return (
     <Pressable
       onPress={onPress}
@@ -63,7 +71,7 @@ function IssueCard({ issue, onPress, styles, ms }) {
       accessibilityRole="button"
     >
       <View style={styles.cardTopRow}>
-        <Text style={styles.orderId} numberOfLines={1}>
+        <Text style={[styles.orderId,tlsCodeStyle]} numberOfLines={1}>
           {issue.displayId} {lineAbbrev(issue.lineLabel)}
         </Text>
         <StatusPill status={issue.status} status_name={issue.status_name} styles={styles} />
@@ -77,11 +85,11 @@ function IssueCard({ issue, onPress, styles, ms }) {
       <View style={styles.cardGridRow}>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>OPERATION</Text>
-          <Text style={styles.fieldValue} numberOfLines={1}>{issue.operation}</Text>
+          <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{issue.operation}</Text>
         </View>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>TYPE</Text>
-          <Text style={styles.fieldValue} numberOfLines={1}>{issue.raw.machine_type_name}</Text>
+          <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{issue.raw.machine_type_name}</Text>
         </View>
       </View>
 
@@ -90,12 +98,12 @@ function IssueCard({ issue, onPress, styles, ms }) {
           <Text style={styles.fieldLabel}>COLOUR</Text>
           <View style={styles.fieldValueRow}>
             <View style={[styles.colourDot, { backgroundColor: issue.colourHex }]} />
-            <Text style={styles.fieldValue} numberOfLines={1}>{issue.colour}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{issue.colour}</Text>
           </View>
         </View>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>ELAPSED TIME</Text>
-          <Text style={styles.fieldValue} numberOfLines={1}>{issue.elapsedTimeHrs}</Text>
+          <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{issue.elapsedTimeHrs}</Text>
         </View>
       </View>
     </Pressable>
@@ -105,6 +113,7 @@ function IssueCard({ issue, onPress, styles, ms }) {
 export default function QCIssueTrackerScreen({ navigation, route }) {
   const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs, isLargeScreen } = useResponsive();
   const styles = createStyles(ms, mvs, fs, isLargeScreen);
+  const { isLandscape } = useOrientation();
 
   const { canView, can, loading: permsLoading } = usePermissions();
   const canViewGroup = canView(GROUP.QCVERIFICATION);
@@ -127,7 +136,36 @@ export default function QCIssueTrackerScreen({ navigation, route }) {
 
   const requestId = useRef(0); 
   const lastFetchedKeyRef = useRef(qcIssuesCache.lineId ? cacheKey(qcIssuesCache.lineId, qcIssuesCache.query) : null);
+  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen
+      ? (isLandscape ? largeLandscape : largePortrait)
+      : (isLandscape ? mobileLandscape : mobilePortrait);
 
+ const tlsTitleStyle = pickStyle(styles.titlelarge,
+    styles.titlelandscape,
+    styles.title,
+    styles.title, 
+  ); 
+const tlsSearchStyle = pickStyle(styles.searchOuterlarge,
+    styles.searchOuterlarge,
+    styles.searchOuter,
+    styles.searchOuter,
+  );
+const tlsSearchBarStyle = pickStyle(styles.searchBarLarge,
+    styles.searchBarLarge,
+    styles.searchBar,
+    styles.searchBar,
+  );
+  const tlsSearchBarInput = pickStyle(styles.searchInputLarge,
+    styles.searchInputLarge,
+    styles.searchInput,
+    styles.searchInput,
+  );
+ const tlsSearchChio= pickStyle(styles.lineChipTextLarge,
+    styles.lineChipTextLarge,
+    styles.lineChipText,
+    styles.lineChipText,
+  );
    
   const loadPage = useCallback(async (targetPage, { append, lineId = activeLineId, search = debouncedQuery } = {}) => {
     if (!canListIssues || !lineId) return;
@@ -270,20 +308,20 @@ export default function QCIssueTrackerScreen({ navigation, route }) {
             </Pressable>
           </View>
 
-          <Text style={styles.title}>QC Verification</Text>
+          <Text style={[styles.title,tlsTitleStyle]}>QC Verification</Text>
         </SafeAreaView>
 
         {canListIssues && (
           <>
-            <View style={styles.searchOuter}>
-              <View style={styles.searchBar}>
+            <View style={[styles.searchOuter,tlsSearchStyle]}>
+              <View style={[styles.searchBar,tlsSearchBarStyle]}>
                 <Ionicons name="search-outline" size={ms(16)} color={AppColors.textTertiary} />
                 <TextInput
                   value={query}
                   onChangeText={setQuery}
                   placeholder="Search"
                   placeholderTextColor={AppColors.textTertiary}
-                  style={styles.searchInput}
+                  style={[styles.searchInput,tlsSearchBarInput]}
                   returnKeyType="search"
                   autoCorrect={false}
                 />
@@ -303,7 +341,7 @@ export default function QCIssueTrackerScreen({ navigation, route }) {
                       {active && (
                         <Ionicons name="checkmark" size={ms(12)} color={AppColors.onPrimary} style={{ marginRight: ms(4) }} />
                       )}
-                      <Text style={[styles.lineChipText, active && styles.lineChipTextActive]} numberOfLines={1}>
+                      <Text style={[styles.lineChipText,tlsSearchChio, active && styles.lineChipTextActive]} numberOfLines={1}>
                         {line.name}
                       </Text>
                     </Pressable>

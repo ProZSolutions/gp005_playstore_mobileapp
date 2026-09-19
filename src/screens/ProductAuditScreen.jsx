@@ -8,7 +8,7 @@ import {
   Platform,
   StatusBar,
   SafeAreaView,
-  ActivityIndicator,Switch,
+  ActivityIndicator, Switch,
   Modal,
 } from 'react-native';
 import { ms, mvs, fs } from '../utils/scale';
@@ -18,7 +18,7 @@ import { scale, verticalScale, fontScale, moderateScale } from '../utils/scale';
 import GlobalStyles from './styles';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
- 
+
 import {
   QUALITY_CHECKS,
   getAuditGrade,
@@ -27,16 +27,18 @@ import {
 } from '../utils/auditData';
 import {
   AuditHeader,
+  FooterBar,
   OperatorOrderCard,
   SeverityBadge,
   SectionLabel,
 } from '../components/SharedComponents';
-import OrderDetailsSheet    from '../components/OrderDetailsSheet';
-import DefectEntrySheet     from '../components/DefectEntrySheet';
+import OrderDetailsSheet from '../components/OrderDetailsSheet';
+import DefectEntrySheet from '../components/DefectEntrySheet';
 import PossibleDefectsSheet from '../components/PossibleDefectsSheet';
 import Icon from '../components/Icon';
 import Vector from 'react-native-vector-icons/Ionicons';
 import createStyles from '../screens/styles/IssueDetailStyles';
+import useAuditLayout from '../hooks/useAuditLayout';
 
 import {
   getOperationDefects,
@@ -48,13 +50,13 @@ import { getSelectedShiftId, getShiftData, getSelectedLineId, getUser } from '..
 import { showAlert } from '../utils/AlertService';
 import { verifyAndGetSlot } from '../utils/slotVerification';
 const SCANNER_ROUTE_NAME = 'TLSAuditScreen';
- 
+
 const SEVERITY_PALETTE = [
-  { color: AppColors.Blue,    bg: AppColors.BlueLight },
+  { color: AppColors.Blue, bg: AppColors.BlueLight },
   { color: AppColors.warning, bg: AppColors.warningLight },
-  { color: AppColors.error,   bg: AppColors.errorContainer },
-  { color: '#8E24AA',         bg: '#8E24AA1A' },
-  { color: '#00897B',         bg: '#00897B1A' },
+  { color: AppColors.error, bg: AppColors.errorContainer },
+  { color: '#8E24AA', bg: '#8E24AA1A' },
+  { color: '#00897B', bg: '#00897B1A' },
 ];
 
 const severityLabel = (s) => s?.value ?? s?.name ?? s?.label ?? String(s?.id ?? '');
@@ -203,8 +205,19 @@ export default function ProductAuditScreen({ route, navigation }) {
   const incomingParams = route?.params ?? {};
   const styles = createStyles(ms, mvs, fs);
 
-  const zone  = route?.params?.zone  ?? { id: 'zone_a', name: 'Zone A' };
-  const line  = route?.params?.line  ?? { id: 'la1', name: 'Line A1' };
+  // Layout only: same pickStyle(largePortrait, largeLandscape, mobilePortrait, mobileLandscape)
+  // you already use on the other screens, shared through one hook.
+  const { isLargeScreen, isLandscape, pickStyle, pinOperatorCard } = useAuditLayout();
+
+  const contaa = pickStyle(GlobalStyles.container.scrollContentLarge, GlobalStyles.container.scrollContentLand, GlobalStyles.container.scrollContent
+    , GlobalStyles.container.scrollContent);
+  const fixed = pickStyle(GlobalStyles.container.fixedCardWrapLarge, GlobalStyles.container.fixedCardWrapLand, GlobalStyles.container.fixedCardWrap
+    , GlobalStyles.container.fixedCardWrap);
+  const foooo = pickStyle(GlobalStyles.container.footerpor, GlobalStyles.container.footerLand, GlobalStyles.container.footer
+    , GlobalStyles.container.footer);
+
+  const zone = route?.params?.zone ?? { id: 'zone_a', name: 'Zone A' };
+  const line = route?.params?.line ?? { id: 'la1', name: 'Line A1' };
   const selectedLine = route?.params?.selectedLine;
   const order = route?.params?.order ?? {
     tlsCode: 'ORD-2026-0392', colour: 'Golden Yellow', colourHex: '#E8B400',
@@ -216,10 +229,10 @@ export default function ProductAuditScreen({ route, navigation }) {
     slot: '09:00 AM – 10:30 AM', operation: 'Side Seam',
     machineType: 'Overlock', zone: 'Zone A',
   };
-const [escalate, setEscalate] = useState(false);
+  const [escalate, setEscalate] = useState(false);
   const routeUser = route?.params?.user ?? null;
   const [user, setUser] = useState(routeUser);
- 
+
   useEffect(() => {
     const routeUserIsUsable = routeUser?.employee_name || routeUser?.name || routeUser?.branch_id;
     if (routeUserIsUsable) return;
@@ -249,7 +262,7 @@ const [escalate, setEscalate] = useState(false);
   const [showAssignedSheet, setShowAssignedSheet] = useState(false);
   const [showCapSheet, setShowCapSheet] = useState(false);
 
-  const [defectEntries, setDefectEntries] = useState({}); 
+  const [defectEntries, setDefectEntries] = useState({});
   const [selectedDefectIds, setSelectedDefectIds] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -287,7 +300,7 @@ const [escalate, setEscalate] = useState(false);
 
     return () => { cancelled = true; };
   }, [navigation]);
- 
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -378,7 +391,7 @@ const [escalate, setEscalate] = useState(false);
     const idx = severities.findIndex((s) => s.id === severityId);
     return SEVERITY_PALETTE[idx >= 0 ? idx % SEVERITY_PALETTE.length : 0];
   }, [severities]);
- 
+
   const severityStyleForName = useCallback((name) => {
     const idx = severities.findIndex(
       (s) => severityLabel(s).toLowerCase() === (name ?? '').toLowerCase(),
@@ -394,7 +407,7 @@ const [escalate, setEscalate] = useState(false);
     });
     return t;
   }, [defectEntries]);
- 
+
   const countByName = useCallback((name) => {
     const sev = severities.find((s) => severityLabel(s).toLowerCase() === name);
     if (!sev) return 0;
@@ -406,12 +419,12 @@ const [escalate, setEscalate] = useState(false);
   const gradeBg = GRADE_BG[grade];
 
   const filledEntries = useMemo(() => Object.values(defectEntries), [defectEntries]);
- // const canSubmit = filledEntries.length > 0;
- const canSubmit = true;
+  // const canSubmit = filledEntries.length > 0;
+  const canSubmit = true;
   const openDefectSheet = useCallback(() => setShowDefectEntry(true), []);
 
   const handleApplyDefects = useCallback((entries) => {
-    console.log("Defect Return Entry "+JSON.stringify(entries));
+    console.log("Defect Return Entry " + JSON.stringify(entries));
     setDefectEntries(entries);
   }, []);
 
@@ -483,7 +496,7 @@ const [escalate, setEscalate] = useState(false);
     };
   }, [
     filledEntries, qcResults, order, scannedTlsId, user,
-    shiftId, spiCount, countByName, comments,escalate
+    shiftId, spiCount, countByName, comments, escalate
   ]);
 
   const submitAudit = useCallback(async (action) => {
@@ -491,7 +504,7 @@ const [escalate, setEscalate] = useState(false);
     setSubmitting(true);
     try {
       const payload = buildPayload();
-      
+
       const result = await createAudit(payload);
       if (result?.success) {
         setPendingAction(action);
@@ -522,9 +535,25 @@ const [escalate, setEscalate] = useState(false);
     }),
     [operator, slotInfo],
   );
- 
+
+  // Extracted so the operator card can be pinned above the scroll area, or scroll
+  // with the content on a phone in landscape. Content itself is unchanged.
+  const operatorCard = (
+    <OperatorOrderCard
+      styless={styles}
+      order={order}
+      operator={operatorWithSlot}
+      onViewAll={() => setShowDetails(true)}
+      isLandscape={isLandscape}
+      isLargeScreen={isLargeScreen}
+    />
+  );
+
   return (
-    <SafeAreaView style={GlobalStyles.container.safe}>
+    // Same structure as ProcessAuditScreen: plain root View, AuditHeader (paints its own
+    // teal + status-bar inset), body View, footer. The old root + nested SafeAreaView with
+    // scroll_bg is gone, so the header no longer depends on what colour the root is.
+    <View style={GlobalStyles.container.safe}>
       <StatusBar barStyle="light-content" backgroundColor={AppColors.primary} />
 
       <AuditHeader
@@ -533,125 +562,129 @@ const [escalate, setEscalate] = useState(false);
         totalSteps={2}
         onBack={() => navigation?.goBack()}
         onCancel={() => navigation?.navigate('Dashboard')}
+        isLandscape={isLandscape}
+        isLargeScreen={isLargeScreen}
       />
 
-      <SafeAreaView style={GlobalStyles.container.scroll_bg}>
-        <View>
-          <OperatorOrderCard
-            styless={styles}
-            order={order}
-            operator={operatorWithSlot}
-            onViewAll={() => setShowDetails(true)}
-          />
-        </View>
-
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View>
-            <View style={GlobalStyles.container.card_pro}>
-              <View style={GlobalStyles.container.summaryHeader}>
-                <SectionLabel label="AUDIT SUMMARY" />
-                <View style={[GlobalStyles.container.gradePill, { backgroundColor: gradeBg }]}>
-                  <Text style={[GlobalStyles.text.gradeText, { color: gradeColor }]}>{grade}</Text>
-                </View>
-              </View>
-
-              <View style={GlobalStyles.container.severityRow}>
-                {loadingSeverities ? (
-                  <ActivityIndicator color={AppColors.primary} />
-                ) : (
-                  severities.map((sev) => {
-                    const style = severityStyleFor(sev.id);
-                    return (
-                      <SeverityBadge
-                        key={sev.id}
-                        label={severityLabel(sev)}
-                        count={globalTotals[sev.id] ?? 0}
-                        color={style.color}
-                        bg={style.bg}
-                      />
-                    );
-                  })
-                )}
-              </View>
-
-              <View style={GlobalStyles.container.cardDivider} />
-
-              <AuditRow icon="search" label="POSSIBLE DEFECTS" onInfo={() => setShowPossibleDefects(true)}>
-                <View style={{ flexDirection: 'row' }}>
-                  <ChipRow
-                    items={possibleDefectLabels}
-                    variant="defect"
-                    emptyText={loadingOperationDefects ? 'Loading…' : 'No known defect types for this operation'}
-                  />
-                </View>
-              </AuditRow>
-
-              <View style={GlobalStyles.container.cardDivider} />
-
-              <AuditRow icon="shirt_gray" label="7-PIECE AUDIT" required onPress={openDefectSheet}>
-                {filledEntries.length === 0 ? (
-                  <Text style={GlobalStyles.text.placeholderText}>Start to record the piece audit…</Text>
-                ) : (
-                  <ChipRow
-                    items={defectChipItems}
-                    variant="piece"
-                    maxVisible={filledEntries.length}
-                    wrap
-                    itemStyleResolver={(item) => severityStyleForName(item?.severity)}
-                  />
-                )}
-              </AuditRow>
-
-              <View style={GlobalStyles.container.cardDivider} />
-
-              <AuditRow icon="user_round_search" label="ASSIGNED TO" onInfo={() => setShowAssignedSheet(true)}>
-                <ChipRow items={assignedToLabels} variant="assignee" emptyText="Enter defects to auto-fill" />
-              </AuditRow>
-
-              <View style={GlobalStyles.container.cardDivider} />
-
-              <AuditRow icon="layout_list" label="PRE-DEFINED CAP" onInfo={() => setShowCapSheet(true)}>
-                <ChipRow items={capLabels} variant="cap" emptyText="Enter defects to auto-fill" />
-              </AuditRow>
-
-              <View style={GlobalStyles.container.cardDivider} />
-            </View>
-
-              <View style={styles.escalateCard}>
-                        <View style={styles.escalateLeft}>
-                          <View style={styles.escalateIconWrap}>
-                            <MaterialCommunityIcons name="shield-alert-outline" size={ms(16)} color={AppColors.textSecondary} />
-                          </View>
-                          <Text style={styles.escalateLabel}>Escalate Issue</Text>
-                        </View>
-                        <Switch
-                          value={escalate}
-                          onValueChange={setEscalate}
-                          trackColor={{ false: '#D7DEDE', true: AppColors.primary }}
-                          thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
-                        />
-                      </View>
-
-            <View style={[GlobalStyles.container.card_pro, { padding: 3 }]}>
-              <AppInput
-                label="COMMENTS"
-                value={comments}
-                onChangeText={setComments}
-                placeholder="Add any observations or notes…"
-                multiline
-                numberOfLines={4}
-                maxLength={200}
-                showCharCount
-                containerStyle={{ marginBottom: 0 }}
-                style=""
-              />
-            </View>
-            <View style={{ height: verticalScale(8) }} />
+      <View style={GlobalStyles.container.safe}>
+        {pinOperatorCard && (
+          <View style={[GlobalStyles.container.fixedCardWrap, fixed]}>
+            {operatorCard}
           </View>
-        </ScrollView>
-      </SafeAreaView>
+        )}
 
-      <View style={GlobalStyles.container.footer}>
+        <ScrollView
+          style={GlobalStyles.container.scroll}
+          contentContainerStyle={[GlobalStyles.container.scrollContent, contaa]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {!pinOperatorCard && operatorCard}
+
+          <View style={GlobalStyles.container.card_pro}>
+            <View style={GlobalStyles.container.summaryHeader}>
+              <SectionLabel label="AUDIT SUMMARY" />
+              <View style={[GlobalStyles.container.gradePill, { backgroundColor: gradeBg }]}>
+                <Text style={[GlobalStyles.text.gradeText, { color: gradeColor }]}>{grade}</Text>
+              </View>
+            </View>
+
+            <View style={GlobalStyles.container.severityRow}>
+              {loadingSeverities ? (
+                <ActivityIndicator color={AppColors.primary} />
+              ) : (
+                severities.map((sev) => {
+                  const style = severityStyleFor(sev.id);
+                  return (
+                    <SeverityBadge
+                      key={sev.id}
+                      label={severityLabel(sev)}
+                      count={globalTotals[sev.id] ?? 0}
+                      color={style.color}
+                      bg={style.bg}
+                    />
+                  );
+                })
+              )}
+            </View>
+
+            <View style={GlobalStyles.container.cardDivider} />
+
+            <AuditRow icon="search" label="POSSIBLE DEFECTS" onInfo={() => setShowPossibleDefects(true)}>
+              <View style={{ flexDirection: 'row' }}>
+                <ChipRow
+                  items={possibleDefectLabels}
+                  variant="defect"
+                  emptyText={loadingOperationDefects ? 'Loading…' : 'No known defect types for this operation'}
+                />
+              </View>
+            </AuditRow>
+
+            <View style={GlobalStyles.container.cardDivider} />
+
+            <AuditRow icon="shirt_gray" label="7-PIECE AUDIT" required onPress={openDefectSheet}>
+              {filledEntries.length === 0 ? (
+                <Text style={GlobalStyles.text.placeholderText}>Start to record the piece audit…</Text>
+              ) : (
+                <ChipRow
+                  items={defectChipItems}
+                  variant="piece"
+                  maxVisible={filledEntries.length}
+                  wrap
+                  itemStyleResolver={(item) => severityStyleForName(item?.severity)}
+                />
+              )}
+            </AuditRow>
+
+            <View style={GlobalStyles.container.cardDivider} />
+
+            <AuditRow icon="user_round_search" label="ASSIGNED TO" onInfo={() => setShowAssignedSheet(true)}>
+              <ChipRow items={assignedToLabels} variant="assignee" emptyText="Enter defects to auto-fill" />
+            </AuditRow>
+
+            <View style={GlobalStyles.container.cardDivider} />
+
+            <AuditRow icon="layout_list" label="PRE-DEFINED CAP" onInfo={() => setShowCapSheet(true)}>
+              <ChipRow items={capLabels} variant="cap" emptyText="Enter defects to auto-fill" />
+            </AuditRow>
+
+            <View style={GlobalStyles.container.cardDivider} />
+          </View>
+
+          <View style={styles.escalateCard}>
+            <View style={styles.escalateLeft}>
+              <View style={styles.escalateIconWrap}>
+                <MaterialCommunityIcons name="shield-alert-outline" size={ms(16)} color={AppColors.textSecondary} />
+              </View>
+              <Text style={styles.escalateLabel}>Escalate Issue</Text>
+            </View>
+            <Switch
+              value={escalate}
+              onValueChange={setEscalate}
+              trackColor={{ false: '#D7DEDE', true: AppColors.primary }}
+              thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
+            />
+          </View>
+
+          <View style={[GlobalStyles.container.card_pro, { padding: 3 }]}>
+            <AppInput
+              label="COMMENTS"
+              value={comments}
+              onChangeText={setComments}
+              placeholder="Add any observations or notes…"
+              multiline
+              numberOfLines={4}
+              maxLength={200}
+              showCharCount
+              containerStyle={{ marginBottom: 0 }}
+              style=""
+            />
+          </View>
+          <View style={{ height: verticalScale(8) }} />
+        </ScrollView>
+      </View>
+
+      <FooterBar footerStyle={[GlobalStyles.container.footer, foooo]}>
         <TouchableOpacity
           style={GlobalStyles.button.submitExitBtn}
           onPress={handleSubmitExit}
@@ -679,7 +712,7 @@ const [escalate, setEscalate] = useState(false);
             </Text>
           )}
         </TouchableOpacity>
-      </View>
+      </FooterBar>
 
       <OrderDetailsSheet
         visible={showDetails}
@@ -689,6 +722,8 @@ const [escalate, setEscalate] = useState(false);
         navigation={navigation}
         listRouteName="TLSAuditScreen"
         lineId={selectedLine}
+        isLandscape={isLandscape}
+        isLargeScreen={isLargeScreen}
       />
 
       <PossibleDefectsSheet
@@ -736,7 +771,7 @@ const [escalate, setEscalate] = useState(false);
             : 'Opening scanner for the next piece…'
         }
       />
-    </SafeAreaView>
+    </View>
   );
 }
 

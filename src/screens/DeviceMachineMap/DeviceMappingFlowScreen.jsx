@@ -100,8 +100,8 @@ const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscap
             onScanMachine={onScanMachine}
             onRescanDevice={handleRescanDevice}
             onRescanMachine={handleRescanMachine}
-            isLandscape
-            isLargeScreen
+            isLandscape={isLandscape}
+            isLargeScreen={isLargeScreen}
           />
 
           <View style={container.warningBox}>
@@ -146,9 +146,9 @@ function MappingCard({
 
   const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
 (isLandscape ? mobileLandscape : mobilePortrait);
- const textStyle = pickStyle(text.cardSectionTitleLarge,text.cardSectionTitleLarge,null,text.cardSectionTitle);
- const dtextStyle = pickStyle(text.detailLabelLarge,text.detailLabelLarge,null,text.detailLabel);
- const vtextStyle = pickStyle(text.detailValueLarge,text.detailValueLarge,null,text.detailValue);
+ const textStyle = pickStyle(text.cardSectionTitleLarge,text.cardSectionTitleLarge,text.cardSectionTitle,text.cardSectionTitle);
+ const dtextStyle = pickStyle(text.detailLabelLarge,text.detailLabelLarge,text.detailLabel,text.detailLabel);
+ const vtextStyle = pickStyle(text.detailValueLarge,text.detailValueLarge,text.detailValue,text.detailValue);
 
 
 
@@ -178,12 +178,12 @@ function MappingCard({
 
             <View style={{ flexDirection: 'row', marginTop: 12 }}>
                 <View style={container.detailCell}>
-                  <Text style={[text.detailLabel,dtextStyle]}>Qone ID</Text>
-                  <Text style={[text.detailValue,vtextStyle]}>{device.raw.tls_id}</Text>
+                  <Text style={[dtextStyle]}>Qone ID</Text>
+                  <Text style={[vtextStyle]}>{device.raw.tls_id}</Text>
                 </View>
                 <View style={container.detailCell}>
-                  <Text style={[text.detailLabel,dtextStyle]}>Qone CODE</Text>
-                  <Text style={[text.detailValue,vtextStyle]}>{device.raw.code}</Text>
+                  <Text style={[dtextStyle]}>Qone CODE</Text>
+                  <Text style={[vtextStyle]}>{device.raw.code}</Text>
                 </View>
               </View>
               <ScanButton label="Rescan Device" onPress={onRescanDevice} />
@@ -226,12 +226,12 @@ function MappingCard({
             <>
               <View style={{ flexDirection: 'row', marginTop: 12 }}>
                 <View style={container.detailCell}>
-                  <Text style={[text.detailLabel,dtextStyle]}>MACHINE NO.</Text>
-                  <Text style={[text.detailValue,vtextStyle]}>{machine.machineNo}</Text>
+                  <Text style={[ dtextStyle]}>MACHINE NO.</Text>
+                  <Text style={[ vtextStyle]}>{machine.machineNo}</Text>
                 </View>
                 <View style={container.detailCell}>
-                  <Text style={[text.detailLabel,dtextStyle]}>MACHINE TYPE</Text>
-                  <Text style={[text.detailValue,vtextStyle]}>{machineTypeName}</Text>
+                  <Text style={[ dtextStyle]}>MACHINE TYPE</Text>
+                  <Text style={[ vtextStyle]}>{machineTypeName}</Text>
                 </View>
               </View>
               <ScanButton label="Rescan Machine" onPress={onRescanMachine} />

@@ -13,9 +13,16 @@ import 'react-native-get-random-values';
 import NotificationService from './src/api/services/NotificationService';
 import SystemNavigationBar from 'react-native-system-navigation-bar';
 import { SystemBars } from 'react-native-edge-to-edge';
-import { AppState, Platform, BackHandler } from 'react-native';
+import { AppState, Platform, BackHandler, Dimensions } from 'react-native';
+import Orientation from 'react-native-orientation-locker';
 
 // notifee channel creation now lives inside NotificationService.init() — removed duplicate here
+
+// Phone vs tablet, decided by the screen's SMALLEST side (>= 600dp = tablet).
+// Using min(width, height) on the 'screen' dimensions keeps the result the
+// same whichever way the device is currently rotated.
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('screen');
+const IS_TABLET = Math.min(SCREEN_W, SCREEN_H) >= 600;
 
 function applyNavBarOnly() {
   if (Platform.OS !== 'android') return;
@@ -27,6 +34,15 @@ export default function App() {
   const [isDark, setIsDark] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const theme = isDark ? darkTheme : lightTheme;
+
+  // Phones: portrait only. Tablets: portrait + landscape.
+  useEffect(() => {
+    if (IS_TABLET) {
+      Orientation.unlockAllOrientations();
+    } else {
+      Orientation.lockToPortrait();
+    }
+  }, []);
 
   useEffect(() => {
     NotificationService.init();
@@ -46,6 +62,10 @@ export default function App() {
     if (Platform.OS !== 'android') return;
 
     const onHardwareBack = () => {
+      // TEMP DEBUG — remove once the hardware-back issue is diagnosed.
+      // If this never prints when you press back, the event isn't reaching JS.
+      console.log('BACK FIRED', navigationRef.isReady() && navigationRef.canGoBack());
+
      /* const nav = navigationRef.current;
       if (!nav) return false;
 

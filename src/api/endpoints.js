@@ -4,10 +4,10 @@ const ENDPOINTS = {
     LOGOUT:'/mobile/logout'
   },
   DEVICESWAP:{
-    SCAN_DEVICE:'/mobile/scan-device',
-    SCAN_MACHINE:'/mobile/scan-machine',
+    SCAN_DEVICE:'/deviceswapping/getdevicedetails',
+    SCAN_MACHINE:'/deviceswapping/getmachinedetails',
     REVIEW:'/mobile/review',
-    CREATE:'/mobile/deviceswapcreate'
+    CREATE:'/deviceswapping/swapdevice'
   },
   MOBILE: {
     CHECKIN:'/mobile/checkin'

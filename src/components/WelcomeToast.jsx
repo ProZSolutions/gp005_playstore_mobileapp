@@ -34,14 +34,7 @@ export default function WelcomeToast({ visible, name, onHide }) {
     ]).start(() => onHide && onHide());
   };
 
-  // NOTE: we intentionally do NOT `return null` when !visible.
-  // Unmounting this Animated.View right as a native-driven transform
-  // finishes is what was leaving a stale painted layer behind on
-  // Android (the white/blank header). Instead we keep it mounted at
-  // all times, parked off-screen (translateY: -120, opacity: 0) and
-  // non-interactive, and only animate it in/out.
-
-  return (
+   return (
     <Animated.View
       pointerEvents={visible ? 'box-none' : 'none'}
       style={[
@@ -81,18 +74,13 @@ export default function WelcomeToast({ visible, name, onHide }) {
 const styles = StyleSheet.create({
   wrapper: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 55 : 30,
+    top: Platform.OS === 'ios' ? 55 : 70,
     left: 16,
     right: 16,
     zIndex: 999,
-    // elevation removed from the animated wrapper on purpose: combining
-    // Android `elevation` (which forces its own compositing layer) with
-    // a native-driven transform on a view that mounts/unmounts caused
-    // the stale white layer over the header. Shadow/elevation now lives
-    // only on the inner, non-animated `card` below.
+    
   },
-  // Tablet: don't stretch edge-to-edge — center a fixed-width card instead.
-  wrapperTablet: {
+   wrapperTablet: {
     left: 0,
     right: 0,
     top: 40,
@@ -103,7 +91,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    paddingVertical: 14,
+    paddingVertical: 18,
     paddingHorizontal: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },

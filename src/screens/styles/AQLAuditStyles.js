@@ -30,10 +30,10 @@ const DISABLED_TEXT = AppColors.onSurfaceDisabled;
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: ms(16),
-      paddingTop: mvs(6),
+      paddingTop: mvs(50),
     },
     manualTitle:{
-      fontSize: 16, fontWeight: '700', color: AppColors.textPrimary ?? '#111827', marginBottom: 4 ,fontFamily:'Inter-Regular'
+      fontSize: 14, fontWeight: '700', color: AppColors.textPrimary ?? '#111827', marginBottom: 4 ,fontFamily:'Inter-Regular'
     },
     manualTitleLarge:{
       fontSize: 20, fontWeight: '700', color: AppColors.textPrimary ?? '#111827', marginBottom: 4 ,fontFamily:'Inter-Regular'

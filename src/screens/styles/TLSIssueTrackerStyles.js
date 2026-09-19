@@ -52,7 +52,32 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
       marginTop: mvs(10),
       marginHorizontal: ms(16),
     },
-
+    searchOuterlarge: { marginHorizontal: ms(16), marginTop: mvs(14) },
+  titlelarge: {
+      color: AppColors.onPrimary,
+      fontSize: fs(20),
+      fontWeight: '800',
+      marginTop: mvs(10),
+      marginHorizontal: ms(16),
+    },  titlelandscape: {
+      color: AppColors.onPrimary,
+      fontSize: fs(18),
+      fontWeight: '800',
+      marginTop: mvs(10),
+      marginHorizontal: ms(16),
+    }, searchBarLarge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: AppColors.surface,
+      borderRadius: ms(22),
+      paddingHorizontal: ms(14),
+      height: mvs(42),
+      shadowColor: '#000',
+      shadowOpacity: 0.08,
+      shadowRadius: ms(6),
+      shadowOffset: { width: 0, height: mvs(2) },
+      elevation: 2,
+    },
     searchOuter: { marginHorizontal: ms(16), marginTop: mvs(14) },
     searchBar: {
       flexDirection: 'row',
@@ -68,6 +93,14 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
       elevation: 2,
     },
     searchInput: { flex: 1, marginLeft: ms(8), fontSize: fs(16.5), color: AppColors.textPrimary, padding: 0 },
+  searchInputLarge: {
+      flex: 1,
+      marginLeft: ms(8),
+      fontSize: fs(15),
+      color: AppColors.textPrimary,
+      padding: 0,
+    },
+     lineChipTextLarge: { color: AppColors.textPrimary, fontSize: fs(11.5), fontWeight: '600' },
 
     chipsRowOuter: { marginTop: mvs(14) },
     chipsRow: { flexDirection: 'row', paddingHorizontal: ms(16) },

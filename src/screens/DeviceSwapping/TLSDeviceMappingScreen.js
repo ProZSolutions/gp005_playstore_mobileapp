@@ -31,8 +31,8 @@ export default function TLSDeviceMappingScreen({ navigation }) {
   const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs } = useResponsive();
   const styles = createStyles(ms, mvs, fs);
 
-  // device: { id, raw: { tls_id, code, ... } }
-  // machine: { id, machineNo, raw: { machine_type_name, ... } }
+  // device:  data from getdevicedetails  -> { tls_id, tls_code, mac_id, machine_no, line_name, ... }
+  // machine: data from getmachinedetails -> { machine_id, machine_no, code, machine_type_name, ... }
   const [device, setDevice] = useState(null);
   const [machine, setMachine] = useState(null);
 
@@ -42,13 +42,13 @@ export default function TLSDeviceMappingScreen({ navigation }) {
   // Which scanner modal is open: 'device' | 'machine' | null
   const [scannerFor, setScannerFor] = useState(null);
 
-  const deviceDone = !!device?.id;
-  const machineDone = !!machine?.machineNo;
+  const deviceDone = !!device?.tls_id;
+  const machineDone = !!machine?.machine_no;
   const bothScanned = deviceDone && machineDone;
 
   const closeScanner = useCallback(() => setScannerFor(null), []);
 
-  // ---- Step 1a: scan Qone device, then look it up immediately ----
+  // ---- Step 1a: scan Qone device (QR = tls_code), look it up, keep tls_id ----
   const handleDeviceScanned = useCallback(async (raw) => {
     const code = extractCode(raw);
     closeScanner();
@@ -58,18 +58,22 @@ export default function TLSDeviceMappingScreen({ navigation }) {
     }
     setDeviceLoading(true);
     try {
+      // The service already alerts on API failure; only guard against a
+      // "success" response that has no usable device data.
       const result = await deviceSwapService.scanDevice(code);
-      if (result?.success && result.data) {
-        setDevice(result.data);
-      } else {
-        showAlert('error', 'Device Not Found', result?.message || 'Could not fetch details for this device.');
+      if (result?.success) {
+        if (result.data?.tls_id) {
+          setDevice(result.data);
+        } else {
+          showAlert('error', 'Device Not Found', 'Could not fetch details for this device.');
+        }
       }
     } finally {
       setDeviceLoading(false);
     }
   }, [closeScanner]);
 
-  // ---- Step 1b: scan machine (only reachable once device is verified) ----
+  // ---- Step 1b: scan machine (QR = machine_no), only reachable once device is verified ----
   const handleMachineScanned = useCallback(async (raw) => {
     const code = extractCode(raw);
     closeScanner();
@@ -80,10 +84,12 @@ export default function TLSDeviceMappingScreen({ navigation }) {
     setMachineLoading(true);
     try {
       const result = await deviceSwapService.scanMachine(code);
-      if (result?.success && result.data) {
-        setMachine(result.data);
-      } else {
-        showAlert('error', 'Machine Not Found', result?.message || 'Could not fetch details for this machine.');
+      if (result?.success) {
+        if (result.data?.machine_no) {
+          setMachine(result.data);
+        } else {
+          showAlert('error', 'Machine Not Found', 'Could not fetch details for this machine.');
+        }
       }
     } finally {
       setMachineLoading(false);
@@ -129,8 +135,8 @@ export default function TLSDeviceMappingScreen({ navigation }) {
 
   const handleReviewDetails = () => {
     if (!bothScanned) return;
-    // Screen 2 re-fetches scan_one/scan_two by id, so we only need to pass
-    // the verified device and machine along.
+    // No API call here — the review screen renders straight from these two
+    // objects and only calls the swap API when "Confirm Swap" is pressed.
     navigation?.navigate('TLSDeviceSwapReviewScreen', { device, machine });
   };
 
@@ -191,11 +197,11 @@ export default function TLSDeviceMappingScreen({ navigation }) {
                   <View style={{ flexDirection: 'row', marginTop: 12 }}>
                     <View style={container.detailCell}>
                       <Text style={text.detailLabel}>Qone ID</Text>
-                      <Text style={text.detailValue}>{device.raw?.tls_id ?? '—'}</Text>
+                      <Text style={text.detailValue}>{device.tls_id ?? '—'}</Text>
                     </View>
                     <View style={container.detailCell}>
                       <Text style={text.detailLabel}>Qone CODE</Text>
-                      <Text style={text.detailValue}>{device.raw?.code ?? '—'}</Text>
+                      <Text style={text.detailValue}>{device.tls_code ?? '—'}</Text>
                     </View>
                   </View>
                   <ScanButton label="Rescan Device" onPress={handleRescanDevice} button={button} text={text} />
@@ -234,13 +240,11 @@ export default function TLSDeviceMappingScreen({ navigation }) {
                   <View style={{ flexDirection: 'row', marginTop: 12 }}>
                     <View style={container.detailCell}>
                       <Text style={text.detailLabel}>MACHINE NO.</Text>
-                      <Text style={text.detailValue}>{machine.machineNo}</Text>
+                      <Text style={text.detailValue}>{machine.machine_no}</Text>
                     </View>
                     <View style={container.detailCell}>
                       <Text style={text.detailLabel}>MACHINE TYPE</Text>
-                      <Text style={text.detailValue}>
-                        {machine?.raw?.machine_type_name ?? machine?.machine_type_name ?? machine?.machineType ?? '—'}
-                      </Text>
+                      <Text style={text.detailValue}>{machine.machine_type_name ?? '—'}</Text>
                     </View>
                   </View>
                   <ScanButton label="Rescan Machine" onPress={handleRescanMachine} button={button} text={text} />

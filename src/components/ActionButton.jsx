@@ -16,8 +16,8 @@ const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscap
       ? (isLandscape ? largeLandscape : largePortrait)
       : (isLandscape ? mobileLandscape : mobilePortrait);
 
-  const textStyle = pickStyle(btnStyles.labellarge,btnStyles.labellarge,null,btnStyles.label);
-    const btnStyle = pickStyle(btnStyles.btnLarge,btnStyles.btnLarge,null,btnStyles.btn);
+  const textStyle = pickStyle(btnStyles.labellarge,btnStyles.labellarge,btnStyles.label,btnStyles.label);
+    const btnStyle = pickStyle(btnStyles.btnLarge,btnStyles.btnLarge,btnStyles.btn,btnStyles.btn);
 
 
 

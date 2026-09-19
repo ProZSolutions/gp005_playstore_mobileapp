@@ -1,82 +1,50 @@
-import apiClient from '../apiClient';
-import ENDPOINTS from '../endpoints';
-export async function scanDevice(code) {
-  try {
-    const response = await apiClient.post(ENDPOINTS.DEVICESWAP.SCAN_DEVICE, {
-      scan_code: code,
-    });
-    const body = response?.data ?? response;
-    return {
-      success: body?.status === 'success',
-      message: body?.message,
-      data: body?.data ?? null, // { id, raw: { tls_id, code, ... } }
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: error?.message ?? 'Something went wrong while reading the device QR code.',
-      data: null,
-    };
-  }
-}
- 
-export async function scanMachine(code) {
-  try {
-    const response = await apiClient.post(ENDPOINTS.DEVICESWAP.SCAN_MACHINE, {
-      scan_code: code,
-    });
-    const body = response?.data ?? response;
-    return {
-      success: body?.status === 'success',
-      message: body?.message,
-      data: body?.data ?? null, // { id, machineNo, raw: { machine_type_name, ... } }
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: error?.message ?? 'Something went wrong while reading the machine QR code.',
-      data: null,
-    };
-  }
-} 
-export async function getSwapReview({ deviceId, machineId }) {
-  try {
-    const response = await apiClient.post(ENDPOINTS.DEVICESWAP.REVIEW, {
-      device_id: deviceId,
-      machine_id: machineId,
-    });
-    const body = response?.data ?? response;
-    return {
-      success: body?.status === 'success',
-      message: body?.message,
-      data: body?.data ?? null, // { scan_one: {...}, scan_two: {...} }
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: error?.message ?? 'Something went wrong while loading the swap details.',
-      data: null,
-    };
-  }
-}
+import apiRequest from '../apiRequest';
+import ENDPOINTS  from '../endpoints';
+import { showAlert } from '../../utils/AlertService';
 
- export async function createDeviceSwap({ deviceId, machineId }) {
-  try {
-    const response = await apiClient.post(ENDPOINTS.DEVICESWAP.CREATE, {
-      device_id: deviceId,
-      machine_id: machineId,
-    });
-    const body = response?.data ?? response;
-    return {
-      success: body?.status === 'success',
-      message: body?.message,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: error?.message ?? 'Something went wrong while saving the swap.',
-    };
-  }
-}
+// branch_id / team_id are added globally by apiRequest — don't pass them here.
+// Like the other services, failures are alerted here and the result is returned as-is.
 
-export default { scanDevice, scanMachine, getSwapReview, createDeviceSwap };
+// Step 1a — scan the Qone device QR (contains the tls_code).
+// data: { tls_id, tls_code, mac_id, machine_no, line_name, order_no, color,
+//         buyer, style_no, style_name, machine_type_name, ... }
+export const scanDevice = async (tlsCode) => {
+  const result = await apiRequest({
+    method: 'POST',
+    endpoint: ENDPOINTS.DEVICESWAP.SCAN_DEVICE,
+    body: { tls_id: tlsCode },
+  });
+  if (!result.success) {
+    showAlert('error', 'Device Not Found', result.message ?? 'Could not fetch details for this device.');
+  }
+  return result;
+};
+
+// Step 1b — scan the machine QR (contains the machine_no).
+// data: { machine_id, machine_no, code, machine_type_name, brand, line_name, ... }
+export const scanMachine = async (machineNo) => {
+  const result = await apiRequest({
+    method: 'POST',
+    endpoint: ENDPOINTS.DEVICESWAP.SCAN_MACHINE,
+    body: { machine_no: machineNo },
+  });
+  if (!result.success) {
+    showAlert('error', 'Machine Not Found', result.message ?? 'Could not fetch details for this machine.');
+  }
+  return result;
+};
+
+// Step 2 — confirm the swap from the review screen.
+export const createDeviceSwap = async ({ tlsId, machineNo }) => {
+  const result = await apiRequest({
+    method: 'POST',
+    endpoint: ENDPOINTS.DEVICESWAP.CREATE,
+    body: { tls_id: tlsId, machine_no: machineNo },
+  });
+  if (!result.success) {
+    showAlert('error', 'Swap Failed', result.message ?? 'Could not complete the swap. Please try again.');
+  }
+  return result;
+};
+
+export default { scanDevice, scanMachine, createDeviceSwap };

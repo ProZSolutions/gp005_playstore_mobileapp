@@ -9,6 +9,7 @@ import { listOrderList } from '../../api/services/orderMappingService';
 import { mapOrderRecord } from '../../utils/orderMappingHelpers';
 import {formatDateTime12Hour} from '../../utils/commonFunctions';
 import { useBackToDashboard } from '../../hooks/useBackToDashboard';
+import { useOrientation } from '../../hooks/useOrientation';
 
 import {
   getShiftData,
@@ -26,9 +27,20 @@ import createStyles from '../styles/TLSAuditStyles';
 const TEAL = AppColors.primary;
 const SEARCH_DEBOUNCE_MS = 350;
 
-function OrderCard({ order, onPress, styles }) {
+function OrderCard({ order, onPress, styles,isLandscape,isLargeScreen  }) {
   console.log("Order details "+JSON.stringify(order));
    const { moderateScale: ms } = useResponsive();
+
+   const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen
+      ? (isLandscape ? largeLandscape : largePortrait)
+      : (isLandscape ? mobileLandscape : mobilePortrait);
+  const tlsCodeStyle = pickStyle(styles.tlsCodeLarge,styles.tlsCodeLarge, styles.tlsCode,styles.tlsCode);
+   const tlsValueStyle = pickStyle(styles.fieldValueLarge,styles.fieldValueLarge, styles.fieldValue,styles.fieldValue);
+   const tlsdateStyle = pickStyle(styles.createdOnTextLarge,styles.createdOnTextLarge, styles.createdOnText,styles.createdOnText);
+
+
+
   return (
     <Pressable
       onPress={onPress}
@@ -37,7 +49,7 @@ function OrderCard({ order, onPress, styles }) {
       accessibilityRole="button"
     >
       <View style={styles.cardTopRow}>
-        <Text style={styles.tlsCode}>{order.orderNo}</Text>
+        <Text style={[styles.tlsCode,tlsCodeStyle]}>{order.orderNo}</Text>
         <Ionicons name="chevron-forward" size={ms(18)} color={AppColors.textTertiary} />
       </View>
 
@@ -46,14 +58,14 @@ function OrderCard({ order, onPress, styles }) {
           <Text style={styles.fieldLabel}>COLOUR</Text>
           <View style={styles.fieldValueRow}>
             <View style={[styles.colourDot, { backgroundColor: order.colourHex }]} />
-            <Text style={styles.fieldValue} numberOfLines={1}>{order.colour}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]}  numberOfLines={1}>{order.colour}</Text>
           </View>
         </View>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>BUYER</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="people-outline" size={ms(13)} color={AppColors.primary} />
-            <Text style={[styles.fieldValue, { marginLeft: ms(5) }]} numberOfLines={1}>{order.buyer ?? 'No Name'}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.buyer ?? 'No Name'}</Text>
           </View>
         </View>
       </View>
@@ -63,14 +75,14 @@ function OrderCard({ order, onPress, styles }) {
           <Text style={styles.fieldLabel}>STYLE</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="shirt-outline" size={ms(13)} color={AppColors.primary} />
-            <Text style={[styles.fieldValue, { marginLeft: ms(5) }]} numberOfLines={1}>{order.style}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.style}</Text>
           </View>
         </View>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>STYLE NO.</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="pricetag-outline" size={ms(13)} color={AppColors.primary} />
-            <Text style={[styles.fieldValue, { marginLeft: ms(5) }]} numberOfLines={1}>{order.styleNo}</Text>
+            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]}  numberOfLines={1}>{order.styleNo}</Text>
           </View>
         </View>
       </View>
@@ -79,7 +91,7 @@ function OrderCard({ order, onPress, styles }) {
 
       <View style={styles.cardFooterRow}>
         <Ionicons name="time-outline" size={ms(12)} color={AppColors.textTertiary} />
-        <Text style={styles.createdOnText}>{order.createdOn ? `Created on ${formatDateTime12Hour(order.createdOn)}` : ' - '}</Text>
+        <Text style={[styles.createdOnText,tlsdateStyle]}>{order.createdOn ? `Created on ${formatDateTime12Hour(order.createdOn)}` : ' - '}</Text>
       </View>
     </Pressable>
   );
@@ -89,7 +101,7 @@ export default function OrderMappingScreen({ navigation, route }) {
   const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs, isLargeScreen } = useResponsive();
   const styles = createStyles(ms, mvs, fs, isLargeScreen);
   const goBack = useBackToDashboard(navigation);
-
+  const { isLandscape } = useOrientation();
  
   const { can } = usePermissions();
   const canListMapping = can(GROUP.LINEMAPPING, ACTION.LIST);
@@ -252,6 +264,38 @@ const lines = useMemo(
     });
   };
 
+
+  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen
+      ? (isLandscape ? largeLandscape : largePortrait)
+      : (isLandscape ? mobileLandscape : mobilePortrait);
+
+ const tlsTitleStyle = pickStyle(styles.titlelarge,
+    styles.titlelandscape,
+    styles.title,
+    styles.title, 
+  ); 
+const tlsSearchStyle = pickStyle(styles.searchOuterlarge,
+    styles.searchOuterlarge,
+    styles.searchOuter,
+    styles.searchOuter,
+  );
+const tlsSearchBarStyle = pickStyle(styles.searchBarLarge,
+    styles.searchBarLarge,
+    styles.searchBar,
+    styles.searchBar,
+  );
+  const tlsSearchBarInput = pickStyle(styles.searchInputLarge,
+    styles.searchInputLarge,
+    styles.searchInput,
+    styles.searchInput,
+  );
+ const tlsSearchChio= pickStyle(styles.lineChipTextLarge,
+    styles.lineChipTextLarge,
+    styles.lineChipText,
+    styles.lineChipText,
+  );
+
   return (
     <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={TEAL} />
@@ -270,19 +314,19 @@ const lines = useMemo(
           </View>
 
           <View style={styles.headerTopRow}>
-            <Text style={styles.title}>Order Mapping</Text>
+            <Text style={[styles.title,tlsTitleStyle]}>Order Mapping</Text>
           </View>
         </SafeAreaView>
 
-        <View style={styles.searchOuter}>
-          <View style={styles.searchBar}>
+        <View style={[styles.searchOuter,tlsSearchStyle]}>
+          <View style={[styles.searchBar,tlsSearchBarStyle]}>
             <Ionicons name="search-outline" size={ms(16)} color={AppColors.textTertiary} />
             <TextInput
               value={query}
               onChangeText={setQuery}
               placeholder="Search"
               placeholderTextColor={AppColors.textTertiary}
-              style={styles.searchInput}
+              style={[styles.searchInput,tlsSearchBarInput]}
               returnKeyType="search"
               autoCorrect={false}
             />
@@ -317,7 +361,7 @@ const lines = useMemo(
                       />
                     )}
                     <Text
-                      style={[styles.lineChipText, active && styles.lineChipTextActive]}
+                      style={[styles.lineChipText,tlsSearchChio, active && styles.lineChipTextActive]}
                       numberOfLines={1}
                     >
                       {line.name}
@@ -375,6 +419,8 @@ const lines = useMemo(
                 order={order}
                 onPress={() => handleOrderPress(order)}
                 styles={styles}
+                isLandscape={isLandscape}
+                isLargeScreen={isLargeScreen}
               />
             ))}
             {loadingMore && (

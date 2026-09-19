@@ -21,6 +21,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getZones, getLinesByZoneIds } from '../api/services/dropdownApi';
 import { useOrientation } from '../hooks/useOrientation';
 import { useResponsive } from '../utils/responsive';
+import { sortIds, sortById } from '../utils/sortById';
 
 
 import { SkeletonList } from '../components/SkeletonListItem';
@@ -169,10 +170,10 @@ export default function ZoneLineCheckInScreen({ route, navigation }) {
   const [step,            setStep]            = useState(STEP_ZONES);
   const [zones,           setZones]           = useState([]);
   const [zonesLoading,    setZonesLoading]    = useState(true);
-  const [selectedZoneIds, setSelectedZoneIds] = useState(currentZoneIds);
+const [selectedZoneIds, setSelectedZoneIds] = useState(() => sortIds(currentZoneIds));
   const [lines,           setLines]           = useState([]);
   const [linesLoading,    setLinesLoading]    = useState(false);
-  const [selectedLineIds, setSelectedLineIds] = useState(currentLineIds);
+const [selectedLineIds, setSelectedLineIds] = useState(() => sortIds(currentLineIds));
 
    const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
     isLargeScreen
@@ -261,7 +262,8 @@ export default function ZoneLineCheckInScreen({ route, navigation }) {
           if (savedZoneNames[i]) zoneNameCacheRef.current[id] = savedZoneNames[i];
         });
         if (currentZoneIds.length === 0 && savedZoneIds.length) {
-          setSelectedZoneIds(savedZoneIds);
+          setSelectedZoneIds(sortIds(savedZoneIds));
+
         }
 
         const savedLineIds = asArray(await getLineIds());
@@ -270,7 +272,8 @@ export default function ZoneLineCheckInScreen({ route, navigation }) {
           if (savedLineNames[i]) lineNameCacheRef.current[id] = savedLineNames[i];
         });
         if (currentLineIds.length === 0 && savedLineIds.length) {
-          setSelectedLineIds(savedLineIds);
+          setSelectedLineIds(sortIds(savedLineIds));
+
         }
       } catch (e) {
         console.warn('Failed to load saved zone/line selection:', e.message);
@@ -324,11 +327,11 @@ export default function ZoneLineCheckInScreen({ route, navigation }) {
     setLinesLoading(true);
     setLines([]);
     try {
-      const data = asArray(await getLinesByZoneIds(zoneIds));
+const data = sortById(asArray(await getLinesByZoneIds(zoneIds)));
       setLines(data);
 
       const validLineIds = new Set(data.map((l) => l.id));
-      setSelectedLineIds((prev) => asArray(prev).filter((id) => validLineIds.has(id)));
+setSelectedLineIds((prev) => sortIds(asArray(prev).filter((id) => validLineIds.has(id))));
     } catch (e) {
       console.warn('getLinesByZoneIds:', e.message);
     } finally {
@@ -337,16 +340,15 @@ export default function ZoneLineCheckInScreen({ route, navigation }) {
   }, []);
 
   const toggleZone = (id) =>
-    setSelectedZoneIds((prev) => {
-      const list = asArray(prev);
-      return list.includes(id) ? list.filter((z) => z !== id) : [...list, id];
-    });
-
-  const toggleLine = (id) =>
-    setSelectedLineIds((prev) => {
-      const list = asArray(prev);
-      return list.includes(id) ? list.filter((l) => l !== id) : [...list, id];
-    });
+  setSelectedZoneIds((prev) => {
+    const list = asArray(prev);
+    return sortIds(list.includes(id) ? list.filter((z) => z !== id) : [...list, id]);
+  });
+const toggleLine = (id) =>
+  setSelectedLineIds((prev) => {
+    const list = asArray(prev);
+    return sortIds(list.includes(id) ? list.filter((l) => l !== id) : [...list, id]);
+  });
 
   const goToLines = () => {
     setStep(STEP_LINES);

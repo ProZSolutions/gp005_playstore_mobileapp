@@ -1,6 +1,17 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, ScrollView, Pressable, StatusBar, ActivityIndicator, SafeAreaView,TextInput, 
-  StyleSheet ,Switch, BackHandler } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  StatusBar,
+  ActivityIndicator,
+  SafeAreaView,
+  TextInput,
+  StyleSheet,
+  Switch,
+  BackHandler,
+} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -9,10 +20,11 @@ import { useResponsive } from '../../utils/responsive';
 import createStyles from '../../screens/styles/AQLAuditStyles';
 import { showAlert } from '../../utils/AlertService';
 import DefectEntrySheet from '../../components/DefectEntrySheet';
-import { submitAqlAudit } from '../../api/services/aqlAuditService'; 
+import { submitAqlAudit } from '../../api/services/aqlAuditService';
 import { getCategoryDropdown, getSeverityDropdown } from '../../api/services/tlsService';
 import createStyless from '../styles/ReworkTrackerDetailsStyles';
 import { useOrientation } from '../../hooks/useOrientation';
+import { useKeyboardOverlap } from '../../hooks/useKeyboardOverlap';
 
 const TEAL = AppColors.primary;
 
@@ -49,39 +61,54 @@ function ResultRow({ styles, label, value, bordered, danger, onPress, chevron })
 }
 
 export default function AQLAuditDetailsScreen({ navigation, route }) {
-  const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs ,isLargeScreen} = useResponsive();
+  const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs, isLargeScreen } = useResponsive();
   const styles = createStyles(ms, mvs, fs);
-   const styles_re = createStyless(ms, mvs, fs);
+  const styles_re = createStyless(ms, mvs, fs);
   const [notes, setNotes] = useState('');
   const { isLandscape } = useOrientation();
-  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
-(isLandscape ? mobileLandscape : mobilePortrait);
- const textStyle = pickStyle(styles.headerTopRowLarge,styles.headerTopRowLarge,null,styles.headerTopRow);
+  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
+    isLargeScreen ? (isLandscape ? largeLandscape : largePortrait) : (isLandscape ? mobileLandscape : mobilePortrait);
+  const textStyle = pickStyle(styles.headerTopRowLarge, styles.headerTopRowLarge, styles.headerTopRow, styles.headerTopRow);
 
-const { orderInfo, styleInfo, user, lineId, inspectionSetup, settingstype, output } = route?.params ?? {};
+  // ---- Keyboard handling: keep the Notes field visible ----
+  const contentRef = useRef(null);      // wraps body + footer (everything under the header)
+  const scrollRef = useRef(null);
+  const notesFocusedRef = useRef(false);
+  const keyboardOverlap = useKeyboardOverlap(contentRef);
+
+  // Notes sits right above the Escalate toggle, which is the last thing in the
+  // list, so "scroll to end" keeps both in view. Called when the ScrollView
+  // shrinks (keyboard opened) and when the multiline input grows while typing.
+  const scrollNotesIntoView = useCallback(() => {
+    if (notesFocusedRef.current) {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }
+  }, []);
+
+  const { orderInfo, styleInfo, user, lineId, inspectionSetup, settingstype, output } = route?.params ?? {};
   const {
     size,
     level,
-    aqlMajor,        
-    aqlMinor,         
-         
+    aqlMajor,
+    aqlMinor,
+
     qty,
     sampleSize,
-    allowMajor,     
-    allowMinor,      
-    allowCritical,   
+    allowMajor,
+    allowMinor,
+    allowCritical,
   } = inspectionSetup ?? {};
   const sizeWip = size?.wip ?? 0;
-  console.log("size wip "+sizeWip);
-    const [escalation, setEscalation] = useState(false);
-  
-  const aqlCritical =0;
+  console.log("size wip " + sizeWip);
+  const [escalation, setEscalation] = useState(false);
+
+  const aqlCritical = 0;
   const allowedMajor = Number(allowMajor) || 0;
   const allowedMinor = Number(allowMinor) || 0;
   const allowedCritical = Number(allowCritical) || 0;
-  console.log("style info "+JSON.stringify(styleInfo));
+  console.log("style info " + JSON.stringify(styleInfo));
 
-   const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
 
   useEffect(() => {
@@ -99,7 +126,7 @@ const { orderInfo, styleInfo, user, lineId, inspectionSetup, settingstype, outpu
     })();
     return () => { cancelled = true; };
   }, []);
- 
+
   const [severities, setSeverities] = useState([]);
   const [loadingSeverities, setLoadingSeverities] = useState(true);
 
@@ -191,9 +218,9 @@ const { orderInfo, styleInfo, user, lineId, inspectionSetup, settingstype, outpu
       setSubmitting(false);
     }
   }, [lineId, orderInfo, styleInfo, inspectionSetup, entries, isFail, user, navigation]); */}
-const handleSubmit = useCallback(async (destination = 'list') => {
+  const handleSubmit = useCallback(async (destination = 'list') => {
     setSubmitting(true);
-    try { 
+    try {
       const res = await submitAqlAudit({
         lineId,
         orderInfo,
@@ -209,7 +236,7 @@ const handleSubmit = useCallback(async (destination = 'list') => {
       }
       if (destination === 'exit') {
         navigation.reset({ index: 0, routes: [{ name: 'Dashboard' }] });
-      } else { 
+      } else {
         // FIX: previously this reset put AQLOrderDetailsScreen alone at the
         // root (index: 0), leaving nothing underneath it. That meant the
         // next back press (hardware or header) had nowhere to pop to, and
@@ -238,8 +265,8 @@ const handleSubmit = useCallback(async (destination = 'list') => {
                 user,
                 lineId,
                 lineName: orderInfo?.lineLabel,
-                settingstype, 
-                output,  
+                settingstype,
+                output,
               },
             },
           ],
@@ -257,7 +284,7 @@ const handleSubmit = useCallback(async (destination = 'list') => {
 
       <View style={styles.headerWrap}>
         <View edges={['top']} style={{ backgroundColor: 'transparent' }}>
-          <View style={[styles.headerTopRow,textStyle]}>
+          <View style={[styles.headerTopRow, textStyle]}>
             <View style={styles.headerTopLeft}>
               <Pressable
                 onPress={() => navigation.goBack()}
@@ -279,13 +306,13 @@ const handleSubmit = useCallback(async (destination = 'list') => {
             <View style={[styles.progressSeg, styles.progressSegActive]} />
           </View>
 
-           
+
           <View style={styles_re.metaWrap}>
             <View style={styles_re.metaRow}>
               <Ionicons name="layers-outline" size={ms(14)} color={AppColors.onPrimary} style={styles_re.metaIcon} />
               <Text style={styles_re.metaText}>{orderInfo?.lineLabel ?? '—'}</Text>
-               <Text style={styles_re.metaDot}>•</Text>
-               <Text style={styles_re.metaText}>{orderInfo?.orderNo ?? '—'}</Text>
+              <Text style={styles_re.metaDot}>•</Text>
+              <Text style={styles_re.metaText}>{orderInfo?.orderNo ?? '—'}</Text>
               <Text style={styles_re.metaDot}>•</Text>
               <Text style={styles_re.metaText}>{orderInfo?.colour ?? '—'}</Text>
             </View>
@@ -303,163 +330,175 @@ const handleSubmit = useCallback(async (destination = 'list') => {
             </View>
             <View style={styles_re.metaRow}>
               <Ionicons name="color-palette-outline" size={ms(14)} color={AppColors.onPrimary} style={styles_re.metaIcon} />
-              <Text style={styles_re.metaText}>AQL Level {`Minor -${aqlMinor?.value ?? '—'} | Major -${aqlMajor?.value ?? '—'} | Critical -${aqlCritical?? '—'}`}</Text>
-               
+              <Text style={styles_re.metaText}>AQL Level {`Minor -${aqlMinor?.value ?? '—'} | Major -${aqlMajor?.value ?? '—'} | Critical -${aqlCritical ?? '—'}`}</Text>
+
             </View>
 
-            
+
           </View>
         </View>
       </View>
 
-      <View style={styles.body}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-          <View style={styles.sectionCard}>
-            <View style={styles.sectionHeaderRow}>
-              <Ionicons name="settings-outline" size={ms(15)} color={AppColors.primaryDark ?? TEAL} />
-              <Text style={styles.sectionHeaderText}>OUTPUT DETAILS</Text>
-            </View>
-            <View style={styles.sectionBody}>
-               <ResultRow styles={styles} label="WIP" value={sizeWip?? '—'} bordered/>              
-            </View>
-          </View>
-            
+      {/* Everything under the header lives in one container. When the keyboard
+          opens, its bottom padding lifts the body + Submit footer above it. */}
+      <View
+        ref={contentRef}
+        collapsable={false}
+        style={{ flex: 1, paddingBottom: keyboardOverlap }}
+      >
+        <View style={styles.body}>
+          <ScrollView
+            ref={scrollRef}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            onLayout={scrollNotesIntoView}
+            onContentSizeChange={scrollNotesIntoView}
+          >
             <View style={styles.sectionCard}>
-            <View style={styles.sectionHeaderRow}>
-              <Ionicons name="time-outline" size={ms(15)} color={AppColors.primaryDark ?? TEAL} />
-              <Text style={styles.sectionHeaderText}>ENTERED INSPECTION QTY</Text>
+              <View style={styles.sectionHeaderRow}>
+                <Ionicons name="settings-outline" size={ms(15)} color={AppColors.primaryDark ?? TEAL} />
+                <Text style={styles.sectionHeaderText}>OUTPUT DETAILS</Text>
+              </View>
+              <View style={styles.sectionBody}>
+                <ResultRow styles={styles} label="WIP" value={sizeWip ?? '—'} bordered />
+              </View>
             </View>
-            <View style={styles.sectionBody}>
+
+            <View style={styles.sectionCard}>
+              <View style={styles.sectionHeaderRow}>
+                <Ionicons name="time-outline" size={ms(15)} color={AppColors.primaryDark ?? TEAL} />
+                <Text style={styles.sectionHeaderText}>ENTERED INSPECTION QTY</Text>
+              </View>
+              <View style={styles.sectionBody}>
                 <ResultRow styles={styles} label="Size" value={size?.value ?? '—'} />
-              <ResultRow styles={styles} label="Inspection Qty" value={qty ?? '—'} bordered />
-              <ResultRow styles={styles} label="Sample Size" value={sampleSize ?? '—'} bordered />          
+                <ResultRow styles={styles} label="Inspection Qty" value={qty ?? '—'} bordered />
+                <ResultRow styles={styles} label="Sample Size" value={sampleSize ?? '—'} bordered />
+              </View>
             </View>
-          </View>
 
-           <View style={styles.sectionCard}>
-            <View style={styles.sectionHeaderRow}>
-              <Ionicons name="shirt-outline" size={ms(15)} color={AppColors.primaryDark ?? TEAL} />
-              <Text style={styles.sectionHeaderText}>ALLOWED DEFECTS</Text>
-            </View>
-            <View style={styles.sectionBody}>
+            <View style={styles.sectionCard}>
+              <View style={styles.sectionHeaderRow}>
+                <Ionicons name="shirt-outline" size={ms(15)} color={AppColors.primaryDark ?? TEAL} />
+                <Text style={styles.sectionHeaderText}>ALLOWED DEFECTS</Text>
+              </View>
+              <View style={styles.sectionBody}>
                 <ResultRow styles={styles} label="Allowed Minor Defects" value={allowedMinor} bordered />
-              <ResultRow styles={styles} label="Allowed Major Defects" value={allowedMajor} bordered />
-              <ResultRow styles={styles} label="Allowed Critical Defects" value={allowedCritical} bordered />         
-            </View>
-          </View>
-            
-
-
-
-          
-          <View style={styles.sectionCard}>
-            <View style={styles.sectionHeaderRow}>
-              <Ionicons name="bar-chart-outline" size={ms(15)} color={AppColors.primaryDark ?? TEAL} />
-              <Text style={styles.sectionHeaderText}>AQL RESULT</Text>
-            </View>
-            <View style={styles.sectionBody}>
-             
-            
-              <ResultRow
-                styles={styles}
-                label="Defect Found"
-                value={totalFound}
-                bordered
-                chevron
-                onPress={() => setSheetVisible(true)}
-              />
+                <ResultRow styles={styles} label="Allowed Major Defects" value={allowedMajor} bordered />
+                <ResultRow styles={styles} label="Allowed Critical Defects" value={allowedCritical} bordered />
+              </View>
             </View>
 
-            <View style={styles.resultBandRow}>
-              <Text style={styles.resultBandText}>Major -{foundMajor}   |   Minor -{foundMinor}   |</Text>                
+            <View style={styles.sectionCard}>
+              <View style={styles.sectionHeaderRow}>
+                <Ionicons name="bar-chart-outline" size={ms(15)} color={AppColors.primaryDark ?? TEAL} />
+                <Text style={styles.sectionHeaderText}>AQL RESULT</Text>
+              </View>
+              <View style={styles.sectionBody}>
+
+
+                <ResultRow
+                  styles={styles}
+                  label="Defect Found"
+                  value={totalFound}
+                  bordered
+                  chevron
+                  onPress={() => setSheetVisible(true)}
+                />
+              </View>
+
+              <View style={styles.resultBandRow}>
+                <Text style={styles.resultBandText}>Major -{foundMajor}   |   Minor -{foundMinor}   |</Text>
                 <Text style={[styles.resultBandText, { color: '#DC2626' }]}>Critical -{foundCritical}</Text>
-              
-            </View>
 
-            <View style={[styles.resultBanner, isFail ? styles.resultBannerFail : styles.resultBannerPass]}>
-              <Ionicons
-                name={isFail ? 'close-circle' : 'checkmark-circle'}
-                size={18}
-                color={isFail ? '#DC2626' : '#059669'}
-              />
-              <Text style={[styles.resultBannerText, isFail ? styles.resultBannerTextFail : styles.resultBannerTextPass]}>
-                Inspection Result - {isFail ? 'Fail' : 'Pass'} {qty ? `( ${qty} Pieces )` : ''}
-              </Text>
-            </View>
-            <View style={{marginLeft:10,marginRight:10}}>
-             <Text style={styles.detailLabel}>Notes</Text>
+              </View>
+
+              <View style={[styles.resultBanner, isFail ? styles.resultBannerFail : styles.resultBannerPass]}>
+                <Ionicons
+                  name={isFail ? 'close-circle' : 'checkmark-circle'}
+                  size={18}
+                  color={isFail ? '#DC2626' : '#059669'}
+                />
+                <Text style={[styles.resultBannerText, isFail ? styles.resultBannerTextFail : styles.resultBannerTextPass]}>
+                  Inspection Result - {isFail ? 'Fail' : 'Pass'} {qty ? `( ${qty} Pieces )` : ''}
+                </Text>
+              </View>
+              <View style={{ marginLeft: 10, marginRight: 10 }}>
+                <Text style={styles.detailLabel}>Notes</Text>
                 <View style={styles.sectionCardN}>
-                            <TextInput
-                            value={notes}
-                            onChangeText={setNotes}
-                            placeholder="Enter your notes..."
-                            placeholderTextColor={AppColors.textTertiary}
-                            style={styles.notesInput}
-                            multiline
-                          />
-                       </View>
-            <View style={styles_re.sectionCard}>
-                                              <View style={[styles_re.sectionBody, { paddingTop: mvs(10), paddingBottom: mvs(10) }]}>
-                                                <View style={styles_re.escalateRow}>
-                                                  <View style={styles_re.escalateLeft}>
-                                                    <View style={styles_re.escalateIconWrap}>
-                                                     <MaterialCommunityIcons name="shield-alert-outline" size={ms(16)} color={AppColors.secondary} />
-                                                    
-                                                    </View>
-                                                    <Text style={styles_re.escalateLabel}>Escalate Issue</Text>
-                                                  </View>
-                                                  <Switch
-                                                    value={escalation}
-                                                    onValueChange={setEscalation}
-                                                    trackColor={{ true: TEAL, false: AppColors.border }}
-                                                    thumbColor={AppColors.onPrimary}
-                                                  />
-                                                </View>
-                                              </View>
-                                            </View>
+                  <TextInput
+                    value={notes}
+                    onChangeText={setNotes}
+                    onFocus={() => { notesFocusedRef.current = true; }}
+                    onBlur={() => { notesFocusedRef.current = false; }}
+                    placeholder="Enter your notes..."
+                    placeholderTextColor={AppColors.textTertiary}
+                    style={styles.notesInput}
+                    multiline
+                  />
+                </View>
+                <View style={styles_re.sectionCard}>
+                  <View style={[styles_re.sectionBody, { paddingTop: mvs(10), paddingBottom: mvs(10) }]}>
+                    <View style={styles_re.escalateRow}>
+                      <View style={styles_re.escalateLeft}>
+                        <View style={styles_re.escalateIconWrap}>
+                          <MaterialCommunityIcons name="shield-alert-outline" size={ms(16)} color={AppColors.secondary} />
+
+                        </View>
+                        <Text style={styles_re.escalateLabel}>Escalate Issue</Text>
+                      </View>
+                      <Switch
+                        value={escalation}
+                        onValueChange={setEscalation}
+                        trackColor={{ true: TEAL, false: AppColors.border }}
+                        thumbColor={AppColors.onPrimary}
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+
+
             </View>
-            
+          </ScrollView>
+        </View>
 
+        <View style={[styles.footer, { flexDirection: 'row', gap: 12 }]}>
+          <Pressable
+            onPress={() => handleSubmit('list')}
+            disabled={submitting}
+            style={({ pressed }) => [
+              styles.primaryBtn,
+              { flex: 1 },
+              submitting && { opacity: 0.7 },
+              pressed && !submitting && { opacity: 0.9 },
+            ]}
+          >
+            {submitting ? (
+              <ActivityIndicator color={AppColors.onPrimary} />
+            ) : (
+              <Text style={styles.primaryBtnText}>Submit</Text>
+            )}
+          </Pressable>
 
-          </View>
-        </ScrollView>
+          <Pressable
+            onPress={() => handleSubmit('exit')}
+            disabled={submitting}
+            style={({ pressed }) => [
+              styles.primaryBtn,
+              { flex: 1 },
+              submitting && { opacity: 0.7 },
+              pressed && !submitting && { opacity: 0.9 },
+            ]}
+          >
+            {submitting ? (
+              <ActivityIndicator color={AppColors.onPrimary} />
+            ) : (
+              <Text style={styles.primaryBtnText}>Submit & Exit</Text>
+            )}
+          </Pressable>
+        </View>
       </View>
-
-     <View style={[styles.footer, { flexDirection: 'row', gap: 12 }]}>
-                      <Pressable
-                        onPress={() => handleSubmit('list')}
-                        disabled={submitting}
-                        style={({ pressed }) => [
-                          styles.primaryBtn,
-                          { flex: 1 },
-                          submitting && { opacity: 0.7 },
-                          pressed && !submitting && { opacity: 0.9 },
-                        ]}
-                      >
-                        {submitting ? (
-                          <ActivityIndicator color={AppColors.onPrimary} />
-                        ) : (
-                          <Text style={styles.primaryBtnText}>Submit</Text>
-                        )}
-                      </Pressable>
-
-                      <Pressable
-                        onPress={() => handleSubmit('exit')}
-                        disabled={submitting}
-                        style={({ pressed }) => [
-                          styles.primaryBtn,
-                          { flex: 1 },
-                          submitting && { opacity: 0.7 },
-                          pressed && !submitting && { opacity: 0.9 },
-                        ]}
-                      >
-                        {submitting ? (
-                          <ActivityIndicator color={AppColors.onPrimary} />
-                        ) : (
-                          <Text style={styles.primaryBtnText}>Submit & Exit</Text>
-                        )}
-                      </Pressable>
-</View>
 
       <DefectEntrySheet
         visible={sheetVisible}

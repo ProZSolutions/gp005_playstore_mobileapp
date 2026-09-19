@@ -404,27 +404,27 @@ export default function TLSIssueTrackerScreen({ navigation, route }) {
 
  const tlsTitleStyle = pickStyle(styles.titlelarge,
     styles.titlelandscape,
-    null,
+    styles.title,
     styles.title, 
   ); 
 const tlsSearchStyle = pickStyle(styles.searchOuterlarge,
     styles.searchOuterlarge,
-    null,
+    styles.searchOuter,
     styles.searchOuter,
   );
 const tlsSearchBarStyle = pickStyle(styles.searchBarLarge,
     styles.searchBarLarge,
-    null,
+     styles.searchBar,
     styles.searchBar,
   );
   const tlsSearchBarInput = pickStyle(styles.searchInputLarge,
     styles.searchInputLarge,
-    null,
+    styles.searchInput,
     styles.searchInput,
   );
  const tlsSearchChio= pickStyle(styles.lineChipTextLarge,
     styles.lineChipTextLarge,
-    null,
+     styles.lineChipText,
     styles.lineChipText,
   );
   const { canView, can, loading: permsLoading } = usePermissions();

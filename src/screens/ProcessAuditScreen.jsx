@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Platform,
   StatusBar,
-  SafeAreaView,
 } from 'react-native';
 import Slider from '../components/CustomSlider';
 import { ms, mvs, fs } from '../utils/scale';
@@ -18,10 +17,10 @@ import { QUALITY_CHECKS, SPI_MIN, SPI_MAX } from '../utils/auditData';
 import GlobalStyles from './styles';
 import { verifyAndGetSlot } from '../utils/slotVerification';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useResponsive } from '../utils/responsive';
-import { useOrientation } from '../hooks/useOrientation';
+import useAuditLayout from '../hooks/useAuditLayout';
 import {
   AuditHeader,
+  FooterBar,
   OperatorOrderCard,
   SectionLabel, SectionLabelNew
 } from '../components/SharedComponents';
@@ -73,24 +72,20 @@ function QualityCheckRow({ check, result, onPass, onFail }) {
 export default function ProcessAuditScreen({ route, navigation }) {
   const zone = route?.params?.zone ?? { id: 'zone_a', name: 'Zone A' };
   const line = route?.params?.line ?? { id: 'la1', name: 'Line A1' };
-  const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs, isLargeScreen } = useResponsive();
-  const { isLandscape } = useOrientation();
+
+  // Layout only: same pickStyle(largePortrait, largeLandscape, mobilePortrait, mobileLandscape)
+  // you already use, now shared through one hook.
+  const { isLargeScreen, isLandscape, pickStyle, pinOperatorCard } = useAuditLayout();
+
   const selectedLine = route?.params?.selectedLine;
   console.log("selected line in process " + selectedLine);
 
-
-  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) => isLargeScreen ? (isLandscape ? largeLandscape : largePortrait) :
-    (isLandscape ? mobileLandscape : mobilePortrait);
-  const contaa = pickStyle(GlobalStyles.container.scrollContentLarge, GlobalStyles.container.scrollContentLand, null
+  const contaa = pickStyle(GlobalStyles.container.scrollContentLarge, GlobalStyles.container.scrollContentLand, GlobalStyles.container.scrollContent
     , GlobalStyles.container.scrollContent);
-  const fixed = pickStyle(GlobalStyles.container.fixedCardWrapLarge, GlobalStyles.container.fixedCardWrapLand, null
+  const fixed = pickStyle(GlobalStyles.container.fixedCardWrapLarge, GlobalStyles.container.fixedCardWrapLand, GlobalStyles.container.fixedCardWrap
     , GlobalStyles.container.fixedCardWrap);
-  const foooo = pickStyle(GlobalStyles.container.footerpor, GlobalStyles.container.footerLand, null
+  const foooo = pickStyle(GlobalStyles.container.footerpor, GlobalStyles.container.footerLand, GlobalStyles.container.footer
     , GlobalStyles.container.footer);
-
-
-
-
 
   const order = route?.params?.order ?? {
     tlsCode: 'ORD-2026-0392',
@@ -182,8 +177,22 @@ export default function ProcessAuditScreen({ route, navigation }) {
     [operator, slotInfo],
   );
 
+  // Extracted so the operator card can be pinned above the scroll area, or scroll
+  // with the content on a phone in landscape. Content itself is unchanged.
+  const operatorCard = (
+    <OperatorOrderCard
+      order={order}
+      operator={operatorWithSlot}
+      onViewAll={() => setShowDetails(true)}
+      isLandscape={isLandscape}
+      isLargeScreen={isLargeScreen}
+    />
+  );
+
   return (
-    <SafeAreaView style={GlobalStyles.container.safe_primary}>
+    // Plain View (not SafeAreaView): the header now owns the top inset, so iOS
+    // doesn't get a second, light-coloured strip above the teal header.
+    <View style={GlobalStyles.container.safe}>
       <StatusBar barStyle="light-content" backgroundColor={AppColors.primary} />
 
       <AuditHeader
@@ -192,18 +201,16 @@ export default function ProcessAuditScreen({ route, navigation }) {
         step={1}
         totalSteps={2}
         onCancel={() => navigation?.navigate('TLSAuditScreen')}
-        isLandscape
-        isLargeScreen
+        isLandscape={isLandscape}
+        isLargeScreen={isLargeScreen}
       />
 
       <View style={GlobalStyles.container.safe}>
-        <View style={[GlobalStyles.container.fixedCardWrap, fixed]}>
-          <OperatorOrderCard
-            order={order}
-            operator={operatorWithSlot}
-            onViewAll={() => setShowDetails(true)}
-          />
-        </View>
+        {pinOperatorCard && (
+          <View style={[GlobalStyles.container.fixedCardWrap, fixed]}>
+            {operatorCard}
+          </View>
+        )}
 
         <ScrollView
           style={GlobalStyles.container.scroll}
@@ -211,6 +218,8 @@ export default function ProcessAuditScreen({ route, navigation }) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          {!pinOperatorCard && operatorCard}
+
           <View style={GlobalStyles.container.card_pro}>
             <View style={GlobalStyles.container.spiHeaderRow}>
               <SectionLabelNew label="SPI COUNT" />
@@ -264,7 +273,7 @@ export default function ProcessAuditScreen({ route, navigation }) {
               style={[GlobalStyles.text.auditRowIconShield, GlobalStyles.text.mt]}
             />
 
-            <Text style={[GlobalStyles.text.warningText, , GlobalStyles.text.mt]}>
+            <Text style={[GlobalStyles.text.warningText, GlobalStyles.text.mt]}>
               Un-selected checks will be treated as{'\n'}
               <Text style={{ fontWeight: '700' }}>N/A</Text>
             </Text>
@@ -274,7 +283,7 @@ export default function ProcessAuditScreen({ route, navigation }) {
         </ScrollView>
       </View>
 
-      <View style={[GlobalStyles.container.footer, foooo]}>
+      <FooterBar footerStyle={[GlobalStyles.container.footer, foooo]}>
         <TouchableOpacity
           style={[GlobalStyles.button.submitBtn, allChecked && GlobalStyles.button.submitBtnActive]}
           onPress={handleProceed}
@@ -290,7 +299,7 @@ export default function ProcessAuditScreen({ route, navigation }) {
             Proceed to Product Audit
           </Text>
         </TouchableOpacity>
-      </View>
+      </FooterBar>
 
       <OrderDetailsSheet
         visible={showDetails}
@@ -300,9 +309,9 @@ export default function ProcessAuditScreen({ route, navigation }) {
         navigation={navigation}
         lineId={selectedLine}
         listRouteName="TLSAuditScreen"
-        isLandscape
-        isLargeScreen
+        isLandscape={isLandscape}
+        isLargeScreen={isLargeScreen}
       />
-    </SafeAreaView>
+    </View>
   );
 }

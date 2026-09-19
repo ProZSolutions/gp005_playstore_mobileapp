@@ -64,19 +64,19 @@ function SelectableRow({ label, value, placeholder = 'Select', styles, bordered,
   );
 }
 
-function ManualQtyModal({ visible, initialValue, maxValue, onClose, onSave, settingstype, wip, output ,isLandscape,isLargeScreen,styles}) {
+function ManualQtyModal({ visible, initialValue, maxValue, onClose, onSave, settingstype, wip, output
+   ,isLandscape,isLargeScreen,styles}) {
   
-  const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
+  const pick = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
   (isLandscape ? mobileLandscape : mobilePortrait);
   const [text, setText] = useState(String(initialValue ?? ''));
-   const textStyle = pickStyle(styles.manualTitleLarge,styles.manualTitleLarge,null,styles.manualTitle);
-   const limitStyle = pickStyle(styles.limitLarge,styles.limitLarge,null,styles.limit);
-   const btncancelStyle = pickStyle(styles.btncancellarge,styles.btncancellarge,null,styles.btncancel);
-   const btnsubmitStyle = pickStyle(styles.btnsubmittlarge,styles.btnsubmittlarge,null,styles.btnsubmitt);
-   const btncantxt = pickStyle(styles.btncantextlarge,styles.btncantextlarge,null,styles.btncantext);
-   const btnsubtxt = pickStyle(styles.btnsavetxtlarge,styles.btnsavetxtlarge,null,styles.btnsavetxt);
-   const mnyy = pickStyle(styles.manbglng,styles.manbglng,null,styles.manbg);
-
+  const textStyle      = pick(styles.manualTitleLarge, styles.manualTitle);
+  const limitStyle     = pick(styles.limitLarge, styles.limit);
+  const btncancelStyle = pick(styles.btncancellarge, styles.btncancel);
+  const btnsubmitStyle = pick(styles.btnsubmittlarge, styles.btnsubmitt);
+  const btncantxt      = pick(styles.btncantextlarge, styles.btncantext);
+  const btnsubtxt      = pick(styles.btnsavetxtlarge, styles.btnsavetxt);
+  const mnyy           = pick(styles.manbglng, styles.manbg);
   useEffect(() => {
     if (visible) setText(String(initialValue ?? ''));
   }, [visible, initialValue]);

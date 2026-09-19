@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState ,useEffect} from 'react';
+import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, Pressable, StatusBar, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -6,10 +6,11 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { AppColors } from '../../theme/theme';
 import { useResponsive } from '../../utils/responsive';
 import createStyles from '../styles/InputManagementStyles';
-import { createInputReturn, resolveShiftId } from '../../api/services/inputModuleService'; 
+import { createInputReturn, resolveShiftId } from '../../api/services/inputModuleService';
 import { usePermissions, GROUP, ACTION } from '../../context/PermissionsContext';
 import SizeWiseQtyModal from '../../components/modals/SizewiseQtyModal';
 import { showAlert } from '../../utils/AlertService';
+import { useKeyboardOverlap } from '../../hooks/useKeyboardOverlap';
 const LISTING_SCREEN = 'InputListScreen';
 import reworkService, { mapOrderSizes } from '../../api/services/rejectionService';
 
@@ -24,7 +25,7 @@ function DetailRow({ label, value, styles, bordered, accent }) {
     </View>
   );
 }
- 
+
 function computeWip(rawSize = {}) {
   return 100;
 }
@@ -32,24 +33,39 @@ function computeWip(rawSize = {}) {
 export default function InputReturnScreen({ navigation, route }) {
   const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs } = useResponsive();
   const styles = createStyles(ms, mvs, fs);
- 
+
   const {
     order,
     operator,
     user,
     zone,
     line,
-    lineId,lineName
-  } = route?.params ?? {}; 
-  console.log("input return line id "+lineId);
+    lineId, lineName,
+  } = route?.params ?? {};
+  console.log("input return line id " + lineId);
   const { can, loading: permissionsLoading } = usePermissions();
   const canReturn = can(GROUP.INPUTMODULE, ACTION.CREATE);
- const [outputBalance, setOutputBalance] = useState('0');
+  const [outputBalance, setOutputBalance] = useState('0');
 
   const [notes, setNotes] = useState('');
   const [qtyModalVisible, setQtyModalVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-   const [entries, setEntries] = useState({});
+  const [entries, setEntries] = useState({});
+
+  // ---- Keyboard handling: keep the Notes field visible ----
+  const contentRef = useRef(null);      // wraps body + footer (everything under the header)
+  const scrollRef = useRef(null);
+  const notesFocusedRef = useRef(false);
+  const keyboardOverlap = useKeyboardOverlap(contentRef);
+
+  // Notes is the last section, so "scroll to end" brings it into view. Called
+  // when the ScrollView shrinks (keyboard opened) and when the multiline input
+  // grows while typing.
+  const scrollNotesIntoView = useCallback(() => {
+    if (notesFocusedRef.current) {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }
+  }, []);
 
   const rawSizes = Array.isArray(order?.sizes) ? order.sizes : [];
 
@@ -96,14 +112,14 @@ export default function InputReturnScreen({ navigation, route }) {
   };
 
   const handleApplyQty = (payload) => {
-     const nextEntries = {};
+    const nextEntries = {};
     payload.forEach((row) => {
       nextEntries[row.id] = row.enter_values;
     });
     setEntries(nextEntries);
   };
- 
-  const handleSubmit = useCallback(async () => { 
+
+  const handleSubmit = useCallback(async () => {
     if (submitDisabled || !order) return;
 
     if (!lineId) {
@@ -112,7 +128,7 @@ export default function InputReturnScreen({ navigation, route }) {
     }
 
     setSubmitting(true);
-    try { 
+    try {
       const shiftId = await resolveShiftId();
 
       const inputSizes = sizes
@@ -134,7 +150,7 @@ export default function InputReturnScreen({ navigation, route }) {
       });
 
       showAlert('success', 'Success', 'Input return submitted successfully.');
-       navigation.reset({
+      navigation.reset({
         index: 0,
         routes: [{ name: LISTING_SCREEN }],
       });
@@ -187,7 +203,7 @@ export default function InputReturnScreen({ navigation, route }) {
               >
                 <Ionicons name="close" size={ms(16)} color={AppColors.onPrimary} />
               </Pressable>
-             {/*  <Text style={styles.orderIdText} numberOfLines={1}>{order.tlsCode}</Text>*/}
+              {/*  <Text style={styles.orderIdText} numberOfLines={1}>{order.tlsCode}</Text>*/}
             </View>
           </View>
 
@@ -220,116 +236,134 @@ export default function InputReturnScreen({ navigation, route }) {
         </SafeAreaView>
       </View>
 
-      <View style={styles.body}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-          {permissionsLoading ? (
-            <View style={{ paddingVertical: mvs(16), alignItems: 'center' }}>
-              <ActivityIndicator size="small" color={AppColors.primary} />
-            </View>
-          ) : !canReturn ? (
+      {/* Everything under the header lives in one container. When the keyboard
+          opens, its bottom padding lifts the body + Submit footer above it. */}
+      <View
+        ref={contentRef}
+        collapsable={false}
+        style={{ flex: 1, paddingBottom: keyboardOverlap }}
+      >
+        <View style={styles.body}>
+          <ScrollView
+            ref={scrollRef}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            onLayout={scrollNotesIntoView}
+            onContentSizeChange={scrollNotesIntoView}
+          >
+            {permissionsLoading ? (
+              <View style={{ paddingVertical: mvs(16), alignItems: 'center' }}>
+                <ActivityIndicator size="small" color={AppColors.primary} />
+              </View>
+            ) : !canReturn ? (
+              <View style={styles.sectionCard}>
+                <View style={styles.sectionHeaderRow}>
+                  <Ionicons name="lock-closed-outline" size={ms(15)} color={AppColors.primaryDark} />
+                  <Text style={styles.sectionHeaderText}>PERMISSION REQUIRED</Text>
+                </View>
+                <View style={styles.sectionBody}>
+                  <Text style={styles.detailLabel}>
+                    You don't have permission to submit an input return. You can still view order details below.
+                  </Text>
+                </View>
+              </View>
+            ) : null}
+
+            {/* ORDER DETAILS */}
             <View style={styles.sectionCard}>
               <View style={styles.sectionHeaderRow}>
-                <Ionicons name="lock-closed-outline" size={ms(15)} color={AppColors.primaryDark} />
-                <Text style={styles.sectionHeaderText}>PERMISSION REQUIRED</Text>
+                <Ionicons name="document-text-outline" size={ms(15)} color={AppColors.primaryDark} />
+                <Text style={styles.sectionHeaderText}>ORDER DETAILS</Text>
               </View>
               <View style={styles.sectionBody}>
-                <Text style={styles.detailLabel}>
-                  You don't have permission to submit an input return. You can still view order details below.
-                </Text>
+                <DetailRow styles={styles} label="Order Quantity" value={String(order.orderQty ?? '—')} />
+                <DetailRow styles={styles} label="Production Quantity" value={String(order.prodQty ?? '—')} bordered />
+                <DetailRow styles={styles} label="Input Issued" value={String(order.totalInput ?? '—')} bordered />
+                <DetailRow styles={styles} label="Input Balance (WIP)" value={String(order.balQty ?? '—')} bordered accent />
               </View>
             </View>
-          ) : null}
 
-          {/* ORDER DETAILS */}
-          <View style={styles.sectionCard}>
-            <View style={styles.sectionHeaderRow}>
-              <Ionicons name="document-text-outline" size={ms(15)} color={AppColors.primaryDark} />
-              <Text style={styles.sectionHeaderText}>ORDER DETAILS</Text>
-            </View>
-            <View style={styles.sectionBody}>
-              <DetailRow styles={styles} label="Order Quantity" value={String(order.orderQty ?? '—')} />
-              <DetailRow styles={styles} label="Production Quantity" value={String(order.prodQty ?? '—')} bordered />
-              <DetailRow styles={styles} label="Input Issued" value={String(order.totalInput ?? '—')} bordered />
-              <DetailRow styles={styles} label="Input Balance (WIP)" value={String(order.balQty ?? '—')} bordered accent />
-            </View>
-          </View>
-
-          <View style={styles.sectionCard}>
-            <View style={styles.sectionHeaderRow}>
-              <Ionicons name="arrow-undo-outline" size={ms(15)} color={AppColors.primaryDark} />
-              <Text style={styles.sectionHeaderText}>INPUT RETURN</Text>
-              <Text style={styles.requiredDot}>*</Text>
-            </View>
-            <View style={styles.sectionBody}>
-              <Pressable
-                onPress={handleEnterQty}
-                disabled={!canReturn}
-                style={({ pressed }) => [styles.enterQtyRow, pressed && { opacity: 0.7 }, !canReturn && { opacity: 0.5 }]}
-              >
-                <Text style={styles.enterQtyLabel}>Size-wise Qty</Text>
-                <View style={styles.enterQtyRight}>
-                  <Text style={styles.enterQtyValue}>
-                    {totalEnteredQty > 0 ? String(totalEnteredQty) : 'Enter Qty'}
-                  </Text>
-                  <Ionicons name="chevron-forward" size={ms(17)} color={AppColors.primary} />
-                </View>
-              </Pressable>
-
-              <View style={styles.sizeGrid}>
-                {sizes.map((size) => (
-                  <View key={size.id} style={styles.sizeChip}>
-                    <View style={styles.sizeChipInner}>
-                      <Text style={styles.sizeChipText}>{size.label} - </Text>
-                      <Text style={styles.sizeChipQty}>{size.qty}</Text>
-                    </View>
+            <View style={styles.sectionCard}>
+              <View style={styles.sectionHeaderRow}>
+                <Ionicons name="arrow-undo-outline" size={ms(15)} color={AppColors.primaryDark} />
+                <Text style={styles.sectionHeaderText}>INPUT RETURN</Text>
+                <Text style={styles.requiredDot}>*</Text>
+              </View>
+              <View style={styles.sectionBody}>
+                <Pressable
+                  onPress={handleEnterQty}
+                  disabled={!canReturn}
+                  style={({ pressed }) => [styles.enterQtyRow, pressed && { opacity: 0.7 }, !canReturn && { opacity: 0.5 }]}
+                >
+                  <Text style={styles.enterQtyLabel}>Size-wise Qty</Text>
+                  <View style={styles.enterQtyRight}>
+                    <Text style={styles.enterQtyValue}>
+                      {totalEnteredQty > 0 ? String(totalEnteredQty) : 'Enter Qty'}
+                    </Text>
+                    <Ionicons name="chevron-forward" size={ms(17)} color={AppColors.primary} />
                   </View>
-                ))}
+                </Pressable>
+
+                <View style={styles.sizeGrid}>
+                  {sizes.map((size) => (
+                    <View key={size.id} style={styles.sizeChip}>
+                      <View style={styles.sizeChipInner}>
+                        <Text style={styles.sizeChipText}>{size.label} - </Text>
+                        <Text style={styles.sizeChipQty}>{size.qty}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
               </View>
             </View>
-          </View>
 
-          <View style={styles.sectionCard}>
-            <Text style={styles.notesLabel}>NOTES</Text>
-            <View style={styles.notesInputWrap}>
-              <TextInput
-                value={notes}
-                onChangeText={setNotes}
-                placeholder="Enter your notes..."
-                placeholderTextColor={AppColors.textTertiary}
-                style={styles.notesInput}
-                multiline
-              />
+            <View style={styles.sectionCard}>
+              <Text style={styles.notesLabel}>NOTES</Text>
+              <View style={styles.notesInputWrap}>
+                <TextInput
+                  value={notes}
+                  onChangeText={setNotes}
+                  onFocus={() => { notesFocusedRef.current = true; }}
+                  onBlur={() => { notesFocusedRef.current = false; }}
+                  placeholder="Enter your notes..."
+                  placeholderTextColor={AppColors.textTertiary}
+                  style={styles.notesInput}
+                  multiline
+                />
+              </View>
             </View>
-          </View>
-        </ScrollView>
+          </ScrollView>
+        </View>
+
+        <View style={styles.footer}>
+          <Pressable
+            disabled={submitDisabled}
+            onPress={handleSubmit}
+            style={({ pressed }) => [
+              styles.submitBtn,
+              submitDisabled && styles.submitBtnDisabled,
+              pressed && !submitDisabled && { opacity: 0.9 },
+            ]}
+          >
+            {submitting ? (
+              <ActivityIndicator size="small" color={AppColors.onPrimary} />
+            ) : (
+              <Text style={[styles.submitBtnText, submitDisabled && styles.submitBtnTextDisabled]}>
+                Submit
+              </Text>
+            )}
+          </Pressable>
+        </View>
       </View>
 
-      <View style={styles.footer}>
-        <Pressable
-          disabled={submitDisabled}
-          onPress={handleSubmit}
-          style={({ pressed }) => [
-            styles.submitBtn,
-            submitDisabled && styles.submitBtnDisabled,
-            pressed && !submitDisabled && { opacity: 0.9 },
-          ]}
-        >
-          {submitting ? (
-            <ActivityIndicator size="small" color={AppColors.onPrimary} />
-          ) : (
-            <Text style={[styles.submitBtnText, submitDisabled && styles.submitBtnTextDisabled]}>
-              Submit
-            </Text>
-          )}
-        </Pressable>
-      </View>
- {/* balanceLabel={`Input Balance - ${totalWip} (WIP)`}*/}
-       <SizeWiseQtyModal
+      {/* balanceLabel={`Input Balance - ${totalWip} (WIP)`}*/}
+      <SizeWiseQtyModal
         visible={qtyModalVisible}
         onClose={() => setQtyModalVisible(false)}
         title="Input Return"
         subtitle="Update Size-wise Quantities"
-       
+
         sizes={modalSizes}
         inputType="return"
         onApply={handleApplyQty}

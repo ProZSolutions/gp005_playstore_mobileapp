@@ -12,6 +12,7 @@ xmlns:tools="http://schemas.android.com/tools">
       android:icon="@mipmap/ic_launcher"
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
+      android:enableOnBackInvokedCallback="false"
       android:theme="@style/Theme.App.Starting">
       <activity
         android:name=".MainActivity"

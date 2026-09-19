@@ -117,7 +117,7 @@ export default function TLSIssueTrackerScreen({ navigation, route }) {
 
   const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
 (isLandscape ? mobileLandscape : mobilePortrait);
-   const textStyle = pickStyle(styles.titleLarge,styles.titleLarge,null,styles.title);
+   const textStyle = pickStyle(styles.titleLarge,styles.titleLarge,styles.title,styles.title);
 
 
 
@@ -293,7 +293,7 @@ export default function TLSIssueTrackerScreen({ navigation, route }) {
             </Pressable>
           </View>
 
-          <Text style={textStyle}>TLS Issue Tracker</Text>
+          <Text style={[styles.title,textStyle]}>TLS Issue Tracker</Text>
         </SafeAreaView>
 
         {canListIssues && (

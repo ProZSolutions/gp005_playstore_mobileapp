@@ -80,7 +80,7 @@ const TextStyles = StyleSheet.create({
           pillTextBack: { color: AppColors.onPrimary, fontSize: Dimensions.text.headerTitleFontSize, fontWeight: '600' ,fontFamily:'Inter-Regular' },
 
             pillText: { color: AppColors.onPrimary, fontSize: Dimensions.text.pillTextFontSize,
-               fontWeight: '600',fontFamily:'Inter-Regular'  },
+               fontWeight: '600',fontFamily:'Inter-Bold'  },
           headerTitle: {
             color: AppColors.onPrimary,
             fontSize: Dimensions.text.headerTitleFontSize,fontFamily:'Inter-Regular' ,
@@ -270,7 +270,8 @@ const TextStyles = StyleSheet.create({
     },
      mainOpTitle: { color: AppColors.textPrimary,fontFamily:'Inter-Regular' , fontSize: Dimensions.text.mainOpTitleFontSize, fontWeight: '700' },
     mainOpSubtitle: { color: AppColors.textTertiary,fontFamily:'Inter-Regular' , fontSize: Dimensions.text.mainOpSubtitleFontSize, marginTop: Dimensions.spacing.mainOpSubtitleMarginTop },
-    configTitle: { color: AppColors.textPrimary,fontFamily:'Inter-Regular' , fontSize: Dimensions.text.configTitleFontSize, fontWeight: '600',fontFamily:'Inter-Regular' },
+    configTitle: { color: AppColors.textPrimary , 
+      fontSize: Dimensions.text.configTitleFontSize, fontWeight: '600',fontFamily:'Inter-Bold' },
     configIcon: { alignSelf: 'flex-end', marginTop:'auto' },
     //dashboard
 

@@ -12,7 +12,7 @@ export default function CommonBottomModal({ visible, onClose, title, ms = (n) =>
     const { isLandscape } = useOrientation();
     const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
 (isLandscape ? mobileLandscape : mobilePortrait);
- const textStyle = pickStyle(styles.titleLarge,styles.titleLarge,null,styles.title);
+ const textStyle = pickStyle(styles.titleLarge,styles.titleLarge,styles.title,styles.title);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>

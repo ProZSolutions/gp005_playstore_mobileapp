@@ -61,9 +61,9 @@ function OrderCard({ order, selected, onPress, styles,isLandscape,isLargeScreen 
     isLargeScreen
       ? (isLandscape ? largeLandscape : largePortrait)
       : (isLandscape ? mobileLandscape : mobilePortrait);
-  const tlsCodeStyle = pickStyle(styles.tlsCodeLarge,styles.tlsCodeLarge, null,styles.tlsCode,);
-   const tlsValueStyle = pickStyle(styles.fieldValueLarge,styles.fieldValueLarge, null,styles.fieldValue,);
-   const tlsdateStyle = pickStyle(styles.createdOnTextLarge,styles.createdOnTextLarge, null,styles.createdOnText,);
+  const tlsCodeStyle = pickStyle(styles.tlsCodeLarge,styles.tlsCodeLarge, styles.tlsCode,styles.tlsCode,);
+   const tlsValueStyle = pickStyle(styles.fieldValueLarge,styles.fieldValueLarge, styles.fieldValue,styles.fieldValue);
+   const tlsdateStyle = pickStyle(styles.createdOnTextLarge,styles.createdOnTextLarge, styles.createdOnText,styles.createdOnText);
 
 
 
@@ -299,27 +299,27 @@ export default function TLSAuditScreen({ navigation, route }) {
 
  const tlsTitleStyle = pickStyle(styles.titlelarge,
     styles.titlelandscape,
-    null,
+    styles.title,
     styles.title, 
   ); 
 const tlsSearchStyle = pickStyle(styles.searchOuterlarge,
     styles.searchOuterlarge,
-    null,
+    styles.searchOuter,
     styles.searchOuter,
   );
 const tlsSearchBarStyle = pickStyle(styles.searchBarLarge,
     styles.searchBarLarge,
-    null,
+    styles.searchBar,
     styles.searchBar,
   );
   const tlsSearchBarInput = pickStyle(styles.searchInputLarge,
     styles.searchInputLarge,
-    null,
+    styles.searchInput,
     styles.searchInput,
   );
  const tlsSearchChio= pickStyle(styles.lineChipTextLarge,
     styles.lineChipTextLarge,
-    null,
+    styles.lineChipText,
     styles.lineChipText,
   );
 
@@ -573,8 +573,8 @@ const tlsSearchBarStyle = pickStyle(styles.searchBarLarge,
                 selected={selectedOrderId === order.id}
                 onPress={() => setSelectedOrderId(order.id)}
                 styles={styles}
-                isLandscape
-                isLargeScreen
+                isLandscape={isLandscape}
+                isLargeScreen={isLargeScreen}
                />
             ))}
           </ScrollView>

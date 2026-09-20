@@ -195,10 +195,10 @@ export default function createStyles(ms, mvs, fs) {
       borderTopColor: BORDER,
     },
     detailLabel: {
-      fontSize: fs(12.5),fontFamily:'Inter-Regular',
+      fontSize: fs(13.5),fontFamily:'Inter-Bold',
       color: TEXT_SECONDARY,
        flexShrink: 0,  
-      fontWeight: '500',
+      fontWeight: '600',
       marginRight: ms(10),
     },
     detailLabelDisabled: {
@@ -215,9 +215,9 @@ export default function createStyles(ms, mvs, fs) {
     },
     detailValue: {
       marginTop:2,      
-      fontSize: fs(12.5),fontFamily:'Inter-Bold',
+      fontSize: fs(14.5),fontFamily:'Inter-Regular',
        color: TEXT_PRIMARY,
-      fontWeight: '500',
+      fontWeight: '600',
        flexShrink: 1,  
     },
     detailValueAccent: {

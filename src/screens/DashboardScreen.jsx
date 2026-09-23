@@ -146,6 +146,8 @@ const CONFIG_TOOLS = [
   { key: 'InputListScreen', title: 'Input', icon: 'dashboard_8', iconColor: AppColors.linePurple, group: GROUP.INPUTMODULE },
   { key: 'TLSDeviceMappingScreen', title: 'Device Swapping', icon: 'dashboard_9', iconColor: AppColors.warning, group: GROUP.SWAPPING },
   { key: 'DeviceMachineMappingScreen', title: 'Device & Machine Mapping', icon: 'dashboard_10', iconColor: AppColors.lineBlue, group: GROUP.DEVICEMAPPING },
+    { key: 'ReportListScreen', title: 'Reports', icon: 'dashboard_10', iconColor: AppColors.lineBlue, group: GROUP.DEVICEMAPPING },
+
 ];
 
 export default function DashboardScreen({ navigation, route }) {

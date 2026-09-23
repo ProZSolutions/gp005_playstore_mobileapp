@@ -76,6 +76,10 @@ import OrderContinuityMappingScreen from '../screens/ContinetyMapping/OrderConti
 import TLSDeviceMappingScreen from '../screens/DeviceSwapping/TLSDeviceMappingScreen';
 import TLSDeviceSwapReviewScreen from '../screens/DeviceSwapping/TLSDeviceSwapReviewScreen';
 
+//Report
+import ReportDetails from '../screens/Report/ReportDetails';
+import ReportListScreen from '../screens/Report/ReportListScreen';
+
 //--about us
 import AboutUsScreen from '../screens/AboutUsScreen';
 
@@ -362,6 +366,14 @@ export function AppNavigator({ toggleTheme, isDark }) {
           <Stack.Screen
           name="OrderContinuityMappingScreen"
           component={OrderContinuityMappingScreen}
+           initialParams={{toggleTheme,isDark}} />
+            <Stack.Screen
+          name="ReportDetails"
+          component={ReportDetails}
+           initialParams={{toggleTheme,isDark}} />
+            <Stack.Screen
+          name="ReportListScreen"
+          component={ReportListScreen}
            initialParams={{toggleTheme,isDark}} />
 
 

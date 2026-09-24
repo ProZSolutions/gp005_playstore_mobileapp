@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
-import { View, Text, TextInput, ScrollView, Pressable, StatusBar, ActivityIndicator, Modal } from 'react-native';
+import {
+  View, Text, TextInput, ScrollView, FlatList, Pressable, StatusBar, ActivityIndicator, Modal,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -8,11 +10,10 @@ import { useBackToDashboard } from '../../hooks/useBackToDashboard';
 import { AppColors } from '../../theme/theme';
 import { useResponsive } from '../../utils/responsive';
 import { STATUS_STYLES, lineAbbrev } from '../../utils/tlsIssueData';
-// ASSUMPTION: report list/retrieve endpoints live alongside the escalation
-// ones. Point these at the real service functions once they exist.
-import { getReportList } from '../../api/services/aqlAuditService';
+// Dedicated report service (list + retrieve).
+import { getReportList } from '../../api/services/reportService';
 import { getUser, PAGE_SIZE } from '../../api/storage/authStorage';
-import { usePermissions, GROUP, ACTION } from '../../context/PermissionsContext';
+import { usePermissions, GROUP } from '../../context/PermissionsContext';
 import createStyles from '../styles/TLSIssueTrackerStyles';
 import { useOrientation } from '../../hooks/useOrientation';
 
@@ -23,10 +24,11 @@ const DEFAULT_STATUS_STYLE = { bg: '#EEEEEE', dot: '#9E9E9E', text: '#616161', b
 const getStatusStyle = (status) => STATUS_STYLES?.[status] ?? DEFAULT_STATUS_STYLE;
 
 const RECORD_TYPE_META = {
-  all: { label: 'All', icon: 'apps-outline' },
   product_audit: { label: 'Audit', icon: 'aperture-outline' },
   process_audit: { label: 'Process Audit', icon: 'aperture-outline' },
   audit: { label: 'Audit', icon: 'aperture-outline' },
+  tls_audit: { label: 'Audit', icon: 'aperture-outline' },
+  tls_issue: { label: 'TLS Issue', icon: 'alert-circle-outline' },
   rework: { label: 'Rework', icon: 'construct-outline' },
   rework_tracker: { label: 'Rework Tracker', icon: 'time-outline' },
   rejection: { label: 'Rejection', icon: 'close-circle-outline' },
@@ -36,24 +38,18 @@ const RECORD_TYPE_META = {
 };
 const getRecordTypeMeta = (type) => RECORD_TYPE_META[type] ?? RECORD_TYPE_META.product_audit;
 
-// Maps each "module" permission group to the record_type(s) it should
-// surface as a filter chip on the Report list. GROUP.CHECKIN is
-// deliberately never included here per spec — checked-in status is not a
-// report filter. Any group not represented here (TLSISSUE, CHECKING,
-// ESCALATION itself, the mapping/config groups) is likewise excluded
-// because it doesn't correspond to a report record_type.
+// Only these report/module groups are eligible to appear as chips at all.
+// Order here drives the left-to-right order of the chips.
 const GROUP_RECORD_TYPE_MAP = [
   { group: GROUP.TLSAUDIT, type: 'product_audit' },
+  { group: GROUP.TLSISSUE, type: 'tls_issue' },
+  { group: GROUP.QCVERIFICATION, type: 'qc_verification' },
   { group: GROUP.REWORK, type: 'rework' },
   { group: GROUP.REWORKTRACKER, type: 'rework_tracker' },
   { group: GROUP.REJECTION, type: 'rejection' },
   { group: GROUP.REJECTIONTRACKER, type: 'rejection_tracker' },
-  { group: GROUP.QCVERIFICATION, type: 'qc_verification' },
   { group: GROUP.AQLAUDIT, type: 'aql_audit' },
 ];
-
-const AUDIT_RECORD_TYPES = ['product_audit', 'process_audit', 'audit'];
-const isAuditRecordType = (type) => AUDIT_RECORD_TYPES.includes(type);
 
 const toApiDateString = (date) => {
   if (!date) return '';
@@ -72,7 +68,20 @@ const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
+const MONTH_SHORT = MONTH_NAMES.map((m) => m.slice(0, 3));
 const WEEKDAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+// "24 Sep 2026, 04:38 PM" (device local time)
+const formatCreatedAt = (value) => {
+  if (!value) return '-';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  const h = d.getHours();
+  const h12 = h % 12 || 12;
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${dd} ${MONTH_SHORT[d.getMonth()]} ${d.getFullYear()}, ${String(h12).padStart(2, '0')}:${mm} ${h >= 12 ? 'PM' : 'AM'}`;
+};
 
 const isSameDay = (a, b) =>
   !!a && !!b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
@@ -101,14 +110,17 @@ function buildCalendarGrid(year, month) {
   return weeks;
 }
 
-let reportCache = { type: 'all', query: '', fromDate: null, toDate: null, data: [], page: 1, hasMore: false };
-const cacheKey = (type, query, fromDate, toDate) =>
-  `${type ?? 'all'}|${query ?? ''}|${toApiDateString(fromDate)}|${toApiDateString(toDate)}`;
+const mergeUnique = (prev, next) => {
+  const seen = new Set(prev.map((i) => i.key));
+  return [...prev, ...next.filter((i) => !seen.has(i.key))];
+};
 
-// Mirrors clearEscalationDateFilter — call this from Dashboard's focus
-// effect so the Report date filter is reset whenever Dashboard regains
-// focus, regardless of whether ReportListScreen stays mounted in the
-// background (tabs/drawers) or unmounts (stacks).
+// `type` starts as null: it is resolved to the first permission-eligible
+// chip as soon as permissions have loaded (see useFocusEffect below).
+let reportCache = { type: null, query: '', fromDate: null, toDate: null, data: [], page: 1, hasMore: false };
+const cacheKey = (type, query, fromDate, toDate) =>
+  `${type ?? 'none'}|${query ?? ''}|${toApiDateString(fromDate)}|${toApiDateString(toDate)}`;
+
 export function clearReportDateFilter() {
   reportCache = {
     ...reportCache,
@@ -120,29 +132,15 @@ export function clearReportDateFilter() {
   };
 }
 
-function safeParseArray(value) {
-  if (Array.isArray(value)) return value;
-  if (typeof value !== 'string' || !value.trim()) return [];
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
+/* ------------------------------------------------------------------------ */
+/*  Card                                                                      */
+/* ------------------------------------------------------------------------ */
 
-function StatusPill({ status, status_name, styles }) {
-  const s = getStatusStyle(status);
-  return (
-    <View style={[styles.statusPill, { backgroundColor: s.bg, borderColor: s.border }]}>
-      <View style={[styles.statusDot, { backgroundColor: s.dot }]} />
-      <Text style={[styles.statusText, { color: s.text }]}>{status_name}</Text>
-    </View>
-  );
-}
-
+// One card for every record type: Order, Buyer, Colour, Style, Created At.
 function ReportCard({ issue, onPress, styles, ms }) {
-  const meta = getRecordTypeMeta(issue?.raw?.record_type);
+  const raw = issue?.raw ?? {};
+  const meta = getRecordTypeMeta(raw.record_type);
+
   return (
     <Pressable
       onPress={onPress}
@@ -152,77 +150,23 @@ function ReportCard({ issue, onPress, styles, ms }) {
     >
       <View style={styles.cardTopRow}>
         <Text style={styles.orderId} numberOfLines={1}>
-          {issue.displayId} {lineAbbrev(issue.lineLabel)}
-        </Text>
-      </View>
-
-      <View style={styles.defectChip}>
-        <Ionicons name={meta.icon} size={ms(15)} color={AppColors.error} />
-        <Text style={styles.defectChipText} numberOfLines={1}>{meta.label}</Text>
-      </View>
-
-      <View style={styles.cardGridRow}>
-        <View style={styles.cardGridCell}>
-          <Text style={styles.fieldLabel}>
-            {issue?.raw?.operation_name ? 'OPERATION' : 'ORDER NO'}
-          </Text>
-          <Text style={styles.fieldValue} numberOfLines={1}>
-            {issue?.raw?.operation_name || issue?.raw?.order_no || '-'}
-          </Text>
-        </View>
-        <View style={styles.cardGridCell}>
-          <Text style={styles.fieldLabel}>STYLE</Text>
-          <Text style={styles.fieldValue} numberOfLines={1}>{issue?.raw?.style_name ?? '-'}</Text>
-        </View>
-      </View>
-
-      <View style={styles.cardGridRow}>
-        <View style={styles.cardGridCell}>
-          <Text style={styles.fieldLabel}>COLOUR</Text>
-          <View style={styles.fieldValueRow}>
-            <View style={[styles.colourDot, { backgroundColor: issue.colourHex }]} />
-            <Text style={styles.fieldValue} numberOfLines={1}>{issue?.raw?.colour ?? '-'}</Text>
-          </View>
-        </View>
-        <View style={styles.cardGridCell}>
-          <Text style={styles.fieldLabel}>BUYER</Text>
-          <Text style={styles.fieldValue} numberOfLines={1}>{issue?.raw?.buyer_name ?? '-'}</Text>
-        </View>
-      </View>
-    </Pressable>
-  );
-}
-
-function ReportAuditCard({ issue, onPress, styles, ms }) {
-  const raw = issue?.raw ?? {};
-  const meta = getRecordTypeMeta(raw.record_type);
-
-  return (
-    <Pressable
-      onPress={onPress}
-      android_ripple={{ color: 'rgba(10,158,150,0.06)' }}
-      style={({ pressed }) => [styles.card, styles.auditCard, pressed && { opacity: 0.96 }]}
-      accessibilityRole="button"
-    >
-      <View style={styles.cardTopRow}>
-        <Text style={styles.orderId} numberOfLines={1}>
           {issue.displayId ?? raw.order_no} {lineAbbrev(issue.lineLabel ?? raw.line_name)}
         </Text>
       </View>
 
-      <View style={styles.defectChip}>
+      {/* <View style={styles.defectChip}>
         <Ionicons name={meta.icon} size={ms(15)} color={AppColors.error} />
         <Text style={styles.defectChipText} numberOfLines={1}>{meta.label}</Text>
-      </View>
+      </View>*/}
 
       <View style={styles.cardGridRow}>
         <View style={styles.cardGridCell}>
-          <Text style={styles.fieldLabel}>AUDITOR</Text>
-          <Text style={styles.fieldValue} numberOfLines={1}>{raw.auditor_name ?? '-'}</Text>
+          <Text style={styles.fieldLabel}>ORDER</Text>
+          <Text style={styles.fieldValue} numberOfLines={1}>{raw.order_code || '-'}</Text>
         </View>
         <View style={styles.cardGridCell}>
-          <Text style={styles.fieldLabel}>MACHINE</Text>
-          <Text style={styles.fieldValue} numberOfLines={1}>{raw.machine_no ?? '-'}</Text>
+          <Text style={styles.fieldLabel}>BUYER</Text>
+          <Text style={styles.fieldValue} numberOfLines={1}>{raw.buyer_name || '-'}</Text>
         </View>
       </View>
 
@@ -231,17 +175,31 @@ function ReportAuditCard({ issue, onPress, styles, ms }) {
           <Text style={styles.fieldLabel}>COLOUR</Text>
           <View style={styles.fieldValueRow}>
             <View style={[styles.colourDot, { backgroundColor: issue.colourHex }]} />
-            <Text style={styles.fieldValue} numberOfLines={1}>{raw.colour ?? '-'}</Text>
+            <Text style={styles.fieldValue} numberOfLines={1}>{raw.colour || '-'}</Text>
           </View>
         </View>
         <View style={styles.cardGridCell}>
-          <Text style={styles.fieldLabel}>BUYER</Text>
-          <Text style={styles.fieldValue} numberOfLines={1}>{raw.buyer_name ?? '-'}</Text>
+          <Text style={styles.fieldLabel}>STYLE</Text>
+          <Text style={styles.fieldValue} numberOfLines={1}>{raw.style_name || '-'}</Text>
+        </View>
+      </View>
+      <View style={styles.cardDivider} />
+
+      <View style={styles.cardGridRow}>
+        <View style={styles.cardGridCell}>
+          <Text style={styles.fieldLabel}>CREATED AT</Text>
+          <Text style={styles.fieldValue} numberOfLines={1}>
+            {formatCreatedAt(issue.createdAt ?? raw.created_at)}
+          </Text>
         </View>
       </View>
     </Pressable>
   );
 }
+
+/* ------------------------------------------------------------------------ */
+/*  Date filter                                                               */
+/* ------------------------------------------------------------------------ */
 
 function MiniCalendar({ value, onSelect, minDate, maxDate, styles, ms }) {
   const initialMonth = value ?? new Date();
@@ -370,6 +328,7 @@ function DateFilterModal({
   );
 }
 
+
 export default function ReportListScreen({ navigation, route }) {
   const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs, isLargeScreen } = useResponsive();
   const { isLandscape } = useOrientation();
@@ -384,28 +343,33 @@ export default function ReportListScreen({ navigation, route }) {
   const tlsSearchBarInput = pickStyle(styles.searchInputLarge, styles.searchInputLarge, styles.searchInput, styles.searchInput);
   const tlsSearchChio = pickStyle(styles.lineChipTextLarge, styles.lineChipTextLarge, styles.lineChipText, styles.lineChipText);
 
-  const { canView, can, loading: permsLoading } = usePermissions();
+  const { canView, loading: permsLoading } = usePermissions();
 
-  // Dynamic filter chips: every module the user can view (except Check-in),
-  // mapped to its record_type. "All" is always available as long as the
-  // user has access to at least one module.
+  // Dynamic filter chips: ONLY the eligible report/module types the user has
+  // permission for. There is no "All" chip — the first eligible chip acts
+  // as the default request_type on load.
   const accessibleRecordTypes = useMemo(
     () =>
       GROUP_RECORD_TYPE_MAP
-        .filter(({ group }) => group !== GROUP.CHECKIN && canView(group))
+        .filter(({ group }) => canView(group))
         .map(({ type }) => type),
     [canView],
   );
-  const availableRecordTypes = useMemo(() => ['all', ...accessibleRecordTypes], [accessibleRecordTypes]);
+  const availableRecordTypes = accessibleRecordTypes;
   const canListReports = accessibleRecordTypes.length > 0;
 
   const [user, setUser] = useState(null);
-  const [activeType, setActiveType] = useState('all');
+  // No default type until permissions resolve; the first permitted chip is
+  // selected automatically once availableRecordTypes is known (see the
+  // useFocusEffect below).
+  const [activeType, setActiveType] = useState(null);
   const [query, setQuery] = useState(() => reportCache.query ?? '');
   const [debouncedQuery, setDebouncedQuery] = useState(() => reportCache.query ?? '');
 
-  const [fromDate, setFromDate] = useState(() => reportCache.fromDate ?? null);
-  const [toDate, setToDate] = useState(() => reportCache.toDate ?? null);
+  const today = new Date();
+
+const [fromDate, setFromDate] = useState( () => reportCache.fromDate ?? today);
+const [toDate, setToDate] = useState(() => reportCache.toDate ?? today);
   const [tempFromDate, setTempFromDate] = useState(fromDate);
   const [tempToDate, setTempToDate] = useState(toDate);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -419,6 +383,12 @@ export default function ReportListScreen({ navigation, route }) {
   const [hasMore, setHasMore] = useState(() => reportCache.hasMore ?? false);
 
   const requestId = useRef(0);
+  // Always-current copy of the list so appends never depend on a stale
+  // closure, and so reportCache is written outside a state updater.
+  const issuesRef = useRef(issues);
+  // Synchronous guard: state updates are async, so onEndReached can fire
+  // twice before `loadingMore` flips to true.
+  const loadingMoreRef = useRef(false);
   const lastFetchedKeyRef = useRef(
     reportCache.data?.length ? cacheKey(reportCache.type, reportCache.query, reportCache.fromDate, reportCache.toDate) : null,
   );
@@ -427,59 +397,100 @@ export default function ReportListScreen({ navigation, route }) {
   useEffect(() => {
     filtersRef.current = { fromDate, toDate, debouncedQuery, activeType };
   }, [fromDate, toDate, debouncedQuery, activeType]);
+ 
+const clearDateFilterOnExit = useCallback(() => {
+  requestId.current += 1;
 
-  const clearDateFilterOnExit = useCallback(() => {
-    requestId.current += 1;
-    setFromDate(null);
-    setToDate(null);
-    setTempFromDate(null);
-    setTempToDate(null);
-    reportCache = {
-      type: activeType,
-      query: debouncedQuery,
-      fromDate: null,
-      toDate: null,
-      data: [],
-      page: 1,
-      hasMore: false,
-    };
-  }, [activeType, debouncedQuery]);
+  // Clear selected chip/type when leaving Report screen
+  setActiveType(null);
+
+  setFromDate(null);
+  setToDate(null);
+  setTempFromDate(null);
+  setTempToDate(null);
+
+  reportCache = {
+    type: null, // <-- clear selected chip
+    query: '',
+    fromDate: null,
+    toDate: null,
+    data: [],
+    page: 1,
+    hasMore: false,
+  };
+
+  // Clear search state too, if desired
+  setQuery('');
+  setDebouncedQuery('');
+
+  issuesRef.current = [];
+  setIssues([]);
+  setPage(1);
+  setHasMore(false);
+
+  lastFetchedKeyRef.current = null;
+}, []); 
+
 
   const goBack = useBackToDashboard(navigation, 'Dashboard', undefined, clearDateFilterOnExit);
 
+  // targetPage === 1 (append=false) replaces the list; append=true adds the
+  // next page to what is already on screen. `type` here is the selected
+  // chip's value and is sent as the request_type filter to the API.
   const loadPage = useCallback(async (targetPage, {
-    append,
+    append = false,
     type = activeType,
     search = debouncedQuery,
     from = fromDate,
     to = toDate,
   } = {}) => {
-    if (!canListReports) return;
+    if (!canListReports || !type) return;
+    if (append && loadingMoreRef.current) return;
+
     const myRequestId = ++requestId.current;
-    if (targetPage === 1) setLoading(true);
-    else setLoadingMore(true);
+    if (append) {
+      loadingMoreRef.current = true;
+      setLoadingMore(true);
+    } else {
+      loadingMoreRef.current = false;
+      setLoadingMore(false);
+      setLoading(true);
+    }
 
     try {
       const result = await getReportList({
         page: targetPage,
         pageSize: PAGE_SIZE,
-        type: type === 'all' ? '' : type,
+        type,
         search,
         from_date: toApiDateString(from),
         to_date: toApiDateString(to),
       });
       if (myRequestId !== requestId.current) return;
 
-      setIssues((prev) => {
-        const next = append ? [...prev, ...result.data] : result.data;
-        reportCache = { type, query: search, fromDate: from, toDate: to, data: next, page: result.page, hasMore: result.hasMore };
-        return next;
-      });
+      if (!result.success) {
+        // A failed "load more" leaves the current list and page untouched so
+        // the user can scroll again to retry; a failed first page clears it.
+        if (!append) {
+          issuesRef.current = [];
+          setIssues([]);
+          setPage(1);
+          setHasMore(false);
+        }
+        return;
+      }
+
+      const next = append ? mergeUnique(issuesRef.current, result.data) : result.data;
+      issuesRef.current = next;
+      reportCache = { type, query: search, fromDate: from, toDate: to, data: next, page: result.page, hasMore: result.hasMore };
+
+      setIssues(next);
       setPage(result.page);
       setHasMore(result.hasMore);
       lastFetchedKeyRef.current = cacheKey(type, search, from, to);
     } finally {
       if (myRequestId === requestId.current) {
+        loadingMoreRef.current = false;
         setLoading(false);
         setLoadingMore(false);
       }
@@ -503,14 +514,17 @@ export default function ReportListScreen({ navigation, route }) {
         if (cancelled) return;
 
         // If the previously-active type is no longer permitted (permissions
-        // changed, e.g. re-login as a different role), fall back to "all"
-        // instead of silently filtering on a type the user can't see.
-        const cachedType = reportCache.type ?? 'all';
-        const typeToLoad = availableRecordTypes.includes(cachedType) ? cachedType : 'all';
+        // changed, e.g. re-login as a different role), or there is no cached
+        // type yet, fall back to the FIRST permission-eligible chip rather
+        // than an "all" option — there isn't one.
+        const cachedType = reportCache.type;
+        const typeToLoad = cachedType && availableRecordTypes.includes(cachedType)
+          ? cachedType
+          : availableRecordTypes[0];
         setActiveType(typeToLoad);
-
-        const cachedFrom = reportCache.fromDate ?? null;
-        const cachedTo = reportCache.toDate ?? null;
+        const today = new Date();
+        const cachedFrom = reportCache.fromDate ?? today;
+        const cachedTo = reportCache.toDate ?? today;
         setFromDate(cachedFrom);
         setToDate(cachedTo);
         setTempFromDate(cachedFrom);
@@ -545,6 +559,10 @@ export default function ReportListScreen({ navigation, route }) {
       setLoading(false);
       return;
     }
+    // Wait until the default chip has been resolved by the focus effect
+    // above before firing a query-driven reload.
+    if (!activeType) return;
+
     const key = cacheKey(activeType, debouncedQuery, fromDate, toDate);
     if (lastFetchedKeyRef.current === key) return;
 
@@ -558,18 +576,12 @@ export default function ReportListScreen({ navigation, route }) {
     loadPage(1, { append: false, type });
   }, [activeType, debouncedQuery, fromDate, toDate, loadPage]);
 
+  // Fired by FlatList when the user reaches the end of the loaded rows.
+  // Requests the next page and appends it to the existing list.
   const handleEndReached = useCallback(() => {
-    if (loading || loadingMore || !hasMore) return;
+    if (loading || loadingMore || loadingMoreRef.current || !hasMore) return;
     loadPage(page + 1, { append: true });
   }, [loading, loadingMore, hasMore, page, loadPage]);
-
-  const handleScrollEnd = useCallback(({ nativeEvent }) => {
-    const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
-    const paddingToBottom = 48;
-    const isCloseToBottom =
-      layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom;
-    if (isCloseToBottom) handleEndReached();
-  }, [handleEndReached]);
 
   const openFilterModal = useCallback(() => {
     setTempFromDate(fromDate);
@@ -590,6 +602,26 @@ export default function ReportListScreen({ navigation, route }) {
     setFromDate(null);
     setToDate(null);
   }, []);
+
+  const renderItem = useCallback(({ item }) => (
+    <ReportCard
+      issue={item}
+      styles={styles}
+      ms={ms}
+      onPress={() => navigation.navigate('ReportDetails', { issue: item, activeType, user })}
+    />
+  ), [styles, ms, navigation, activeType, user]);
+
+  const keyExtractor = useCallback((item) => item.key, []);
+
+  const renderFooter = useCallback(() => {
+    if (!loadingMore) return null;
+    return (
+      <View style={{ paddingVertical: mvs(16) }}>
+        <ActivityIndicator color={AppColors.primary} />
+      </View>
+    );
+  }, [loadingMore, mvs]);
 
   return (
     <View style={styles.root}>
@@ -638,9 +670,7 @@ export default function ReportListScreen({ navigation, route }) {
                 />
               </View>
             </View>
-
-            {/* Filter chips — driven entirely by the user's module
-                permissions rather than a fixed list. */}
+ 
             <View style={styles.chipsRowOuter}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
                 {availableRecordTypes.map((type) => {
@@ -689,30 +719,17 @@ export default function ReportListScreen({ navigation, route }) {
             </Text>
           </View>
         ) : (
-          <ScrollView
+          <FlatList
+            data={issues}
+            keyExtractor={keyExtractor}
+            renderItem={renderItem}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
-            onScroll={handleScrollEnd}
-            scrollEventThrottle={200}
-          >
-            {issues.map((issue) => {
-              const CardComponent = isAuditRecordType(issue?.raw?.record_type) ? ReportAuditCard : ReportCard;
-              return (
-                <CardComponent
-                  key={issue.id}
-                  issue={issue}
-                  styles={styles}
-                  ms={ms}
-                  onPress={() => navigation.navigate('ReportDetails', { issue, activeType, user })}
-                />
-              );
-            })}
-            {loadingMore && (
-              <View style={{ paddingVertical: mvs(16) }}>
-                <ActivityIndicator color={AppColors.primary} />
-              </View>
-            )}
-          </ScrollView>
+            keyboardShouldPersistTaps="handled"
+            onEndReached={handleEndReached}
+            onEndReachedThreshold={0.3}
+            ListFooterComponent={renderFooter}
+          />
         )}
       </View>
 

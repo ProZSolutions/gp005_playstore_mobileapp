@@ -9,6 +9,7 @@ const ENDPOINTS = {
     REVIEW:'/mobile/review',
     CREATE:'/deviceswapping/swapdevice'
   },
+  REPORT: { LIST: '/mobile-report/list' },
   MOBILE: {
     CHECKIN:'/mobile/checkin'
   },
@@ -29,7 +30,8 @@ const ENDPOINTS = {
   TLSAUDITLIST:       '/tlsissue/auditlist',
   QCAUDITLIST:        '/qcverification/tlsissuelist',
   TLSISSUECREATE:   '/tlsissue/create',
-  MOBILEDEFECT:'/mobile/dropdown/defectlist'
+  MOBILEDEFECT:'/mobile/dropdown/defectlist',
+  GETELAPSEDTIME:'/mobile/dropdown/calculateelapsed'
 },
 QCVERIFICATION:{
   CREATE:           '/qcverification/create',

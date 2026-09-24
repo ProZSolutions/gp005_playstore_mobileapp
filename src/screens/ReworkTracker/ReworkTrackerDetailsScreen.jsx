@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState, } from 'react';
-import { View, Text, ScrollView, Pressable, StatusBar, Switch, ActivityIndicator,Modal } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, ScrollView, Pressable, StatusBar, Switch, ActivityIndicator, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
@@ -8,9 +8,9 @@ import { useResponsive } from '../../utils/responsive';
 import createStyles from '../styles/ReworkTrackerDetailsStyles';
 import { showAlert } from '../../utils/AlertService';
 import reworkService from '../../api/services/reworkService';
-import { clearSelectedLineId,getShiftData } from '../../api/storage/authStorage';
-//import { getDefectEntryTime, setDefectEntryTime } from '../../api/storage/defectTimeStorage';
- import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { getElapsedTime } from '../../api/services/elapsedTime';
+import { clearSelectedLineId, getShiftData } from '../../api/storage/authStorage';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import ScannerScreen from '../../components/ScannerScreen';
 import rejectionService from '../../api/services/rejectionService';
 import SelectSizeSheet from '../../components/SelectSizeSheet';
@@ -18,8 +18,7 @@ import DefectEntrySheet from '../../components/DefectEntrySheet';
 
 const TEAL = AppColors.primary;
 const LISTING_SCREEN = 'ReworkTrackerList';
- 
- 
+
 const MOCK_CATEGORIES = [
   { id: 1, value: 'Handling' },
   { id: 2, value: 'Fabric' },
@@ -30,15 +29,10 @@ const MOCK_CATEGORIES = [
 ];
 
 function formatStopwatch(totalSeconds) {
-  const safe = Math.max(0, totalSeconds);
+  const safe = Math.max(0, Math.floor(totalSeconds ?? 0));
   const m = Math.floor(safe / 60);
   const s = safe % 60;
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-}
-
- 
-function getEntryKey(issue) {
-  return issue?.raw?.rework_id ?? issue?.raw?.id ?? issue?.id ?? issue?.displayId ?? null;
 }
 
 function DetailRow({ label, value, styles, bordered, placeholder, onPress, chevron, live }) {
@@ -74,33 +68,21 @@ function DetailRow({ label, value, styles, bordered, placeholder, onPress, chevr
 
 const VERDICTS = [
   {
-    key: 'pass',
-    label: 'Done',
-    icon: 'checkmark',
-    iconWrapKey: 'verdictIconWrapPass',
-    iconWrapActiveKey: 'verdictIconWrapActivePass',
-    cardActiveKey: 'verdictCardActivePass',
-    labelActiveKey: 'verdictLabelActivePass',
+    key: 'pass', label: 'Done', icon: 'checkmark',
+    iconWrapKey: 'verdictIconWrapPass', iconWrapActiveKey: 'verdictIconWrapActivePass',
+    cardActiveKey: 'verdictCardActivePass', labelActiveKey: 'verdictLabelActivePass',
     iconColor: AppColors.success ?? '#16A34A',
   },
   {
-    key: 'fail',
-    label: 'Redo',
-    icon: 'close',
-    iconWrapKey: 'verdictIconWrapFail',
-    iconWrapActiveKey: 'verdictIconWrapActiveFail',
-    cardActiveKey: 'verdictCardActiveFail',
-    labelActiveKey: 'verdictLabelActiveFail',
+    key: 'fail', label: 'Redo', icon: 'close',
+    iconWrapKey: 'verdictIconWrapFail', iconWrapActiveKey: 'verdictIconWrapActiveFail',
+    cardActiveKey: 'verdictCardActiveFail', labelActiveKey: 'verdictLabelActiveFail',
     iconColor: AppColors.error,
   },
   {
-    key: 'reject',
-    label: 'Reject',
-    icon: 'ban-outline',
-    iconWrapKey: 'verdictIconWrapReject',
-    iconWrapActiveKey: 'verdictIconWrapActiveReject',
-    cardActiveKey: 'verdictCardActiveReject',
-    labelActiveKey: 'verdictLabelActiveReject',
+    key: 'reject', label: 'Reject', icon: 'ban-outline',
+    iconWrapKey: 'verdictIconWrapReject', iconWrapActiveKey: 'verdictIconWrapActiveReject',
+    cardActiveKey: 'verdictCardActiveReject', labelActiveKey: 'verdictLabelActiveReject',
     iconColor: AppColors.errorLight,
   },
 ];
@@ -121,13 +103,7 @@ function VerdictSelector({ value, onChange, styles }) {
                 pressed && { opacity: 0.85 },
               ]}
             >
-              <View
-                style={[
-                  styles.verdictIconWrap,
-                  styles[v.iconWrapKey],
-                  active && styles[v.iconWrapActiveKey],
-                ]}
-              >
+              <View style={[styles.verdictIconWrap, styles[v.iconWrapKey], active && styles[v.iconWrapActiveKey]]}>
                 <Ionicons name={v.icon} size={20} color={active ? '#FFFFFF' : v.iconColor} />
               </View>
               <Text style={[styles.verdictLabel, active && styles[v.labelActiveKey]]}>{v.label}</Text>
@@ -138,12 +114,14 @@ function VerdictSelector({ value, onChange, styles }) {
     </View>
   );
 }
+
 function formatMinSecond(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   const pad = (n) => String(n).padStart(2, '0');
   return `${pad(minutes)}.${pad(seconds)}`;
 }
+
 export default function ReworkTrackerDetailsScreen({ navigation, route }) {
   const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs } = useResponsive();
   const styles = createStyles(ms, mvs, fs);
@@ -152,13 +130,15 @@ export default function ReworkTrackerDetailsScreen({ navigation, route }) {
   const { issue: routeIssue, user, scannedTlsId } = route?.params ?? {};
   const issue = routeIssue;
   const [scannerVisible, setScannerVisible] = useState(false);
-const [checkingDevice, setCheckingDevice] = useState(false);
-const [rejectionQR, setRejectionQR] = useState(null);
+  const [checkingDevice, setCheckingDevice] = useState(false);
+  const [rejectionQR, setRejectionQR] = useState(null);
   const [verdict, setVerdict] = useState(issue?.verdict ?? null);
   const [escalation, setEscalation] = useState(issue?.escalation ?? false);
   const [submitting, setSubmitting] = useState(false);
-const createdAt = issue?.raw?.created_at;
-const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  const orderId = issue?.raw?.order_id;
+  const lineId = issue?.raw?.line_id;
+  const uuid = issue?.raw?.uuid;
 
   const [sizeSheetVisible, setSizeSheetVisible] = useState(false);
   const [defectSheetVisible, setDefectSheetVisible] = useState(false);
@@ -167,29 +147,26 @@ const [elapsedSeconds, setElapsedSeconds] = useState(0);
     issue?.size ? { id: issue.size, label: issue.size } : null,
   );
   const [defectEntries, setDefectEntries] = useState({});
-   useEffect(() => {
-      let cancelled = false;
-      (async () => {
-        try {
-          const shift = await getShiftData();
-          console.log("shift details "+JSON.stringify(shift));
-          if (!cancelled && shift) setShiftData(shift);
-        } catch (e) {
-          console.warn('Could not read saved shift data on mount:', e.message);
-        }
-      })();
-      return () => { cancelled = true; };
-    }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const shift = await getShiftData();
+        console.log("shift details " + JSON.stringify(shift));
+        if (!cancelled && shift) setShiftData(shift);
+      } catch (e) {
+        console.warn('Could not read saved shift data on mount:', e.message);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   const sizeOptions = useMemo(
     () => [
-      { id: 'XS', label: 'XS' },
-      { id: 'S', label: 'S' },
-      { id: 'M', label: 'M' },
-      { id: 'L', label: 'L' },
-      { id: 'XL', label: 'XL' },
-      { id: 'XXL', label: 'XXL' },
-      { id: '3XL', label: '3XL' },
-      { id: '4XL', label: '4XL' },
+      { id: 'XS', label: 'XS' }, { id: 'S', label: 'S' }, { id: 'M', label: 'M' },
+      { id: 'L', label: 'L' }, { id: 'XL', label: 'XL' }, { id: 'XXL', label: 'XXL' },
+      { id: '3XL', label: '3XL' }, { id: '4XL', label: '4XL' },
     ],
     [],
   );
@@ -208,90 +185,89 @@ const [elapsedSeconds, setElapsedSeconds] = useState(0);
     setDefectEntries(payload);
   };
 
+  // ── Elapsed time now comes from the server ────────────────────────────
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [elapsedLoading, setElapsedLoading] = useState(true);
+  const elapsedBaseRef = useRef(null); // { baseSeconds, fetchedAtMs }
+
   useEffect(() => {
-  if (!createdAt) return;
-
-  const tick = () => {
-    const startMs = new Date(createdAt).getTime();
-    const diffSeconds = Math.floor((Date.now() - startMs) / 1000);
-
-    setElapsedSeconds(Math.max(0, diffSeconds));
-  };
-
-  tick();
-
-  const interval = setInterval(tick, 1000);
-
-  return () => clearInterval(interval);
-}, [createdAt]);
-  // ── Elapsed time: persisted, keyed to this specific record (rework_id) ──
-  /*const entryKey = getEntryKey(issue);
-  const [capturedTime, setCapturedTime] = useState(null);
-  const [resolvingEntryTime, setResolvingEntryTime] = useState(true);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0); */
-
- /* useEffect(() => {
     let cancelled = false;
+
+    const bailOut = (message) => {
+      showAlert('error', 'Load Failed', message ?? 'Could not load elapsed time.');
+      navigation?.goBack?.();
+    };
+
+    if (!orderId || !lineId) {
+      bailOut('Missing order or line information.');
+      return () => { cancelled = true; };
+    }
+
     (async () => {
-      setResolvingEntryTime(true);
-      if (!entryKey) {
-        if (!cancelled) {
-          setCapturedTime(new Date().toISOString());
-          setResolvingEntryTime(false);
-        }
-        return;
-      }
+      setElapsedLoading(true);
       try {
-        const existing = await getDefectEntryTime(entryKey);
+        const result = await getElapsedTime({
+          orderId,
+          lineId,
+          type: 'rework',uuid
+        });
+
         if (cancelled) return;
-        if (existing) {
-          setCapturedTime(existing);
-        } else {
-          const now = new Date().toISOString();
-          await setDefectEntryTime(entryKey, now);
-          if (!cancelled) setCapturedTime(now);
+
+        if (!result?.success) {
+          bailOut(result?.message);
+          return;
         }
+
+        const baseSeconds = Number(
+          result?.data?.elapsed_seconds ?? result?.data?.elapsed_time ?? 0,
+        );
+
+        elapsedBaseRef.current = {
+          baseSeconds: Number.isFinite(baseSeconds) ? baseSeconds : 0,
+          fetchedAtMs: Date.now(),
+        };
+        setElapsedSeconds(elapsedBaseRef.current.baseSeconds);
       } catch (e) {
-        console.warn('Failed to resolve rework entry time:', e.message);
-        if (!cancelled) setCapturedTime(new Date().toISOString());
+        if (!cancelled) bailOut(e?.message);
       } finally {
-        if (!cancelled) setResolvingEntryTime(false);
+        if (!cancelled) setElapsedLoading(false);
       }
     })();
+
     return () => { cancelled = true; };
-  }, [entryKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderId, lineId]);
 
   useEffect(() => {
-    if (!capturedTime) return;
+    if (!elapsedBaseRef.current) return undefined;
+
     const tick = () => {
-      const startMs = new Date(capturedTime).getTime();
-      setElapsedSeconds(Math.floor((Date.now() - startMs) / 1000));
+      const { baseSeconds, fetchedAtMs } = elapsedBaseRef.current;
+      const extra = Math.floor((Date.now() - fetchedAtMs) / 1000);
+      setElapsedSeconds(baseSeconds + extra);
     };
-    tick();
+
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, [capturedTime]); */
+  }, [elapsedLoading]);
 
   const showRejectionDetails = verdict === 'fail' || verdict === 'reject';
 
   const submitDisabled =
-  submitting ||
-  !verdict ||
-  !issue?.raw ||
-  (showRejectionDetails && (!selectedSize || totalDefectCount === 0));
+    submitting ||
+    !verdict ||
+    !issue?.raw ||
+    (showRejectionDetails && (!selectedSize || totalDefectCount === 0));
 
   const performSubmit = useCallback(async (rejectionQRCode) => {
     setSubmitting(true);
     try {
       const raw = issue?.raw ?? {};
       const nowIso = new Date().toISOString();
-      //const elapsedTime =  Math.round(elapsedSeconds / 60);
-      // branch_id: raw.branch_id ?? null,  team_id: raw.team_id ?? null,
       const elapsedTime = formatMinSecond(elapsedSeconds);
       const payload = {
-       
         shift_id: shiftData.shift_id ?? null,
-       
         slot_id: raw.slot_id ?? null,
         line_id: raw.line_id ?? null,
         order_id: raw.order_id ?? null,
@@ -320,7 +296,7 @@ const [elapsedSeconds, setElapsedSeconds] = useState(0);
         work_audit_by: user?.employee_code ?? user?.id ?? raw.work_audit_by ?? '',
         work_audit_at: nowIso,
         rework_status: verdict,
-        elapsed_time:elapsedTime,  
+        elapsed_time: elapsedTime,
         rework_id: raw.rework_id ?? issue?.reworkId ?? issue?.id ?? null,
         rejection_qr: rejectionQRCode ?? rejectionQR ?? null,
       };
@@ -343,45 +319,46 @@ const [elapsedSeconds, setElapsedSeconds] = useState(0);
     } finally {
       setSubmitting(false);
     }
-  }, [issue, scannedTlsId,rejectionQR, verdict, escalation, selectedSize, totalDefectCount, editedDefect, user, navigation, elapsedSeconds]);
-const extractScannedTlsId = (data) => {
-  if (data === null || data === undefined) return null;
-  if (typeof data === 'string') return data.trim();
-  if (typeof data === 'object') return data.tls_id ?? data.tlsId ?? data.id ?? null;
-  return null;
-};
+  }, [issue, scannedTlsId, rejectionQR, verdict, escalation, selectedSize, totalDefectCount, editedDefect, user, navigation, elapsedSeconds, shiftData]);
 
-const closeScanner = useCallback(() => {
-  setScannerVisible(false);
-}, []);
+  const extractScannedTlsId = (data) => {
+    if (data === null || data === undefined) return null;
+    if (typeof data === 'string') return data.trim();
+    if (typeof data === 'object') return data.tls_id ?? data.tlsId ?? data.id ?? null;
+    return null;
+  };
 
-const handleScanSuccess = useCallback(async (data) => {
-  const scannedCode = extractScannedTlsId(data);
-  setScannerVisible(false);
+  const closeScanner = useCallback(() => {
+    setScannerVisible(false);
+  }, []);
 
-  if (!scannedCode) {
-    showAlert('error', 'Scan Failed', 'Could not read a Qone device ID from that code. Please try again.');
-    return;
-  }
+  const handleScanSuccess = useCallback(async (data) => {
+    const scannedCode = extractScannedTlsId(data);
+    setScannerVisible(false);
 
-  setCheckingDevice(true);
-  try {
-    const checkResult = await reworkService.checkTlsDevice({ qr_code: scannedCode, type: 'rejection' });
-
-    // Only proceed when the device is confirmed NOT already mapped.
-    if (!checkResult?.success) {
-      showAlert('error', 'Device Validation Failed', checkResult?.message ?? 'This device could not be verified. Please try again.');
+    if (!scannedCode) {
+      showAlert('error', 'Scan Failed', 'Could not read a Qone device ID from that code. Please try again.');
       return;
     }
 
-    setRejectionQR(scannedCode);
-    await performSubmit(scannedCode);
-  } catch (e) {
-    showAlert('error', 'Device Check Failed', e?.message ?? 'Something went wrong while checking the device.');
-  } finally {
-    setCheckingDevice(false);
-  }
-}, [performSubmit]);  
+    setCheckingDevice(true);
+    try {
+      const checkResult = await reworkService.checkTlsDevice({ qr_code: scannedCode, type: 'rejection' });
+
+      if (!checkResult?.success) {
+        showAlert('error', 'Device Validation Failed', checkResult?.message ?? 'This device could not be verified. Please try again.');
+        return;
+      }
+
+      setRejectionQR(scannedCode);
+      await performSubmit(scannedCode);
+    } catch (e) {
+      showAlert('error', 'Device Check Failed', e?.message ?? 'Something went wrong while checking the device.');
+    } finally {
+      setCheckingDevice(false);
+    }
+  }, [performSubmit]);
+
   const handleSubmit = useCallback(() => {
     if (submitDisabled) return;
 
@@ -390,11 +367,7 @@ const handleScanSuccess = useCallback(async (data) => {
         icon: 'block',
         buttons: [
           { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Reject',
-            style: 'destructive',
-            onPress: () => setScannerVisible(true)
-          },
+          { text: 'Reject', style: 'destructive', onPress: () => setScannerVisible(true) },
         ],
       });
       return;
@@ -433,7 +406,6 @@ const handleScanSuccess = useCallback(async (data) => {
               >
                 <Ionicons name="chevron-back" size={ms(16)} color={AppColors.onPrimary} />
               </Pressable>
-             {/*<Text style={styles.orderIdText} numberOfLines={1}>{issue.displayId}</Text>  */} 
             </View>
 
             {issue.severity && (
@@ -473,46 +445,27 @@ const handleScanSuccess = useCallback(async (data) => {
 
       <View style={styles.body}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+          <View style={styles.sectionCard}>
+            <View style={styles.sectionHeaderRow}>
+              <Ionicons name="document-text-outline" size={ms(15)} color={AppColors.primaryDark} />
+              <Text style={styles.sectionHeaderText}>Operator & Operation Details</Text>
+            </View>
+            <View style={styles.sectionBody}>
+              <DetailRow
+                styles={styles}
+                label="Employee"
+                value={
+                  issue.raw.assignemp_name
+                    ? `${issue.raw.assignemp_name}${issue.raw.assignemp_code ? ` (${issue.raw.assignemp_code})` : ''}`
+                    : '-'
+                }
+              />
+              <DetailRow styles={styles} label="Operation" value={issue.raw.operation_name ?? '-'} bordered />
+              <DetailRow styles={styles} label="Machine Type" value={issue.raw.machine_type_name ?? '-'} bordered />
+            </View>
+          </View>
 
-        <View style={styles.sectionCard}>
-                    <View style={styles.sectionHeaderRow}>
-                      <Ionicons name="document-text-outline" size={ms(15)} color={AppColors.primaryDark} />
-                      <Text style={styles.sectionHeaderText}>Operator & Operation Details</Text>
-                    </View>
-                    <View style={styles.sectionBody}>
-                      <DetailRow
-                          styles={styles}
-                          label="Employee"
-                          value={
-                            issue.raw.assignemp_name
-                              ? `${issue.raw.assignemp_name}${
-                                  issue.raw.assignemp_code
-                                    ? ` (${issue.raw.assignemp_code})`
-                                    : ''
-                                }`
-                              : '-'
-                          }
-                        />
-        
-                      <DetailRow
-                        styles={styles}
-                        label="Operation"
-                        value={issue.raw.operation_name ?? '-'}
-                        bordered
-                      />
-        
-                      <DetailRow
-                        styles={styles}
-                        label="Machine Type"
-                        value={issue.raw.machine_type_name ?? '-'}
-                        bordered
-                      />            
-                    </View>
-                  </View>   
-
-
-                  
-           <View style={styles.sectionCard}>
+          <View style={styles.sectionCard}>
             <View style={styles.sectionHeaderRow}>
               <Ionicons name="document-text-outline" size={ms(15)} color={AppColors.primaryDark} />
               <Text style={styles.sectionHeaderText}>DEFECT INFORMATION</Text>
@@ -520,28 +473,26 @@ const handleScanSuccess = useCallback(async (data) => {
             <View style={styles.sectionBody}>
               <DetailRow styles={styles} label="Defect Category" value={issue.defectCategory} />
               <DetailRow styles={styles} label="Size" value={issue.raw.size} bordered />
-             
               <DetailRow styles={styles} label="Defect" value={issue.defect} bordered />
               <DetailRow styles={styles} label="Quantity" value={String(issue.quantity ?? '—')} bordered />
               <DetailRow styles={styles} label="Entered by" value={issue.name} bordered />
               <DetailRow styles={styles} label="Audit Time" value={issue.createdOn} bordered />
-              
               <DetailRow
                 styles={styles}
                 label="Elapsed Time (min)"
-               value={!createdAt ? '—' : formatStopwatch(elapsedSeconds)}
+                value={elapsedLoading ? '—' : formatStopwatch(elapsedSeconds)}
                 bordered
                 live
               />
             </View>
           </View>
+
           <View style={styles.sectionCard}>
             <View style={[styles.sectionBody, { paddingTop: mvs(10), paddingBottom: mvs(10) }]}>
               <View style={styles.escalateRow}>
                 <View style={styles.escalateLeft}>
                   <View style={styles.escalateIconWrap}>
-                   <MaterialCommunityIcons name="shield-alert-outline" size={ms(16)} color={AppColors.secondary} />
-                  
+                    <MaterialCommunityIcons name="shield-alert-outline" size={ms(16)} color={AppColors.secondary} />
                   </View>
                   <Text style={styles.escalateLabel}>Escalation</Text>
                 </View>
@@ -571,9 +522,7 @@ const handleScanSuccess = useCallback(async (data) => {
           {submitting ? (
             <ActivityIndicator size="small" color={AppColors.onPrimary} />
           ) : (
-            <Text style={[styles.submitBtnText, submitDisabled && styles.submitBtnTextDisabled]}>
-              Submit
-            </Text>
+            <Text style={[styles.submitBtnText, submitDisabled && styles.submitBtnTextDisabled]}>Submit</Text>
           )}
         </Pressable>
       </View>
@@ -600,7 +549,7 @@ const handleScanSuccess = useCallback(async (data) => {
         statusBarTranslucent={Platform.OS === 'android'}
       >
         <ScannerScreen onScanSuccess={handleScanSuccess} onClose={closeScanner} />
-      </Modal>  
+      </Modal>
     </View>
   );
 }

@@ -7,11 +7,9 @@ import { AppColors } from '../../theme/theme';
 import { useResponsive } from '../../utils/responsive';
 import createStyles from '../styles/IssueDetailStyles';
 import { checkDeviceMapping } from '../../api/services/tlsService';
+import {getElapsedTime} from '../../api/services/elapsedTime';
 import { showAlert } from '../../utils/AlertService';
 import { verifyAndGetSlot } from '../../utils/slotVerification';
-import { useElapsedTimer } from '../../utils/elapsedTime';
-// NOTE: confirm these two export names match your defectTimeStorage.js —
-// they're assumed here to follow the same pattern as clearDefectEntryTime.
 import { getDefectEntryTime, setDefectEntryTime } from '../../api/storage/defectTimeStorage';
 
 import ScannerScreen from '../../components/ScannerScreen';
@@ -19,10 +17,20 @@ import OrderDetailsSheet from '../../components/OrderDetailsSheet';
 import ManagerOverrideMenu from '../../components/ManagerOverrideMenu';
 import CloseWithoutCapModal from '../../components/CloseWithoutCapModal';
 import { getSelectedLineId } from '../../api/storage/authStorage';
-const TEAL = AppColors.primary; 
- 
+const TEAL = AppColors.primary;
+
 function getEntryKey(issue) {
   return issue?.raw?.qc_audit_id ?? issue?.id ?? issue?.displayId ?? null;
+}
+
+function formatElapsed(totalSeconds) {
+  const safe = Math.max(0, Math.floor(totalSeconds ?? 0));
+  const h = Math.floor(safe / 3600);
+  const m = Math.floor((safe % 3600) / 60);
+  const s = safe % 60;
+  return h > 0
+    ? `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+    : `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
 function DetailRow({ label, value, styles, bordered, italic, live, multiline }) {
@@ -30,9 +38,7 @@ function DetailRow({ label, value, styles, bordered, italic, live, multiline }) 
     return (
       <View style={[styles.detailRowMultiline, bordered && styles.detailRowBorder]}>
         <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={[ italic && styles.detailValueItalic]}>
-          {value}
-        </Text>
+        <Text style={[italic && styles.detailValueItalic]}>{value}</Text>
       </View>
     );
   }
@@ -68,10 +74,11 @@ export default function DefectInformationScreen({ navigation, route }) {
   const styles = createStyles(ms, mvs, fs);
 
   const issue = route?.params?.issue;
-    const activeLineId = issue?.raw?.line_id;
-  const user =  route?.params?.user; 
-   const userinfo = user?.name+" ("+user?.employee_code+")";
-  const auditAt = issue?.raw?.work_audit_at ?? issue?.raw?.audit_at ?? null;
+  const uuid =  issue.uuid;
+  const activeLineId = issue?.raw?.line_id;
+  const orderId = issue?.raw?.order_id;
+  const user = route?.params?.user;
+  const userinfo = user?.name + ' (' + user?.employee_code + ')';
 
   const [detailsVisible, setDetailsVisible] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -82,8 +89,76 @@ export default function DefectInformationScreen({ navigation, route }) {
 
   const scanTimer = useRef(null);
   const scanSuccessTimeRef = useRef(null);
- 
-  const { formatted: elapsedFormatted } = useElapsedTimer(auditAt);
+
+  // ── Elapsed time now comes from the server ────────────────────────────
+  const [elapsedSeconds, setElapsedSeconds] = useState(null);
+  const [elapsedLoading, setElapsedLoading] = useState(true);
+  const elapsedBaseRef = useRef(null); // { baseSeconds, fetchedAtMs }
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const bailOut = (message) => {
+      showAlert('error', 'Load Failed', message ?? 'Could not load elapsed time.');
+      navigation.goBack();
+    };
+
+    if (!orderId || !activeLineId) {
+      bailOut('Missing order or line information.');
+      return () => { cancelled = true; };
+    }
+
+    (async () => {
+      setElapsedLoading(true);
+      try {
+        const result = await getElapsedTime({
+          orderId,
+          lineId: activeLineId,
+          type: 'tls_audit',
+          uuid
+        });
+
+        if (cancelled) return;
+
+        if (!result?.success) {
+          bailOut(result?.message);
+          return;
+        }
+
+        const baseSeconds = Number(
+          result?.data?.elapsed_seconds ?? result?.data?.elapsed_time ?? 0,
+        );
+
+        elapsedBaseRef.current = {
+          baseSeconds: Number.isFinite(baseSeconds) ? baseSeconds : 0,
+          fetchedAtMs: Date.now(),
+        };
+        setElapsedSeconds(elapsedBaseRef.current.baseSeconds);
+      } catch (e) {
+        if (!cancelled) bailOut(e?.message);
+      } finally {
+        if (!cancelled) setElapsedLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderId, activeLineId]);
+
+  // Tick the display forward locally once we have a base reading, so we
+  // don't have to re-hit the API every second.
+  useEffect(() => {
+    if (!elapsedBaseRef.current) return undefined;
+
+    const tick = () => {
+      const { baseSeconds, fetchedAtMs } = elapsedBaseRef.current;
+      const extra = Math.floor((Date.now() - fetchedAtMs) / 1000);
+      setElapsedSeconds(baseSeconds + extra);
+    };
+
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [elapsedLoading]);
 
   useEffect(() => {
     let cancelled = false;
@@ -116,10 +191,18 @@ export default function DefectInformationScreen({ navigation, route }) {
     setScannerVisible(false);
   }, []);
 
-  const handleScanSuccess = useCallback(async (scannedCode) => {
+  // Anchor ISO timestamp derived from the server's elapsed reading, so the
+  // next screen's stopwatch picks up from the same point instead of 0.
+  const getElapsedAnchorIso = useCallback(() => {
+    if (elapsedBaseRef.current) {
+      const { baseSeconds, fetchedAtMs } = elapsedBaseRef.current;
+      return new Date(fetchedAtMs - baseSeconds * 1000).toISOString();
+    }
+    return new Date().toISOString();
+  }, []);
 
-    const mappedTlsId = issue?.device?.tlsDeviceId
-                    ?? issue?.raw?.tls_id;
+  const handleScanSuccess = useCallback(async (scannedCode) => {
+    const mappedTlsId = issue?.device?.tlsDeviceId ?? issue?.raw?.tls_id;
 
     if (!mappedTlsId) {
       showAlert('error', 'Device Not Mapped', 'No Qone device is mapped to this issue.');
@@ -127,11 +210,7 @@ export default function DefectInformationScreen({ navigation, route }) {
     }
 
     if (String(scannedCode).trim() !== String(mappedTlsId).trim()) {
-      showAlert(
-        'error',
-        'Wrong Device',
-        `Please scan the mapped Qone device`,
-      );
+      showAlert('error', 'Wrong Device', `Please scan the mapped Qone device`);
       setScannerVisible(false);
       return;
     }
@@ -148,14 +227,14 @@ export default function DefectInformationScreen({ navigation, route }) {
         let effectiveScanTime = new Date().toISOString();
 
         if (entryKey) {
-          try { 
+          try {
             const existing = await getDefectEntryTime(entryKey);
             if (existing) {
               effectiveScanTime = existing;
             } else {
               await setDefectEntryTime(entryKey, effectiveScanTime);
             }
-          } catch (storageErr) { 
+          } catch (storageErr) {
             console.warn('DefectInformationScreen: scan time storage failed', storageErr);
           }
         } else {
@@ -168,10 +247,11 @@ export default function DefectInformationScreen({ navigation, route }) {
           issue,
           scannedTlsId: scannedCode,
           scanTime: scanSuccessTimeRef.current,
-          elapsedTimeAtEntry: auditAt,
+          elapsedTimeAtEntry: getElapsedAnchorIso(),
           closeWithoutCap: false,
           reasonForClosure: '',
-          activeLineId,user
+          activeLineId,
+          user,
         });
       } else {
         showAlert(
@@ -185,8 +265,7 @@ export default function DefectInformationScreen({ navigation, route }) {
     } finally {
       setCheckingDevice(false);
     }
-
-  }, [issue, navigation, auditAt, activeLineId]);
+  }, [issue, navigation, activeLineId, user, getElapsedAnchorIso]);
 
   const handleCloseWithReason = useCallback((reason) => {
     if (!issue) return;
@@ -195,11 +274,11 @@ export default function DefectInformationScreen({ navigation, route }) {
       issue,
       scannedTlsId: null,
       scanTime: new Date().toISOString(),
-      elapsedTimeAtEntry: auditAt,
+      elapsedTimeAtEntry: getElapsedAnchorIso(),
       closeWithoutCap: true,
       reasonForClosure: reason,
     });
-  }, [issue, navigation, auditAt]);
+  }, [issue, navigation, getElapsedAnchorIso]);
 
   if (!issue) {
     return (
@@ -226,13 +305,12 @@ export default function DefectInformationScreen({ navigation, route }) {
               >
                 <Ionicons name="chevron-back" size={ms(16)} color={AppColors.onPrimary} />
               </Pressable>
-
             </View>
 
             <View style={styles.headerTopRight}>
               <View style={[styles.severityPill, { backgroundColor: issue.light_hexcode ? issue.light_hexcode : AppColors.white }]}>
-                <Ionicons name="warning" size={ms(12)}  color={issue.light_hexcode ? '#FFFFFF' : AppColors.primary} />
-                <Text style={[styles.severityPillText,{  color: issue.light_hexcode ? '#FFFFFF' : AppColors.primary,}]}>{issue.severity.label}</Text>
+                <Ionicons name="warning" size={ms(12)} color={issue.light_hexcode ? '#FFFFFF' : AppColors.primary} />
+                <Text style={[styles.severityPillText, { color: issue.light_hexcode ? '#FFFFFF' : AppColors.primary }]}>{issue.severity.label}</Text>
               </View>
               <Pressable
                 onPress={() => setMenuVisible(true)}
@@ -298,7 +376,7 @@ export default function DefectInformationScreen({ navigation, route }) {
               <DetailRow styles={styles} label="Machine No." value={issue.machineID} bordered />
               <DetailRow styles={styles} label="Audited by" value={issue.auditedBy} bordered />
               <DetailRow styles={styles} label="Audit Time" value={issue.auditTime} bordered />
-              <DetailRow styles={styles} label="Notes" value={issue.notes } bordered italic multiline/>
+              <DetailRow styles={styles} label="Notes" value={issue.notes} bordered italic multiline />
             </View>
           </View>
 
@@ -312,7 +390,7 @@ export default function DefectInformationScreen({ navigation, route }) {
               <DetailRow
                 styles={styles}
                 label="Elapsed Time"
-                value={!auditAt ? '—' : `${elapsedFormatted} (Live)`}
+                value={elapsedLoading || elapsedSeconds === null ? 'Loading…' : `${formatElapsed(elapsedSeconds)} (Live)`}
                 bordered
                 live
               />

@@ -147,7 +147,10 @@ export default function CapInformationScreen({ navigation, route }) {
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, [capturedTime]);
-
+const responseTimeDisplay = useMemo(
+  () => formatMinSec(diffInSeconds(capturedTime, scanTime ?? new Date().toISOString())),
+  [capturedTime, scanTime],
+);
   const canSubmit = (closeWithoutCap || chosenCaps.length > 0) && !submitting && canCreateAudit;
 
   const handleApplyCap = useCallback((selectedIds, customText) => {
@@ -180,11 +183,11 @@ export default function CapInformationScreen({ navigation, route }) {
     /*const responseTime = diffInMinutes(auditAt, scanTime ?? now);
     const elapsedTime = diffInMinutes(auditAt, now); */
 
-    const responseTime = formatMinSec(diffInSeconds(auditAt, scanTime ?? now));
-    const elapsedTime = formatMinSec(diffInSeconds(auditAt, now));
+    const responseTime = formatMinSec(diffInSeconds(capturedTime, scanTime ?? now));
+    const elapsedTime = formatMinSec(diffInSeconds(capturedTime, now));
 
 
-            console.log("scan time "+scanTime+" audit at "+auditAt+" capture  "+capturedTime+
+    console.log("scan time "+scanTime+" audit at "+auditAt+" capture  "+capturedTime+
               " response time "+responseTime+" elapes time "+elapsedTime
             );
 
@@ -352,7 +355,7 @@ export default function CapInformationScreen({ navigation, route }) {
               <DetailRow styles={styles} label="Defect Category" value={issue.defectCategory} />
               <DetailRow styles={styles} label="Defect" value={issue.defect} bordered />
               <DetailRow styles={styles} label="Defect Quantity" value={String(issue.defectQuantity)} bordered />
-              <DetailRow styles={styles} label="Response Time (min)" value={issue.res_time_min} bordered />
+              <DetailRow styles={styles} label="Response Time (min)" value={responseTimeDisplay} bordered />
               <DetailRow
                 styles={styles}
                 label="Elapsed Time (min)"

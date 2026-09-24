@@ -7,6 +7,7 @@ import { AppColors } from '../../theme/theme';
 import { useResponsive } from '../../utils/responsive';
 import createStyles from '../styles/IssueDetailStyles';
 import { checkDeviceMapping } from '../../api/services/tlsService';
+import {getElapsedTime} from '../../api/services/elapsedTime';
 import { showAlert } from '../../utils/AlertService';
 import { usePermissions, GROUP, ACTION } from '../../context/PermissionsContext';
 import { verifyAndGetSlot } from '../../utils/slotVerification';
@@ -19,19 +20,18 @@ import { getSelectedLineId } from '../../api/storage/authStorage';
 const TEAL = AppColors.primary;
 
 function formatStopwatch(totalSeconds) {
-  const safe = Math.max(0, totalSeconds);
+  const safe = Math.max(0, Math.floor(totalSeconds ?? 0));
   const m = Math.floor(safe / 60);
   const s = safe % 60;
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
+
 function DetailRow({ label, value, styles, bordered, italic, live, multiline }) {
   if (multiline) {
     return (
       <View style={[styles.detailRowMultiline, bordered && styles.detailRowBorder]}>
         <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={[  italic && styles.detailValueItalic]}>
-          {value}
-        </Text>
+        <Text style={[italic && styles.detailValueItalic]}>{value}</Text>
       </View>
     );
   }
@@ -62,7 +62,6 @@ function DetailRow({ label, value, styles, bordered, italic, live, multiline }) 
   );
 }
 
- 
 const createChipStyles = (ms, mvs, fs, isLargeScreen) =>
   StyleSheet.create({
     wrap: {
@@ -101,11 +100,7 @@ function CapChipsRow({ items = [], styles, chipStyles, onPressMore, ms }) {
       {items.length === 0 ? (
         <Text style={styles.detailValue}>—</Text>
       ) : (
-        <Pressable
-          onPress={onPressMore}
-          style={chipStyles.wrap}
-          disabled={remaining === 0}
-        >
+        <Pressable onPress={onPressMore} style={chipStyles.wrap} disabled={remaining === 0}>
           {visible.map((label, i) => (
             <View key={`${label}-${i}`} style={chipStyles.chip}>
               <Text style={chipStyles.chipText} numberOfLines={1}>
@@ -116,9 +111,7 @@ function CapChipsRow({ items = [], styles, chipStyles, onPressMore, ms }) {
 
           {remaining > 0 && (
             <View style={[chipStyles.chip, chipStyles.moreChip]}>
-              <Text style={[chipStyles.chipText, chipStyles.moreChipText]}>
-                +{remaining}
-              </Text>
+              <Text style={[chipStyles.chipText, chipStyles.moreChipText]}>+{remaining}</Text>
             </View>
           )}
 
@@ -126,10 +119,7 @@ function CapChipsRow({ items = [], styles, chipStyles, onPressMore, ms }) {
             name="chevron-forward"
             size={ms(16)}
             color={AppColors.primary}
-            style={{
-              marginLeft: ms(4),
-              alignSelf: 'center',
-            }}
+            style={{ marginLeft: ms(4), alignSelf: 'center' }}
           />
         </Pressable>
       )}
@@ -176,11 +166,10 @@ export default function QCDefectInformationScreen({ navigation, route }) {
   );
 
   const issue = route?.params?.issue;
-   const auditDate = new Date(issue.raw.work_audit_at);
-  const currentDate = new Date();
-   const diffMs = currentDate - auditDate;  
-  const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    const activeLineId = issue?.raw?.line_id;
+  const uuid = issue.proaudit_uuid;
+  const activeLineId = issue?.raw?.line_id;
+  const orderId = issue?.raw?.order_id;
+
   // Permission gate: viewing an individual QC issue's detail.
   const { canView, can, loading: permsLoading } = usePermissions();
   const canViewDefect = canView(GROUP.QCVERIFICATION) && can(GROUP.QCVERIFICATION, ACTION.SHOW);
@@ -192,44 +181,111 @@ export default function QCDefectInformationScreen({ navigation, route }) {
   const [capListVisible, setCapListVisible] = useState(false);
   const [checkingDevice, setCheckingDevice] = useState(false);
   const [slotInfo, setSlotInfo] = useState(null);
- const user =  route?.params?.user; 
-   const userinfo = user?.name+" ("+user?.employee_code+")";
+  const user = route?.params?.user;
+  const userinfo = user?.name + ' (' + user?.employee_code + ')';
   const defectScreenEntryRef = useRef(new Date().toISOString());
   const scanSuccessTimeRef = useRef(null);
-const baseElapsedSeconds = issue?.elapsedBaseSeconds ?? 0;
-const baseCapturedAtRef = useRef(issue?.elapsedCapturedAt ?? Date.now());
-  const [elapsedSeconds, setElapsedSeconds] = useState(baseElapsedSeconds);
-useEffect(() => {
-  const tick = () => {
-    const extraSeconds = Math.floor((Date.now() - baseCapturedAtRef.current) / 1000);
-    setElapsedSeconds(baseElapsedSeconds + extraSeconds);
-  };
-  tick();
-  const id = setInterval(tick, 1000);
-  return () => clearInterval(id);
-}, [baseElapsedSeconds]);
 
-useEffect(() => {
-  let cancelled = false;
+  // ── Elapsed time now comes from the server ────────────────────────────
+  const [elapsedSeconds, setElapsedSeconds] = useState(null);
+  const [elapsedLoading, setElapsedLoading] = useState(true);
+  const elapsedBaseRef = useRef(null); // { baseSeconds, fetchedAtMs }
 
-  (async () => {
-    const storedLineId = await getSelectedLineId();
+  useEffect(() => {
+    let cancelled = false;
 
-    if (!storedLineId) {
-      console.warn('QCDefectInformationScreen: no stored lineId available for slot verification');
-      return;
+    const bailOut = (message) => {
+      showAlert('error', 'Load Failed', message ?? 'Could not load elapsed time.');
+      navigation.goBack();
+    };
+
+    if (!orderId || !activeLineId) {
+      bailOut('Missing order or line information.');
+      return () => { cancelled = true; };
     }
 
-    const { slot } = await verifyAndGetSlot({
-      lineId: storedLineId,
-      navigation,
-      listRouteName: 'QCVerification',
-    });
-    if (!cancelled) setSlotInfo(slot);
-  })();
+    (async () => {
+      setElapsedLoading(true);
+      try {
+        const result = await getElapsedTime({
+          orderId,
+          lineId: activeLineId,
+          type: 'qcverification',
+          uuid
+         });
 
-  return () => { cancelled = true; };
-}, [navigation]);
+        if (cancelled) return;
+         console.log("result as "+JSON.stringify(result));
+        if (!result?.success) {
+          bailOut(result?.message);
+          return;
+        }
+
+        const baseSeconds = Number(
+          result?.data?.elapsed_seconds ?? result?.data?.elapsed_time ?? 0,
+        );
+
+        elapsedBaseRef.current = {
+          baseSeconds: Number.isFinite(baseSeconds) ? baseSeconds : 0,
+          fetchedAtMs: Date.now(),
+        };
+        setElapsedSeconds(elapsedBaseRef.current.baseSeconds);
+      } catch (e) {
+        if (!cancelled) bailOut(e?.message);
+      } finally {
+        if (!cancelled) setElapsedLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderId, activeLineId]);
+
+  useEffect(() => {
+    if (!elapsedBaseRef.current) return undefined;
+
+    const tick = () => {
+      const { baseSeconds, fetchedAtMs } = elapsedBaseRef.current;
+      const extra = Math.floor((Date.now() - fetchedAtMs) / 1000);
+      setElapsedSeconds(baseSeconds + extra);
+    };
+
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [elapsedLoading]);
+
+  // Anchor ISO timestamp derived from the server's elapsed reading, passed
+  // along to QCCapinformation the same way elapsedTimeAtEntry was before.
+  const getElapsedAnchorIso = useCallback(() => {
+    if (elapsedBaseRef.current) {
+      const { baseSeconds, fetchedAtMs } = elapsedBaseRef.current;
+      return new Date(fetchedAtMs - baseSeconds * 1000).toISOString();
+    }
+    return defectScreenEntryRef.current;
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const storedLineId = await getSelectedLineId();
+
+      if (!storedLineId) {
+        console.warn('QCDefectInformationScreen: no stored lineId available for slot verification');
+        return;
+      }
+
+      const { slot } = await verifyAndGetSlot({
+        lineId: storedLineId,
+        navigation,
+        listRouteName: 'QCVerification',
+      });
+      if (!cancelled) setSlotInfo(slot);
+    })();
+
+    return () => { cancelled = true; };
+  }, [navigation]);
+
   const handleScanTLSQR = useCallback(() => {
     setScannerVisible(true);
   }, []);
@@ -238,54 +294,52 @@ useEffect(() => {
     setScannerVisible(false);
   }, []);
 
- const handleScanSuccess = useCallback(async (scannedCode) => {
- 
-   const expectedTlsId = issue?.tlsDeviceId;
-   if (expectedTlsId && String(scannedCode).trim() !== String(expectedTlsId).trim()) {
-    setScannerVisible(false); 
-    showAlert(
-      'error',
-      'Device Mismatch',
-      `Scanned device (${scannedCode}) does not match the expected Qone Device ID for this order.`,
-    );
-    setCheckingDevice(false);
-    return;
-  }
-
-  // Step 2: normal flow — hit device mapping API with machineNo
-  setCheckingDevice(true);
-  try {
-    const result = await checkDeviceMapping({
-      tlsId: scannedCode,
-      machineId: issue?.machineNo,
-    });
-
-    if (result.success) {
-      scanSuccessTimeRef.current = new Date().toISOString();
+  const handleScanSuccess = useCallback(async (scannedCode) => {
+    const expectedTlsId = issue?.tlsDeviceId;
+    if (expectedTlsId && String(scannedCode).trim() !== String(expectedTlsId).trim()) {
       setScannerVisible(false);
-      navigation.navigate('QCCapinformation', {
-        issue,
-        scannedTlsId: scannedCode,
-        activeLineId,
-        scanTime: scanSuccessTimeRef.current,
-        elapsedTimeAtEntry: defectScreenEntryRef.current,
-        user
-      });
-    } else {
-      setScannerVisible(false); // close scanner here too, since device check failed
       showAlert(
         'error',
-        'Device Check Failed',
-        result?.message ?? 'This device is not mapped to the selected machine. Please rescan.',
+        'Device Mismatch',
+        `Scanned device (${scannedCode}) does not match the expected Qone Device ID for this order.`,
       );
+      setCheckingDevice(false);
+      return;
     }
-  } catch (e) {
-    setScannerVisible(false);
-    showAlert('error', 'Device Check Failed', e.message ?? 'Something went wrong while checking the device.');
-  } finally {
-    setCheckingDevice(false);
-  }
-}, [issue, navigation]);
+
+    setCheckingDevice(true);
+    try {
+      const result = await checkDeviceMapping({
+        tlsId: scannedCode,
+        machineId: issue?.machineNo,
+      });
+
+      if (result.success) {
+        scanSuccessTimeRef.current = new Date().toISOString();
+        setScannerVisible(false);
+        navigation.navigate('QCCapinformation', {
+          issue,
+          scannedTlsId: scannedCode,
+          activeLineId,
+          scanTime: scanSuccessTimeRef.current,
+          elapsedTimeAtEntry: getElapsedAnchorIso(),
+          user,
+        });
+      } else {
+        setScannerVisible(false);
+        showAlert(
+          'error',
+          'Device Check Failed',
+          result?.message ?? 'This device is not mapped to the selected machine. Please rescan.',
+        );
+      }
+    } catch (e) {
+      setScannerVisible(false);
+      showAlert('error', 'Device Check Failed', e.message ?? 'Something went wrong while checking the device.');
+    } finally {
+      setCheckingDevice(false);
+    }
+  }, [issue, navigation, activeLineId, user, getElapsedAnchorIso]);
 
   const handleCloseWithReason = useCallback((_reason) => {
     setCloseCapVisible(false);
@@ -357,12 +411,12 @@ useEffect(() => {
               >
                 <Ionicons name="chevron-back" size={ms(16)} color={AppColors.onPrimary} />
               </Pressable>
-             </View>
+            </View>
 
             <View style={styles.headerTopRight}>
               <View style={[styles.severityPill, { backgroundColor: issue.light_hexcode ? issue.light_hexcode : AppColors.white }]}>
                 <Ionicons name="warning" size={ms(12)} color={issue.light_hexcode ? '#FFFFFF' : AppColors.primary} />
-                <Text style={[styles.severityPillText, {  color: issue.light_hexcode ? '#FFFFFF' : AppColors.primary,}]}>{issue.severity.label}</Text>
+                <Text style={[styles.severityPillText, { color: issue.light_hexcode ? '#FFFFFF' : AppColors.primary }]}>{issue.severity.label}</Text>
               </View>
             </View>
           </View>
@@ -419,7 +473,7 @@ useEffect(() => {
               <DetailRow styles={styles} label="Machine No." value={issue.machineID} bordered />
               <DetailRow styles={styles} label="Audited by" value={issue.auditDet} bordered />
               <DetailRow styles={styles} label="Audit Time" value={issue.auditTime} bordered />
-              <DetailRow styles={styles} label="Notes" value={issue.notes  } bordered italic multiline />
+              <DetailRow styles={styles} label="Notes" value={issue.notes} bordered italic multiline />
             </View>
           </View>
 
@@ -439,17 +493,11 @@ useEffect(() => {
               />
               <DetailRow styles={styles} label="Performed By" value={issue.perDet} bordered />
               <DetailRow styles={styles} label="Performed On" value={issue.performedon} bordered />
-              <DetailRow
-                styles={styles}
-                label="Response Time"
-                value={issue.responseTime}
-                bordered
-                 
-              />
+              <DetailRow styles={styles} label="Response Time" value={issue.responseTime} bordered />
               <DetailRow
                 styles={styles}
                 label="Elapsed Time"
-                value={`${formatStopwatch(elapsedSeconds)} (Live)`}
+                value={elapsedLoading || elapsedSeconds === null ? 'Loading…' : `${formatStopwatch(elapsedSeconds)} (Live)`}
                 bordered
                 live
               />

@@ -139,6 +139,7 @@ export const mapAuditItem = (item) => {
     response_time_new : responseTimeNew,
     res_time_min:minres,
     res_hr_format:timeStr,
+    elasedTimeNew:item.elapsed_time,
     light_color:item.light_color,
     light_hexcode:item.light_hexcode,
     qualityChecks,
@@ -206,11 +207,11 @@ export const mapAuditItemQC = (item) => {
   const minutes1 = Math.floor((elapsedBaseSeconds % 3600) / 60);
   const seconds1 = elapsedBaseSeconds % 60;
   const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes1).padStart(2, '0')}:${String(seconds1).padStart(2, '0')}`;
-
-  return {
+   return {
     id: item.id,
     displayId: item.order_no ?? item.order_code,
     uuid: item.uuid,
+    proaudit_uuid:item.proaudit_uuid,
     lineId: item.line_id,
     lineLabel: item.line_name ?? '',
     status: item.status ?? '',
@@ -227,6 +228,7 @@ export const mapAuditItemQC = (item) => {
     elapsedTimeCap: minutesSince(auditTimeAt),
     elapsedTimeMin: minres,
     elapsedTimeHrs: timeStr,
+    elapsedTimeNew : item.elapsed_time,
     elapsedBaseSeconds,
     light_hexcode:item.light_hexcode,
     light_color:item.light_color,

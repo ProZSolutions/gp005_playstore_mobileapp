@@ -13,28 +13,25 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { getElapsedTime } from '../../api/services/elapsedTime';
 
 import { AppColors } from '../../theme/theme';
 import { useResponsive } from '../../utils/responsive';
 import createStyles from '../styles/ReworkTrackerDetailsStyles';
 import { showAlert } from '../../utils/AlertService';
 import rejectionService from '../../api/services/rejectionService';
-import { clearSelectedLineId,getShiftData } from '../../api/storage/authStorage';
-//import { getDefectEntryTime, setDefectEntryTime } from '../../api/storage/defectTimeStorage';
+import { clearSelectedLineId, getShiftData } from '../../api/storage/authStorage';
 
 const TEAL = AppColors.primary;
 const LISTING_SCREEN = 'RejectionTrackerList';
 
 function formatStopwatch(totalSeconds) {
-  const safe = Math.max(0, totalSeconds);
+  const safe = Math.max(0, Math.floor(totalSeconds ?? 0));
   const m = Math.floor(safe / 60);
   const s = safe % 60;
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-} 
-/*function getEntryKey(issue) {
-  return issue?.raw?.rejection_id ?? issue?.raw?.id ?? issue?.id ?? issue?.displayId ?? null;
 }
-*/
+
 function DetailRow({ label, value, styles, bordered, placeholder, live }) {
   const isEmpty = value === undefined || value === null || value === '';
   return (
@@ -61,7 +58,7 @@ const ACTIONS = [
     key: 'reject',
     label: 'Confirm Reject',
     icon: 'checkmark',
-    iconWrapKey: 'actionIconWrapReject', 
+    iconWrapKey: 'actionIconWrapReject',
     iconWrapActiveKey: 'actionIconWrapActiveReject',
     cardActiveKey: 'actionCardActiveReject',
     labelActiveKey: 'actionLabelActiveReject',
@@ -112,90 +109,131 @@ function ActionSelector({ value, onChange, styles }) {
     </View>
   );
 }
+
 function formatMinSecond(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   const pad = (n) => String(n).padStart(2, '0');
   return `${pad(minutes)}.${pad(seconds)}`;
 }
+
 export default function RejectionTrackerDetailsScreen({ navigation, route }) {
   const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs } = useResponsive();
   const styles = createStyles(ms, mvs, fs);
 
   const { issue: routeIssue, user, scannedTlsId } = route?.params ?? {};
   const issue = routeIssue;
-
+ 
   const [action, setAction] = useState(issue?.action ?? null);
   const [notes, setNotes] = useState(issue?.notes ?? '');
   const [escalation, setEscalation] = useState(issue?.escalation ?? false);
   const [submitting, setSubmitting] = useState(false);
   const [shiftData, setShiftData] = useState(null);
 
-  // Keyboard-aware scrolling so the Notes field never ends up hidden behind
-  // the keyboard.
   const scrollRef = useRef(null);
   const notesInputRef = useRef(null);
 
   const handleNotesFocus = useCallback(() => {
-    // slight delay so this runs after the keyboard has started animating in
     setTimeout(() => {
       scrollRef.current?.scrollToEnd({ animated: true });
     }, 100);
   }, []);
+   const orderId = issue?.raw?.order_id;
+  const lineId = issue?.raw?.line_id;
+  const uuid = issue?.raw?.uuid;
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const shift = await getShiftData();
+        console.log("shift details " + JSON.stringify(shift));
+        if (!cancelled && shift) setShiftData(shift);
+      } catch (e) {
+        console.warn('Could not read saved shift data on mount:', e.message);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
-  const createdAt = issue?.raw?.created_at ?? null;
-const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  // ── Elapsed time now comes from the server ────────────────────────────
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [elapsedLoading, setElapsedLoading] = useState(true);
+  const elapsedBaseRef = useRef(null); // { baseSeconds, fetchedAtMs }
 
- useEffect(() => {
-      let cancelled = false;
-      (async () => {
-        try {
-          const shift = await getShiftData();
-          console.log("shift details "+JSON.stringify(shift));
-          if (!cancelled && shift) setShiftData(shift);
-        } catch (e) {
-          console.warn('Could not read saved shift data on mount:', e.message);
-        }
-      })();
+  useEffect(() => {
+    let cancelled = false;
+
+    const bailOut = (message) => {
+      showAlert('error', 'Load Failed', message ?? 'Could not load elapsed time.');
+      navigation?.goBack?.();
+    };
+
+    if (!orderId || !lineId) {
+      bailOut('Missing order or line information.');
       return () => { cancelled = true; };
-    }, []);
- 
-   useEffect(() => {
-  if (!createdAt) return;
+    }
 
-  const tick = () => {
-    const startMs = new Date(createdAt).getTime();
-    const diffSeconds = Math.floor((Date.now() - startMs) / 1000);
+    (async () => {
+      setElapsedLoading(true);
+      try {
+        const result = await getElapsedTime({
+          orderId,
+          lineId,
+          type: 'rejection',uuid
+        });
 
-    setElapsedSeconds(Math.max(0, diffSeconds));
-  };
+        if (cancelled) return;
 
-  tick();
+        if (!result?.success) {
+          bailOut(result?.message);
+          return;
+        }
 
-  const interval = setInterval(tick, 1000);
+        const baseSeconds = Number(
+          result?.data?.elapsed_seconds ?? result?.data?.elapsed_time ?? 0,
+        );
 
-  return () => clearInterval(interval);
-}, [createdAt]);
+        elapsedBaseRef.current = {
+          baseSeconds: Number.isFinite(baseSeconds) ? baseSeconds : 0,
+          fetchedAtMs: Date.now(),
+        };
+        setElapsedSeconds(elapsedBaseRef.current.baseSeconds);
+      } catch (e) {
+        if (!cancelled) bailOut(e?.message);
+      } finally {
+        if (!cancelled) setElapsedLoading(false);
+      }
+    })();
 
-const submitDisabled =
-  submitting ||
-  !action ||
-  !issue?.raw;
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderId, lineId]);
+
+  useEffect(() => {
+    if (!elapsedBaseRef.current) return undefined;
+
+    const tick = () => {
+      const { baseSeconds, fetchedAtMs } = elapsedBaseRef.current;
+      const extra = Math.floor((Date.now() - fetchedAtMs) / 1000);
+      setElapsedSeconds(baseSeconds + extra);
+    };
+
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [elapsedLoading]);
+
+  const submitDisabled = submitting || !action || !issue?.raw;
+
   const performSubmit = useCallback(async (chosenAction) => {
     const finalAction = chosenAction ?? action;
     setSubmitting(true);
     try {
       const raw = issue?.raw ?? {};
       const nowIso = new Date().toISOString();
-
-      //const elapsedTime =  Math.round(elapsedSeconds  / 60);
-      // team_id: raw.team_id ?? null,
-       //branch_id: raw.branch_id ?? null,
       const elapsedTime = formatMinSecond(elapsedSeconds);
       const payload = {
         rejection_id: raw.rejection_id ?? issue?.rejectionId ?? issue?.id ?? null,
-        
-        shift_id: shiftData.shift_id ?? null,       
+        shift_id: shiftData.shift_id ?? null,
         slot_id: raw.slot_id ?? null,
         line_id: raw.line_id ?? null,
         order_id: raw.order_id ?? null,
@@ -223,7 +261,7 @@ const submitDisabled =
         notes: notes?.trim() || raw.notes || '',
         work_audit_by: user?.employee_code ?? user?.id ?? raw.work_audit_by ?? '',
         work_audit_at: nowIso,
-        elapsed_time:elapsedTime, // minutes since this record's stored entry time
+        elapsed_time: elapsedTime,
         rejection_status: finalAction === 'bulk' ? 'bulk' : 'rejected',
       };
 
@@ -245,7 +283,7 @@ const submitDisabled =
     } finally {
       setSubmitting(false);
     }
-  }, [issue, scannedTlsId, action, notes, escalation, user, navigation, elapsedSeconds]);
+  }, [issue, scannedTlsId, action, notes, escalation, user, navigation, elapsedSeconds, shiftData]);
 
   const handleSubmit = useCallback(() => {
     if (submitDisabled) return;
@@ -255,17 +293,12 @@ const submitDisabled =
         icon: 'arrow-forward',
         buttons: [
           { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Move to Bulk',
-            style: 'move',
-            onPress: () => performSubmit('bulk'),
-          },
+          { text: 'Move to Bulk', style: 'move', onPress: () => performSubmit('bulk') },
         ],
       });
       return;
     }
 
-    // Confirm Reject submits directly — no popup.
     performSubmit('reject');
   }, [submitDisabled, action, performSubmit]);
 
@@ -299,7 +332,6 @@ const submitDisabled =
               >
                 <Ionicons name="chevron-back" size={ms(16)} color={AppColors.onPrimary} />
               </Pressable>
-             {/* <Text style={styles.orderIdText} numberOfLines={1}>{issue.tlsCode}</Text>*/} 
             </View>
 
             {issue.severity && (
@@ -350,47 +382,27 @@ const submitDisabled =
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-
-            <View style={styles.sectionCard}>
+          <View style={styles.sectionCard}>
             <View style={styles.sectionHeaderRow}>
               <Ionicons name="document-text-outline" size={ms(15)} color={AppColors.primaryDark} />
               <Text style={styles.sectionHeaderText}>Operator & Operation Details</Text>
             </View>
             <View style={styles.sectionBody}>
               <DetailRow
-                  styles={styles}
-                  label="Employee"
-                  value={
-                    issue.raw.assignemp_name
-                      ? `${issue.raw.assignemp_name}${
-                          issue.raw.assignemp_code
-                            ? ` (${issue.raw.assignemp_code})`
-                            : ''
-                        }`
-                      : '-'
-                  }
-                />
-
-              <DetailRow
                 styles={styles}
-                label="Operation"
-                value={issue.raw.operation_name ?? '-'}
-                bordered
+                label="Employee"
+                value={
+                  issue.raw.assignemp_name
+                    ? `${issue.raw.assignemp_name}${issue.raw.assignemp_code ? ` (${issue.raw.assignemp_code})` : ''}`
+                    : '-'
+                }
               />
-
-              <DetailRow
-                styles={styles}
-                label="Machine Type"
-                value={issue.raw.machine_type_name ?? '-'}
-                bordered
-              />            
+              <DetailRow styles={styles} label="Operation" value={issue.raw.operation_name ?? '-'} bordered />
+              <DetailRow styles={styles} label="Machine Type" value={issue.raw.machine_type_name ?? '-'} bordered />
             </View>
-          </View>   
+          </View>
 
-
-
-
-           <View style={styles.sectionCard}>
+          <View style={styles.sectionCard}>
             <View style={styles.sectionHeaderRow}>
               <Ionicons name="document-text-outline" size={ms(15)} color={AppColors.primaryDark} />
               <Text style={styles.sectionHeaderText}>Rejection Tracker</Text>
@@ -405,13 +417,13 @@ const submitDisabled =
               <DetailRow
                 styles={styles}
                 label="Elapsed Time (min)"
-                 value={!createdAt ? '—' : formatStopwatch(elapsedSeconds)}
+                value={elapsedLoading ? '—' : formatStopwatch(elapsedSeconds)}
                 bordered
-                live 
+                live
               />
             </View>
           </View>
- 
+
           <View style={styles.sectionCard}>
             <View style={[styles.sectionBody, { paddingTop: mvs(12), paddingBottom: mvs(12) }]}>
               <View style={styles.escalateRow}>
@@ -431,10 +443,8 @@ const submitDisabled =
             </View>
           </View>
 
-          {/* CONFIRM REJECT / MOVE TO BULK */}
           <ActionSelector value={action} onChange={setAction} styles={styles} />
 
-          {/* NOTES */}
           <View style={styles.notesWrap}>
             <Text style={styles.notesLabel}>NOTES</Text>
             <TextInput

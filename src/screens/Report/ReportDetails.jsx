@@ -12,10 +12,7 @@ import { AppColors } from '../../theme/theme';
 import { useResponsive } from '../../utils/responsive';
 import createStyles from '../styles/IssueDetailStyles';
 import createStyless from '../styles/ReworkTrackerDetailsStyles';
-import CommonBottomModal from '../../components/CommonBottomModal';
-// ASSUMPTION: same "retrieve" action as Escalation, just repointed at a
-// report-scoped endpoint. Swap this import if Report has its own service.
-import { retrieveReport } from '../../api/services/aqlAuditService';
+import CommonBottomModal from '../../components/CommonBottomModal'; 
 
 const TEAL = AppColors.primary;
 
@@ -25,6 +22,8 @@ const MAX_CONTENT_WIDTH = 750;
 const RECORD_TYPE_META = {
   product_audit: { title: 'TLS Audit Details', icon: 'aperture-outline' },
   audit: { title: 'TLS Audit Details', icon: 'aperture-outline' },
+  tls_audit: { title: 'TLS Audit Details', icon: 'aperture-outline' },
+  tls_issue: { title: 'TLS Issue Details', icon: 'aperture-outline' },
   rework: { title: 'Rework Details', icon: 'construct-outline' },
   rework_tracker: { title: 'Rework Tracker Details', icon: 'time-outline' },
   rejection: { title: 'Rejection Details', icon: 'close-circle-outline' },
@@ -32,25 +31,9 @@ const RECORD_TYPE_META = {
   qc_verification: { title: 'QC Verification Details', icon: 'shield-checkmark-outline' },
   aql_audit: { title: 'AQL Audit', icon: 'clipboard-outline' },
 };
-const DEFAULT_META = { title: 'Additional Details', icon: 'document-text-outline' };
+const DEFAULT_META = { title: 'Details', icon: 'document-text-outline' };
 
-const AUDIT_RECORD_TYPES = new Set(['product_audit', 'audit']);
-
-const RECORD_ID_FIELD = {
-  product_audit: 'process_audit_id',
-  audit: 'process_audit_id',
-  rework: 'rework_id',
-  rework_tracker: 'rework_tracker_id',
-  rejection: 'rejection_id',
-  rejection_tracker: 'rejection_tracker_id',
-  qc_verification: 'uuid',
-};
-
-function getRecordIdentifier(record) {
-  const field = RECORD_ID_FIELD[record?.record_type];
-  const value = field ? record?.[field] : undefined;
-  return value ?? record?.uuid ?? record?.id ?? null;
-}
+const AUDIT_RECORD_TYPES = new Set(['product_audit', 'audit', 'tls_audit']);
 
 const ORDER_FIELD_DEFS = [
   ['order_no', 'Order No.'],
@@ -63,9 +46,7 @@ const ORDER_FIELD_DEFS = [
   ['team_name', 'Team'],
   ['shift_name', 'Shift'],
   ['machine_no', 'Machine No.'],
-  ['auditor_name', 'Auditor'],
-  ['operator_name', 'Operator'],
-];
+  ];
 const DETAIL_OBJECT_KEYS = {
   rework: ['rework_details'],
   rework_tracker: ['rework_details', 'rework_tracker_details'],
@@ -87,7 +68,7 @@ const NESTED_SKIP_KEYS = {
   rejection_tracker_details: [
     'status', 'qty', 'size', 'defect_name', 'category_name', 'severity_name', 'notes', 'work_audit_by_name',
   ],
-};
+ };
 
 const DUPLICATE_TOP_LEVEL_KEYS = [
   'category_id', 'category_name', 'defect_id', 'defect_name', 'severity_id', 'severity_name', 'selected_cap',
@@ -99,11 +80,15 @@ const HIDDEN_KEYS = new Set([
   'proaudit_uuid', 'rework_source_table', 'rework_tracker_source_table',
   'rejection_source_table', 'rejection_tracker_source_table', 'is_completed',
   'total_minor', 'total_major', 'total_critical', 'process_status', 'product_source_table',
-  'audit_by', 'work_audit_by', 'inspection_status', 'aql_result',
+  'audit_by', 'work_audit_by', 'inspection_status', 'aql_result','elapsed_seconds','auditor_name','auditor_empcode',
+  'light_color','light_hexcode','is_assign_auto','is_assign_manual',
+  // duplicates of fields already shown in the header / other rows
+  'buyer', 'Empname',
   ...ORDER_FIELD_DEFS.flatMap(([k, , alt]) => (alt ? [k, alt] : [k])),
-]);
+]); 
 const ID_KEY_EXEMPTIONS = new Set(['tls_id']);
-const isIdKey = (key) => (key === 'id' || key.endsWith('_id')) && !ID_KEY_EXEMPTIONS.has(key);
+const ID_KEY_PATTERN = /(^id$)|(_id$)|(_uuid$)|([a-z]Id$)/;
+const isIdKey = (key) => ID_KEY_PATTERN.test(key) && !ID_KEY_EXEMPTIONS.has(key);
 
 const isSourceTableKey = (key) => key === 'source_table' || key.endsWith('_source_table');
 
@@ -126,9 +111,18 @@ const LABEL_OVERRIDES = {
   allow_major: 'Allowed Major',
   allow_critical: 'Allowed Critical',
 };
-const ITEM_HIDDEN_KEYS = new Set([
+
+ const ITEM_HIDDEN_KEYS = new Set([
   'uuid', 'is_escalate', 'product_is_completed', 'product_created_by', 'product_updated_by',
 ]);
+const AUDIT_HIDDEN_KEYS = [
+  'audit_status',           
+  'light_color',           
+  'light_hexcode',         
+  'process_is_completed',   
+  'emp_code',               
+  'name',                  
+];
 
 const SEVERITY_CHIP_STYLES = {
   critical: { bg: '#FDECEA', text: '#C62828' },
@@ -186,28 +180,52 @@ function safeParseArray(value) {
   return null;
 }
 
+const isCapKey = (key) => key === 'cap' || key === 'selected_cap';
+const uniqueCapNames = (items) => [...new Set((items ?? []).map((c) => c?.cap_name).filter(Boolean))];
+
+// The number shown in the count badge / popup title. CAP lists are
+// de-duplicated by name (same as what the popup shows), everything else
+// is the raw array length.
+const getDisplayCount = (key, items) => (isCapKey(key) ? uniqueCapNames(items).length : (items?.length ?? 0));
+
+const looksLikeDefect = (item) =>
+  !!item && typeof item === 'object' && ('defect_name' in item || 'severity_name' in item);
+
 function splitObjectFields(obj, { skipKeys = [] } = {}) {
   const rows = [];
   const multilineRows = [];
   const arraySections = [];
   const skip = new Set(skipKeys);
-
-  Object.entries(obj ?? {}).forEach(([key, value]) => {
+  const source = obj ?? {};
+  
+  const capKeys = Object.keys(source).filter(isCapKey);
+  let chosenCapKey = null;
+  if (capKeys.length > 1) {
+    const nonEmptyCapKeys = capKeys.filter((k) => (safeParseArray(source[k]) ?? []).length > 0);
+    chosenCapKey =
+      nonEmptyCapKeys.find((k) => k === 'selected_cap') ??
+      nonEmptyCapKeys[0] ??
+      capKeys[0];
+  }
+ 
+  Object.entries(source).forEach(([key, value]) => {
     if (skip.has(key) || HIDDEN_KEYS.has(key) || isIdKey(key) || isSourceTableKey(key)) return;
     if (value === null || value === undefined) return;
-
+    // Drop every cap-type key except the chosen one.
+    if (capKeys.length > 1 && isCapKey(key) && key !== chosenCapKey) return;
+ 
     const arr = safeParseArray(value);
     if (arr) {
       if (arr.length) arraySections.push({ key, label: humanizeKey(key), items: arr });
       return;
     }
     if (typeof value === 'object') return;
-
+ 
     const row = { label: humanizeKey(key), value: formatValueForKey(key, value), multiline: MULTILINE_KEYS.has(key) };
     if (row.multiline) multilineRows.push(row);
     else rows.push(row);
   });
-
+ 
   return { rows: [...rows, ...multilineRows], arraySections };
 }
 
@@ -294,7 +312,11 @@ function createExtraStyles(ms, mvs, fs) {
   });
 }
 
-function ArraySummaryRow({ label, items, styles, extraStyles, ms, onPress }) {
+/* ------------------------------------------------------------------------ */
+/*  Array summary row (count) + bottom popup                                  */
+/* ------------------------------------------------------------------------ */
+
+function ArraySummaryRow({ label, sectionKey, items, styles, extraStyles, ms, onPress }) {
   return (
     <Pressable
       onPress={onPress}
@@ -302,7 +324,7 @@ function ArraySummaryRow({ label, items, styles, extraStyles, ms, onPress }) {
     >
       <View style={extraStyles.arrayLeft}>
         <View style={[extraStyles.countBadge, { backgroundColor: AppColors.primary }]}>
-          <Text style={extraStyles.countBadgeText}>{items.length}</Text>
+          <Text style={extraStyles.countBadgeText}>{getDisplayCount(sectionKey, items)}</Text>
         </View>
         <Text style={extraStyles.arrayLabel}>{label}</Text>
       </View>
@@ -311,9 +333,11 @@ function ArraySummaryRow({ label, items, styles, extraStyles, ms, onPress }) {
   );
 }
 
+// Defect-shaped items: severity chip + qty on the left, "category - defect"
+// on the right, CAP chips underneath.
 function DefectItemCard({ item, extraStyles }) {
   const capList = safeParseArray(item?.cap) ?? [];
-  const capNames = [...new Set(capList.map((c) => c?.cap_name).filter(Boolean))];
+  const capNames = uniqueCapNames(capList);
 
   const severity = displayOrDash(item?.severity_name);
   const quantity = displayOrDash(item?.qty);
@@ -321,23 +345,17 @@ function DefectItemCard({ item, extraStyles }) {
   const defect = displayOrDash(item?.defect_name);
 
   const severityStyle = item?.severity_name ? getSeverityChipStyle(item.severity_name) : null;
+  const chipText =
+    severity !== '-' && quantity !== '-' ? `${severity} - ${quantity}` : severity !== '-' ? severity : quantity;
 
   return (
     <View style={extraStyles.itemCard}>
       <View style={extraStyles.defectMainRow}>
-        {severityStyle ? (
-          <View style={[extraStyles.severityInlineChip, { backgroundColor: severityStyle.bg }]}>
-            <Text style={[extraStyles.severityInlineText, { color: severityStyle.text }]}>
-              {severity !== '-' && quantity !== '-' ? `${severity} - ${quantity}` : severity !== '-' ? severity : quantity !== '-' ? quantity : '-'}
-            </Text>
-          </View>
-        ) : (
-          <View style={extraStyles.severityInlineChip}>
-            <Text style={extraStyles.severityInlineText}>
-              {severity !== '-' && quantity !== '-' ? `${severity} - ${quantity}` : severity !== '-' ? severity : quantity !== '-' ? quantity : '-'}
-            </Text>
-          </View>
-        )}
+        <View style={[extraStyles.severityInlineChip, severityStyle && { backgroundColor: severityStyle.bg }]}>
+          <Text style={[extraStyles.severityInlineText, severityStyle && { color: severityStyle.text }]}>
+            {chipText}
+          </Text>
+        </View>
 
         <View style={extraStyles.defectRight}>
           <Text style={extraStyles.defectCategoryDefect} numberOfLines={1} ellipsizeMode="tail">
@@ -359,12 +377,54 @@ function DefectItemCard({ item, extraStyles }) {
   );
 }
 
-function ArrayDetailModal({ visible, onClose, title, items, ms, sectionKey, extraStyles }) {
-  const isQualityCheck = sectionKey === 'quality_check';
-  const isCapSection = sectionKey === 'cap' || sectionKey === 'selected_cap';
+// Any other array item: shows every readable field as label/value rows
+// (ids, uuids and nested objects are left out).
+function GenericItemCard({ item, index, extraStyles }) {
+  if (item === null || typeof item !== 'object') {
+    return (
+      <View style={extraStyles.itemCard}>
+        <Text style={extraStyles.itemValue}>{displayOrDash(item)}</Text>
+      </View>
+    );
+  }
+
+  const entries = Object.entries(item).filter(([key, value]) =>
+    !ITEM_HIDDEN_KEYS.has(key)
+    && !isIdKey(key)
+    && !isSourceTableKey(key)
+    && value !== null
+    && value !== undefined
+    && typeof value !== 'object',
+  );
 
   return (
-    <CommonBottomModal visible={visible} onClose={onClose} title={`${title ?? ''} (${items?.length ?? 0})`} ms={ms}>
+    <View style={extraStyles.itemCard}>
+      <Text style={extraStyles.itemIndexText}>#{index + 1}</Text>
+      {entries.length === 0 ? (
+        <Text style={extraStyles.itemValue}>-</Text>
+      ) : (
+        entries.map(([key, value]) => (
+          <View key={key} style={extraStyles.itemRow}>
+            <Text style={extraStyles.itemLabel}>{humanizeKey(key)}</Text>
+            <Text style={extraStyles.itemValue}>{formatValueForKey(key, value)}</Text>
+          </View>
+        ))
+      )}
+    </View>
+  );
+}
+
+function ArrayDetailModal({ visible, onClose, title, items, ms, sectionKey, extraStyles }) {
+  const isQualityCheck = sectionKey === 'quality_check';
+  const isCapSection = isCapKey(sectionKey);
+
+  return (
+    <CommonBottomModal
+      visible={visible}
+      onClose={onClose}
+      title={`${title ?? ''} (${getDisplayCount(sectionKey, items)})`}
+      ms={ms}
+    >
       {isQualityCheck ? (
         <View style={extraStyles.qcListWrap}>
           {(items ?? []).map((c, idx) => {
@@ -379,7 +439,7 @@ function ArrayDetailModal({ visible, onClose, title, items, ms, sectionKey, extr
         </View>
       ) : isCapSection ? (
         <View style={extraStyles.capModalWrap}>
-          {[...new Set((items ?? []).map((c) => c?.cap_name).filter(Boolean))].map((name, idx) => (
+          {uniqueCapNames(items).map((name, idx) => (
             <View key={`${name}-${idx}`} style={extraStyles.capChip}>
               <Text style={extraStyles.capChipText}>{name}</Text>
             </View>
@@ -390,7 +450,11 @@ function ArrayDetailModal({ visible, onClose, title, items, ms, sectionKey, extr
           data={items}
           keyExtractor={(_, i) => String(i)}
           contentContainerStyle={extraStyles.itemList}
-          renderItem={({ item }) => <DefectItemCard item={item} extraStyles={extraStyles} />}
+          renderItem={({ item, index }) =>
+            looksLikeDefect(item)
+              ? <DefectItemCard item={item} extraStyles={extraStyles} />
+              : <GenericItemCard item={item} index={index} extraStyles={extraStyles} />
+          }
         />
       )}
     </CommonBottomModal>
@@ -415,6 +479,7 @@ function SectionCard({ icon, title, rows, arraySections, styles, extraStyles, ms
           <ArraySummaryRow
             key={section.key}
             label={section.label}
+            sectionKey={section.key}
             items={section.items}
             styles={styles}
             extraStyles={extraStyles}
@@ -476,6 +541,7 @@ export default function ReportDetailsScreen({ navigation, route }) {
       ...ORDER_FIELD_DEFS.map(([k]) => k),
       ...nestedKeys,
       ...(nestedKeys.length ? DUPLICATE_TOP_LEVEL_KEYS : []),
+       ...(AUDIT_RECORD_TYPES.has(recordType) ? AUDIT_HIDDEN_KEYS : []),
       'status',
     ];
     const { rows, arraySections } = splitObjectFields(record, { skipKeys: skipTopLevel });
@@ -487,36 +553,15 @@ export default function ReportDetailsScreen({ navigation, route }) {
   const showFallbackCard = hasFallbackContent && nestedCards.length === 0;
   const noSpecificDetails = nestedCards.length === 0 && !hasFallbackContent;
 
-  const handleRetrieve = async () => {
-    if (retrieving) return;
-    const uuid = record?.uuid;
-    const recType = record?.record_type;
-    const qc_audit_id = AUDIT_RECORD_TYPES.has(recType) ? (record?.qc_audit_id ?? null) : null;
-
-    if (!uuid || !recordType) {
-      showAlert('success', 'Unable to Retrieve', 'Could not determine an identifier for this record.');
-      return;
-    }
-    setRetrieving(true);
-    try {
-      const result = await retrieveReport({ uuid, type: recType, qc_audit_id });
-      if (result?.success) {
-        showAlert('success', 'Submition Success', result.message ?? 'Could not submit the report.');
-      }
-    } finally {
-      setRetrieving(false);
-      handleBackReset();
-    }
-  };
-
   const handleBackReset = useCallback(() => {
     navigation.reset({
       index: 0,
-      routes: [{ name: 'ReportList' }],
+      routes: [{ name: 'ReportListScreen' }],
     });
     return true;
   }, [navigation]);
 
+ 
   useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', handleBackReset);
     return () => subscription.remove();
@@ -545,7 +590,7 @@ export default function ReportDetailsScreen({ navigation, route }) {
               <Ionicons name="layers-outline" size={ms(14)} color={AppColors.onPrimary} style={styles_re.metaIcon} />
               <Text style={styles_re.metaText}>{val('line_name')}</Text>
               <Text style={styles_re.metaDot}>•</Text>
-              <Text style={styles_re.metaText}>{val('order_no')}</Text>
+              <Text style={styles_re.metaText}>{val('order_code')}</Text>
               <Text style={styles_re.metaDot}>•</Text>
               <Text style={styles_re.metaText}>{val('colour', 'color_id')}</Text>
             </View>
@@ -562,30 +607,8 @@ export default function ReportDetailsScreen({ navigation, route }) {
                 </>
               )}
             </View>
-            <View style={styles_re.metaRow}>
-              <Ionicons name="business-outline" size={ms(14)} color={AppColors.onPrimary} style={styles_re.metaIcon} />
-              <Text style={styles_re.metaText}>{val('branch_name')}</Text>
-              <Text style={styles_re.metaDot}>•</Text>
-              <Text style={styles_re.metaText}>{val('team_name')}</Text>
-            </View>
-            <View style={styles_re.metaRow}>
-              <Ionicons name="hardware-chip-outline" size={ms(14)} color={AppColors.onPrimary} style={styles_re.metaIcon} />
-              {val('auditor_name') && val('auditor_name') !== '-' && (
-                <Text style={styles_re.metaText}>{val('auditor_name')}</Text>
-              )}
-              {val('machine_no') && val('machine_no') !== '-' && (
-                <>
-                  <Text style={styles_re.metaDot}>•</Text>
-                  <Text style={styles_re.metaText}>{val('machine_no')}</Text>
-                </>
-              )}
-              {val('operator_name') && val('operator_name') !== '-' && (
-                <>
-                  <Text style={styles_re.metaDot}>•</Text>
-                  <Text style={styles_re.metaText}>{val('operator_name')}</Text>
-                </>
-              )}
-            </View>
+           
+            
           </View>
         </SafeAreaView>
       </View>
@@ -640,29 +663,7 @@ export default function ReportDetailsScreen({ navigation, route }) {
         </ScrollView>
       </View>
 
-      {canRetrieve && (
-        <View style={extraStyles.bottomBar}>
-          <View style={extraStyles.bottomBarInner}>
-            <Pressable
-              onPress={handleRetrieve}
-              disabled={retrieving}
-              style={({ pressed }) => [
-                extraStyles.retrieveButton,
-                retrieving && extraStyles.retrieveButtonDisabled,
-                pressed && !retrieving && { opacity: 0.85 },
-              ]}
-              accessibilityRole="button"
-            >
-              {retrieving ? (
-                <ActivityIndicator color={AppColors.onPrimary} />
-              ) : (
-                <Ionicons name="download-outline" size={ms(18)} color={AppColors.onPrimary} />
-              )}
-              <Text style={extraStyles.retrieveButtonText}>{retrieving ? 'Retrieving…' : 'Retrieve'}</Text>
-            </Pressable>
-          </View>
-        </View>
-      )}
+     
 
       <ArrayDetailModal
         visible={!!activeArray}

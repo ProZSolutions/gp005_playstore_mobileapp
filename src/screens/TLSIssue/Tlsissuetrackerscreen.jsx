@@ -97,7 +97,7 @@ function IssueCard({ issue, onPress, styles, ms }) {
         </View>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>ELAPSED TIME</Text>
-          <Text style={styles.fieldValue} numberOfLines={1}>{issue.res_hr_format}</Text>
+          <Text style={styles.fieldValue} numberOfLines={1}>{issue.elasedTimeNew ?? issue.res_hr_format}</Text>
         </View>
       </View>
     </Pressable>

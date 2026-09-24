@@ -103,7 +103,7 @@ function IssueCard({ issue, onPress, styles, ms ,isLandscape,isLargeScreen}) {
         </View>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>ELAPSED TIME</Text>
-          <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{issue.elapsedTimeHrs}</Text>
+          <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{ issue.elapsedTimeNew ?? issue.elapsedTimeHrs}</Text>
         </View>
       </View>
     </Pressable>

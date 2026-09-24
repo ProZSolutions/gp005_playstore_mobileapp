@@ -8,6 +8,7 @@ export const HAIRLINE = 'rgba(0,0,0,0.08)';
 export default function createStyles(ms, mvs, fs, isLargeScreen) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: AppColors.background },
+    cardDivider: { height: 1, backgroundColor: HAIRLINE, marginVertical: mvs(8) },
 
     headerWrap: {
       backgroundColor: AppColors.primary,

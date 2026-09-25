@@ -139,7 +139,7 @@ export function clearReportDateFilter() {
 // One card for every record type: Order, Buyer, Colour, Style, Created At.
 function ReportCard({ issue, onPress, styles, ms }) {
   const raw = issue?.raw ?? {};
-  const meta = getRecordTypeMeta(raw.record_type);
+   const meta = getRecordTypeMeta(raw.record_type);
 
   return (
     <Pressable
@@ -162,7 +162,7 @@ function ReportCard({ issue, onPress, styles, ms }) {
       <View style={styles.cardGridRow}>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>ORDER</Text>
-          <Text style={styles.fieldValue} numberOfLines={1}>{raw.order_code || '-'}</Text>
+          <Text style={styles.fieldValue} numberOfLines={1}>{raw.order_no || '-'}</Text>
         </View>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>BUYER</Text>

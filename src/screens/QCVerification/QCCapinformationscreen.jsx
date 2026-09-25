@@ -25,18 +25,6 @@ function formatStopwatch(totalSeconds) {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-/*function diffInMinutes(fromIso, toIso) {
-  if (!fromIso || !toIso) return 0;
-  const ms = new Date(toIso).getTime() - new Date(fromIso).getTime();
-  return Math.max(0, Math.round(ms / 60000));
-}*/
-
-function diffInSeconds(fromIso, toIso) {
-  if (!fromIso || !toIso) return 0;
-  const ms = new Date(toIso).getTime() - new Date(fromIso).getTime();
-  return Math.max(0, Math.round(ms / 1000));
-}
-
 function formatMinSec(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
@@ -116,20 +104,36 @@ const user =  route?.params?.user;
   useEffect(() => () => {
     if (navTimeoutRef.current) clearTimeout(navTimeoutRef.current);
   }, []);
- const baseElapsedSeconds = issue?.elapsedBaseSeconds ?? 0;
-const baseCapturedAtRef = useRef(issue?.elapsedCapturedAt ?? Date.now());
 
-const [elapsedSeconds, setElapsedSeconds] = useState(baseElapsedSeconds);
-useEffect(() => {
-  const tick = () => {
-    const extraSeconds = Math.floor((Date.now() - baseCapturedAtRef.current) / 1000);
-    setElapsedSeconds(baseElapsedSeconds + extraSeconds);
-  };
-  tick();
-  const id = setInterval(tick, 1000);
-  return () => clearInterval(id);
-}, [baseElapsedSeconds]);
-  
+  // ── Elapsed Time is anchored to the value the API returned on the Defect
+  // Information screen (elapsedTimeAtEntry), not recalculated from scratch here.
+  // It keeps ticking live on this screen, same as Defect Information.
+  const baseCapturedAtRef = useRef(
+    elapsedTimeAtEntry ? new Date(elapsedTimeAtEntry).getTime() : Date.now(),
+  );
+
+  const [elapsedSeconds, setElapsedSeconds] = useState(() =>
+    Math.max(0, Math.floor((Date.now() - baseCapturedAtRef.current) / 1000)),
+  );
+
+  useEffect(() => {
+    const tick = () => {
+      setElapsedSeconds(Math.max(0, Math.floor((Date.now() - baseCapturedAtRef.current) / 1000)));
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // ── Response Time is a STATIC snapshot of Elapsed Time, captured once at
+  // screen entry. It does not tick afterwards, even while Elapsed Time
+  // keeps ticking on this screen.
+  const responseTimeSecondsRef = useRef(
+    Math.max(0, Math.floor((Date.now() - baseCapturedAtRef.current) / 1000)),
+  );
+
+  const responseTimeDisplay = formatMinSec(responseTimeSecondsRef.current);
+
   const capTakenItems = Array.isArray(issue?.capTaken) ? issue.capTaken : [];
   const canSubmit = verdict !== null && !submitting && canCreateQCAudit;
  useEffect(() => {
@@ -149,11 +153,10 @@ useEffect(() => {
     if (!canSubmit || !issue) return;
     setSubmitting(true);
     try {
-      
-      const auditAt = issue.auditTimeAt ?? issue.raw?.audittime_at ?? issue.raw?.created_at;
-      //const responseTime = diffInMinutes(auditAt, new Date().toISOString());
-      //const elapsedTime = Math.floor(elapsedSeconds / 60);
-       const responseTime  = formatMinSec(diffInSeconds(auditAt, new Date().toISOString()));
+      // Elapsed Time keeps ticking and reflects live time on submit.
+      // Response Time stays frozen to its value at screen entry (or the
+      // previously stored value, if one exists) — it does not tick.
+      const responseTime = responseTimeDisplay;
       const elapsedTime = formatMinSecond(elapsedSeconds);
 
       /* branch_id: issue.raw?.branch_id,
@@ -212,7 +215,7 @@ useEffect(() => {
       showAlert('error', 'Submission Failed', e.message ?? 'Something went wrong while submitting.');
       setSubmitting(false);
     }
-  }, [canSubmit, issue, scannedTlsId, scanTime, elapsedTimeAtEntry, verdict, escalate, navigation]);
+  }, [canSubmit, issue, scannedTlsId, scanTime, elapsedSeconds, responseTimeDisplay, verdict, escalate, navigation]);
 
   if (!issue) {
     return (
@@ -311,7 +314,7 @@ useEffect(() => {
                <DetailRow
                 styles={styles}
                 label="Response Time (min)"
-                value={issue.elapsedTimeMin}
+                value={responseTimeDisplay}
                 bordered
                  
               />

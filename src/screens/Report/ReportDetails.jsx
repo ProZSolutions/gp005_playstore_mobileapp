@@ -36,7 +36,7 @@ const DEFAULT_META = { title: 'Details', icon: 'document-text-outline' };
 const AUDIT_RECORD_TYPES = new Set(['product_audit', 'audit', 'tls_audit']);
 
 const ORDER_FIELD_DEFS = [
-  ['order_no', 'Order No.'],
+  ['order_code', 'Order No.'],
   ['buyer_name', 'Buyer'],
   ['style_name', 'Style'],
   ['colour', 'Colour', 'color_id'],

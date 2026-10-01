@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "307791083194",
+    "project_id": "tls-q-one---demo",
+    "storage_bucket": "tls-q-one---demo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:307791083194:android:a0c61bb2a457e3e5b17483",
+        "android_client_info": {
+          "package_name": "com.proz.tlsdemo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCihc2F1YPnKUW8itfhGaZHPwPDUjJw-78"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

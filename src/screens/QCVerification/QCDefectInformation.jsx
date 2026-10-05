@@ -19,11 +19,15 @@ import CloseWithoutCapModal from '../../components/CloseWithoutCapModal';
 import { getSelectedLineId } from '../../api/storage/authStorage';
 const TEAL = AppColors.primary;
 
+// MM:SS, or H:MM:SS once the duration reaches an hour.
 function formatStopwatch(totalSeconds) {
   const safe = Math.max(0, Math.floor(totalSeconds ?? 0));
-  const m = Math.floor(safe / 60);
+  const h = Math.floor(safe / 3600);
+  const m = Math.floor((safe % 3600) / 60);
   const s = safe % 60;
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  const mm = String(m).padStart(2, '0');
+  const ss = String(s).padStart(2, '0');
+  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
 function DetailRow({ label, value, styles, bordered, italic, live, multiline }) {
@@ -186,16 +190,27 @@ export default function QCDefectInformationScreen({ navigation, route }) {
   const defectScreenEntryRef = useRef(new Date().toISOString());
   const scanSuccessTimeRef = useRef(null);
 
-  // ── Elapsed time now comes from the server ────────────────────────────
+  // ── Total Submission Time: comes from the server (static snapshot) ────
   const [elapsedSeconds, setElapsedSeconds] = useState(null);
   const [elapsedLoading, setElapsedLoading] = useState(true);
   const elapsedBaseRef = useRef(null); // { baseSeconds, fetchedAtMs }
+
+  // ── Elapsed Time: local live stopwatch, starts from 0 on screen entry ─
+  const entryMsRef = useRef(Date.now());
+  const [screenSeconds, setScreenSeconds] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setScreenSeconds(Math.floor((Date.now() - entryMsRef.current) / 1000));
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
 
     const bailOut = (message) => {
-      showAlert('error', 'Load Failed', message ?? 'Could not load elapsed time.');
+      showAlert('error', 'Load Failed', message ?? 'Could not load total submission time.');
       navigation.goBack();
     };
 
@@ -241,28 +256,19 @@ export default function QCDefectInformationScreen({ navigation, route }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId, activeLineId]);
 
-  useEffect(() => {
-    if (!elapsedBaseRef.current) return undefined;
+  // ISO timestamp of when the live counter started (screen entry). Passed to
+  // QCCapinformation as elapsedTimeAtEntry so the counter there continues from
+  // where this one is, instead of restarting.
+  const getCounterAnchorIso = useCallback(
+    () => new Date(entryMsRef.current).toISOString(),
+    [],
+  );
 
-    const tick = () => {
-      const { baseSeconds, fetchedAtMs } = elapsedBaseRef.current;
-      const extra = Math.floor((Date.now() - fetchedAtMs) / 1000);
-      setElapsedSeconds(baseSeconds + extra);
-    };
-
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, [elapsedLoading]);
-
-  // Anchor ISO timestamp derived from the server's elapsed reading, passed
-  // along to QCCapinformation the same way elapsedTimeAtEntry was before.
-  const getElapsedAnchorIso = useCallback(() => {
-    if (elapsedBaseRef.current) {
-      const { baseSeconds, fetchedAtMs } = elapsedBaseRef.current;
-      return new Date(fetchedAtMs - baseSeconds * 1000).toISOString();
-    }
-    return defectScreenEntryRef.current;
-  }, []);
+  // API "Total Submission Time" in seconds, passed separately as overall time.
+  const getOverallTimeSeconds = useCallback(
+    () => elapsedBaseRef.current?.baseSeconds ?? 0,
+    [],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -322,7 +328,8 @@ export default function QCDefectInformationScreen({ navigation, route }) {
           scannedTlsId: scannedCode,
           activeLineId,
           scanTime: scanSuccessTimeRef.current,
-          elapsedTimeAtEntry: getElapsedAnchorIso(),
+          elapsedTimeAtEntry: getCounterAnchorIso(),   // live counter start
+          overallTimeSeconds: getOverallTimeSeconds(), // API total submission time
           user,
         });
       } else {
@@ -339,7 +346,7 @@ export default function QCDefectInformationScreen({ navigation, route }) {
     } finally {
       setCheckingDevice(false);
     }
-  }, [issue, navigation, activeLineId, user, getElapsedAnchorIso]);
+  }, [issue, navigation, activeLineId, user, getCounterAnchorIso, getOverallTimeSeconds]);
 
   const handleCloseWithReason = useCallback((_reason) => {
     setCloseCapVisible(false);
@@ -496,8 +503,14 @@ export default function QCDefectInformationScreen({ navigation, route }) {
               <DetailRow styles={styles} label="Response Time" value={issue.responseTime} bordered />
               <DetailRow
                 styles={styles}
+                label="Total Submission Time"
+                value={elapsedLoading || elapsedSeconds === null ? 'Loading…' : formatStopwatch(elapsedSeconds)}
+                bordered
+              />
+              <DetailRow
+                styles={styles}
                 label="Elapsed Time"
-                value={elapsedLoading || elapsedSeconds === null ? 'Loading…' : `${formatStopwatch(elapsedSeconds)} (Live)`}
+                value={`${formatStopwatch(screenSeconds)} (Live)`}
                 bordered
                 live
               />

@@ -18,11 +18,15 @@ const SUCCESS = AppColors.success ?? '#16A34A';
 const DANGER = AppColors.error ?? '#DC2626';
 const POST_SUBMIT_NAV_DELAY_MS = 3000;
 
+// MM:SS, or H:MM:SS once the duration reaches an hour.
 function formatStopwatch(totalSeconds) {
-  const safe = Math.max(0, totalSeconds);
-  const m = Math.floor(safe / 60);
+  const safe = Math.max(0, Math.floor(totalSeconds ?? 0));
+  const h = Math.floor(safe / 3600);
+  const m = Math.floor((safe % 3600) / 60);
   const s = safe % 60;
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  const mm = String(m).padStart(2, '0');
+  const ss = String(s).padStart(2, '0');
+  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
 function formatMinSec(totalSeconds) {
@@ -90,7 +94,10 @@ export default function QCCapInformationScreen({ navigation, route }) {
    const scannedTlsId = route?.params?.scannedTlsId;
    const activeLineId = route?.params?.activeLineId;
   const scanTime = route?.params?.scanTime;
-  const elapsedTimeAtEntry = route?.params?.elapsedTimeAtEntry; 
+  // ISO timestamp of when the live counter started on the Defect Information screen.
+  const elapsedTimeAtEntry = route?.params?.elapsedTimeAtEntry;
+  // API "Total Submission Time" (seconds) fetched on the Defect Information screen.
+  const overallTimeSeconds = Number(route?.params?.overallTimeSeconds ?? 0);
   const { can } = usePermissions();
   const canCreateQCAudit = can(GROUP.QCVERIFICATION, ACTION.CREATE);
 const user =  route?.params?.user; 
@@ -105,11 +112,15 @@ const user =  route?.params?.user;
     if (navTimeoutRef.current) clearTimeout(navTimeoutRef.current);
   }, []);
 
-  // ── Elapsed Time is anchored to the value the API returned on the Defect
-  // Information screen (elapsedTimeAtEntry), not recalculated from scratch here.
-  // It keeps ticking live on this screen, same as Defect Information.
+  // ── Elapsed Time is the live counter that started on the Defect
+  // Information screen (elapsedTimeAtEntry = counter start time). It
+  // continues here instead of restarting, so it reflects total time spent
+  // across both screens.
   const baseCapturedAtRef = useRef(
-    elapsedTimeAtEntry ? new Date(elapsedTimeAtEntry).getTime() : Date.now(),
+    (() => {
+      const t = elapsedTimeAtEntry ? new Date(elapsedTimeAtEntry).getTime() : NaN;
+      return Number.isFinite(t) ? t : Date.now();
+    })(),
   );
 
   const [elapsedSeconds, setElapsedSeconds] = useState(() =>
@@ -175,7 +186,7 @@ const user =  route?.params?.user;
         tls_id: scannedTlsId ?? issue.raw?.tls_id,
         machine_id: issue.raw?.machine_id,
        
-        shift_id: shiftData.shift_id,
+        shift_id: shiftData?.shift_id,
         slot_id: issue.raw?.slot_id,
         category_id: issue.raw?.category_id,
         defect_id: issue.raw?.defect_id,
@@ -215,7 +226,7 @@ const user =  route?.params?.user;
       showAlert('error', 'Submission Failed', e.message ?? 'Something went wrong while submitting.');
       setSubmitting(false);
     }
-  }, [canSubmit, issue, scannedTlsId, scanTime, elapsedSeconds, responseTimeDisplay, verdict, escalate, navigation]);
+  }, [canSubmit, issue, scannedTlsId, scanTime, elapsedSeconds, responseTimeDisplay, verdict, escalate, navigation, shiftData]);
 
   if (!issue) {
     return (
@@ -317,6 +328,12 @@ const user =  route?.params?.user;
                 value={responseTimeDisplay}
                 bordered
                  
+              />
+              <DetailRow
+                styles={styles}
+                label="Total Submission Time"
+                value={formatStopwatch(overallTimeSeconds)}
+                bordered
               />
               <DetailRow
                 styles={styles}

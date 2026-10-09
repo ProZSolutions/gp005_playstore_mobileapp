@@ -62,10 +62,8 @@ export default function DeviceMachineMappingScreen({ navigation, route }) {
   const canListMapping = can(GROUP.DEVICEMAPPING, ACTION.LIST);
 
   const { order, operation } = route?.params ?? {};
-
-   const [devices, setDevices] = useState(() => operation?.devices ?? []);
-
-  // ── Pagination state for the mapped-devices list ──
+    const [devices, setDevices] = useState(() => operation?.devices ?? []);
+   // ── Pagination state for the mapped-devices list ──
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingInitial, setLoadingInitial] = useState(true);
@@ -101,7 +99,7 @@ export default function DeviceMachineMappingScreen({ navigation, route }) {
       if (result.success) {
         const rows = result.data?.data ?? [];
         const pagination = result.data?.pagination ?? {};
-
+        console.log("DEVICE Mappind resu "+JSON.stringify(result));
         const mapped = rows.map((row) => ({
           id: row.tls_id ?? row.id,
           tls_code : row.tls_code,
@@ -143,18 +141,13 @@ export default function DeviceMachineMappingScreen({ navigation, route }) {
     }
   }, []);
 
-  useEffect(() => {
-    // Only fetch the mapped-devices list if the user actually has list
-    // permission for this group — no point calling an endpoint they'll
-    // get a 403 from.
+  useEffect(() => { 
     if (canListMapping) {
       loadDeviceMappings(1, false);
     } else {
       setLoadingInitial(false);
     }
-    loadCandidateLists();
-    // Only on mount.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadCandidateLists(); 
   }, [canListMapping]);
 
   const handleListScroll = useCallback(
@@ -390,6 +383,7 @@ export default function DeviceMachineMappingScreen({ navigation, route }) {
             scrollEventThrottle={100}
           >
             {devices.map((device) => (
+              
               <View key={device.id} style={styles.deviceRow}>
                 <View style={styles.deviceIconWrap}>
                   <Ionicons name="phone-portrait-outline" size={ms(16)} color={AppColors.primary} />

@@ -90,7 +90,7 @@ export default function ManageOperationsScreen({ navigation, route }) {
   const handleScanSuccess = useCallback(
     (data) => {
       setScannerVisible(false);
-
+      console.log("one manageoperation screem");
       try {
         const normalized = normalizeScannedDevice(data);
         const scannedId = normalized?.id ?? (typeof data === 'string' ? data.trim() : null);
@@ -101,7 +101,7 @@ export default function ManageOperationsScreen({ navigation, route }) {
         }
 
         const matched = findDeviceMachineRecord(deviceMachineRecords, scannedId);
-
+ 
         if (!matched) {
           showAlert(
             'error',
@@ -118,6 +118,8 @@ export default function ManageOperationsScreen({ navigation, route }) {
           showAlert('error', 'Already Added', 'This device is already mapped to this operation.');
           return;
         }
+
+        console.log(" machine_type "+matched.machine_type+" name "+matched.machine_type_name+" machineType "+operation.machineType)
          setPendingDevice({
           id: matched.tls_id ?? matched.tls_id ?? scannedId,
           tls_code:matched.tls_code,
@@ -127,6 +129,8 @@ export default function ManageOperationsScreen({ navigation, route }) {
           machineDbId: matched.machine_id,
           raw: matched,
         });
+
+        console.log(" pending device "+JSON.stringify(pendingDevice));
         setConfirmVisible(true);
       } catch (e) {
         console.warn('[handleScanSuccess] threw:', e.message);

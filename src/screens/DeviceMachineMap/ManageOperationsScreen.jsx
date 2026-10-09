@@ -46,6 +46,7 @@ export default function ManageOperationsScreen({ navigation, route }) {
  
   const handleScanSuccess = useCallback((data) => {
     const normalized = normalizeScannedDevice(data);
+    console.log("manage operations screen");
 
     if (scanTarget === 'device') {
       if (!normalized?.id) {

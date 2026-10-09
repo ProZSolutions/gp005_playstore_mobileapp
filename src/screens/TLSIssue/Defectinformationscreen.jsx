@@ -277,6 +277,8 @@ export default function DefectInformationScreen({ navigation, route }) {
       elapsedTimeAtEntry: getElapsedAnchorIso(),
       closeWithoutCap: true,
       reasonForClosure: reason,
+      activeLineId,
+      user,
     });
   }, [issue, navigation, getElapsedAnchorIso]);
 

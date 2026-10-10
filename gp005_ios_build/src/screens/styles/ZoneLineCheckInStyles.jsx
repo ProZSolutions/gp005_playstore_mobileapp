@@ -10,6 +10,7 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: TEAL,
+     paddingTop: Platform.OS === 'android' ? 4 : 6,
   },
 
   header: {

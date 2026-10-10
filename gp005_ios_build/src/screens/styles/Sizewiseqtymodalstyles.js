@@ -73,12 +73,12 @@ export default function createStyles(ms, mvs, fs) {
       flexShrink: 1,
     },
     title: {
-      fontSize: fs(20),
+      fontSize: Platform.OS === 'ios' ? fs(16):fs(20),
       fontWeight: '800',
       color: TEXT_PRIMARY,
     },
     subtitle: {
-      fontSize: fs(14),
+      fontSize: Platform.OS === 'ios' ? fs(12):fs(14),
       color: TEXT_TERTIARY,
       marginTop: mvs(3),
     },
@@ -146,12 +146,12 @@ export default function createStyles(ms, mvs, fs) {
       paddingVertical: mvs(3),
     },
     chipLabelText: {
-      fontSize: fs(14),
+      fontSize: Platform.OS === 'ios' ? fs(11):fs(14),
       fontWeight: '700',
       color: TEAL_DARK,
     },
     chipBalText: {
-      fontSize: fs(13.5),
+      fontSize: Platform.OS === 'ios' ? fs(11.5):fs(13.5),
       color: TEXT_TERTIARY,
       fontWeight: '500',
     },
@@ -161,7 +161,7 @@ export default function createStyles(ms, mvs, fs) {
       alignItems: 'center',
     },
     stepperBtn: {
-      width: ms(38),
+      width: Platform.OS === 'ios' ? ms(40): ms(38),
       height: ms(38),
       borderRadius: ms(9),
       borderWidth: 1,
@@ -182,7 +182,7 @@ export default function createStyles(ms, mvs, fs) {
     stepperValueInput: {
       minWidth: ms(34),
       textAlign: 'center',
-      fontSize: fs(18),
+      fontSize: Platform.OS === 'ios' ? fs(15):fs(18),
       fontWeight: '700',
       color: TEXT_PRIMARY,
       paddingVertical: 0,
@@ -205,7 +205,7 @@ export default function createStyles(ms, mvs, fs) {
       marginBottom: mvs(12),
     },
     totalLabel: {
-      fontSize: fs(13.5),
+      fontSize: Platform.OS === 'ios' ? fs(11):fs(13.5),
       fontWeight: '700',
       letterSpacing: 0.4,
       color: TEXT_SECONDARY,
@@ -232,7 +232,7 @@ export default function createStyles(ms, mvs, fs) {
     },
     applyBtnText: {
       color: ON_PRIMARY,
-      fontSize: fs(15),
+      fontSize: Platform.OS === 'ios' ? fs(12):fs(15),
       fontWeight: '700',
     },
     applyBtnTextDisabled: {

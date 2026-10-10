@@ -1,4 +1,4 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Platform ,useWindowDimensions} from 'react-native';
 import { AppColors } from '../../theme/theme';
 
 const TEAL = AppColors.primary;
@@ -6,8 +6,7 @@ const ON_PRIMARY = AppColors.onPrimary;
 const TEXT_PRIMARY = AppColors.textPrimary;
 const TEXT_TERTIARY = AppColors.textTertiary;
 const BORDER = AppColors.border;
-const SURFACE = AppColors.surface;
-
+const SURFACE = AppColors.surface; 
  export const RESULT_COLORS = {
   pass: { bg: '#16A34A', text: '#FFFFFF' },
   rework: { bg: '#F5A623', text: '#FFFFFF' },
@@ -16,7 +15,7 @@ const SURFACE = AppColors.surface;
 
 // isLargeScreen defaults to false so any other caller that hasn't been
 // updated to pass it still gets the original mobile (2-per-row) behavior.
-export default function createStyles(ms, mvs, fs, isLargeScreen = false) {
+export default function createStyles(ms, mvs, fs, isLargeScreen = false,isPortrait=true) {
   return StyleSheet.create({ 
     root: { flex: 1, backgroundColor: SURFACE },
  
@@ -109,11 +108,13 @@ export default function createStyles(ms, mvs, fs, isLargeScreen = false) {
       marginHorizontal: isLargeScreen ? -ms(7) : -ms(5),
     },
     // 4-per-row on large screens (25% width) vs 2-per-row on mobile (50%).
-    chipCol: {
-      width: isLargeScreen ? '25%' : '50%',
-      paddingHorizontal: isLargeScreen ? ms(7) : ms(5),
-      marginBottom: mvs(10),
-    },
+  chipCol: {
+  width: isLargeScreen
+    ? (isPortrait ? '33.3333%' : '25%')
+    : '50%',
+  paddingHorizontal: isLargeScreen ? ms(7) : ms(5),
+  marginBottom: mvs(10),
+},
     chip: {
       borderWidth: 1,
       borderColor: BORDER,
@@ -135,11 +136,11 @@ export default function createStyles(ms, mvs, fs, isLargeScreen = false) {
       marginBottom: mvs(12),
     },
     chipLabelPillActive: { backgroundColor: 'rgba(255,255,255,0.22)' },
-    chipLabelText: { fontSize: isLargeScreen ? fs(16) : fs(14.5), fontWeight: '700', color: AppColors.primaryDark ?? TEAL },
+    chipLabelText: { fontSize: isLargeScreen ? fs(14) : fs(14.5), fontWeight: '700', color: AppColors.primaryDark ?? TEAL },
     chipLabelTextActive: { color: ON_PRIMARY },
 
     chipMetaCol: { alignItems: 'center' },
-    chipMetaText: { fontSize: isLargeScreen ? fs(14) : fs(13), color: TEXT_TERTIARY, fontWeight: '500', textAlign: 'center', marginTop: mvs(2) },
+    chipMetaText: { fontSize: isLargeScreen ? fs(12.5) : fs(13), color: TEXT_TERTIARY, fontWeight: '500', textAlign: 'center', marginTop: mvs(2) },
     chipMetaTextActive: { color: 'rgba(255,255,255,0.9)' },
 
      footer: {

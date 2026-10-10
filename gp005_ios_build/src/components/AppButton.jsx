@@ -42,28 +42,24 @@ export function AppButton({
   const sizeMap = {
     sm: { height: 36, fontSize: 15, paddingH: 14, radius: 10 },
     md: { height: 46, fontSize: 17, paddingH: 20, radius: 12 },
-    lg: { height: 54, fontSize: 19, paddingH: 24, radius: 12 },
+    lg: { height: 50, fontSize: 19, paddingH: 24, radius: 12 },
   };
   const sizeMapLarge = {
-    sm: { height: 44, fontSize: 20, paddingH: 18, radius: 11 },
-    md: { height: 56, fontSize: 25.5, paddingH: 26, radius: 14 },
-    lg: { height: 64, fontSize: 30, paddingH: 30, radius: 14 },
+    sm: { height: 46, fontSize: 20, paddingH: 18, radius: 11 },
+    md: { height: 50, fontSize: 20.5, paddingH: 26, radius: 14 },
+    lg: { height: 50, fontSize: 25, paddingH: 30, radius: 14 },
   };
-  // Landscape gets its own compact tier — used whenever width > height,
-  // regardless of whether the device is classed as "large" (tablet).
-  // This is what keeps the login button from ballooning in landscape.
   const sizeMapLandscape = {
-    sm: { height: 32, fontSize: 14, paddingH: 12, radius: 9 },
-    md: { height: 40, fontSize: 15, paddingH: 18, radius: 10 },
-    lg: { height: 46, fontSize: 17, paddingH: 20, radius: 11 },
+    sm: { height: 42, fontSize: 13, paddingH: 12, radius: 9 },
+    md: { height: 45, fontSize: 13, paddingH: 18, radius: 15 },
+    lg: { height: 45, fontSize: 13, paddingH: 20, radius: 11 },
   };
 
   const sz = isLandscape
     ? (sizeMapLandscape[size] ?? sizeMapLandscape.md)
     : (isLargeScreen ? sizeMapLarge[size] : sizeMap[size]) ?? sizeMap.md;
 
-  // ── Derived colours ───────────────────────────────────────────────────────
-  const bgColor = isDisabled
+   const bgColor = isDisabled
     ? AppColors.neutral200
     : variant === 'contained' ? statusBase
     : variant === 'tonal'     ? statusLight

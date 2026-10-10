@@ -21,9 +21,9 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
       borderWidth:ms(1),       
     },
     statusDot: { width: ms(6), height: ms(6), borderRadius: ms(3), marginRight: ms(5) },
-    statusText: { fontSize: fs(11.5), fontWeight: '700',color: AppColors.black  },
+    statusText: { fontSize: Platform.OS === 'ios' ? fs(9): fs(11.5), fontWeight: '700',color: AppColors.black  },
     orderId: { fontSize: fs(15.5), fontWeight: '800', color: AppColors.textPrimary,marginRight:ms(7) },
-    defectChipText: { color: AppColors.black ?? AppColors.black, fontSize: fs(14), fontWeight: '600', marginLeft: ms(8) },
+    defectChipText: { color: AppColors.black ?? AppColors.black, fontSize: Platform.OS === 'ios' ? fs(10): fs(14), fontWeight: '600', marginLeft: ms(8) },
 
     cardTopRow: {
           flexDirection: 'row',
@@ -53,7 +53,7 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: ms(16),
-      paddingTop: Platform.OS === 'ios' ? mvs(0) : mvs(6),
+      paddingTop: Platform.OS === 'ios' ? mvs(6) : mvs(6),
 
     },
     backPill: {
@@ -64,7 +64,7 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
       paddingVertical: mvs(6),
       borderRadius: ms(16),
     },
-    backText: { color: AppColors.onPrimary, fontSize: fs(14), fontWeight: '600', marginLeft: ms(4) },
+    backText: { color: AppColors.onPrimary, fontSize:Platform.OS === 'ios' ? fs(11) : fs(14), fontWeight: '600', marginLeft: ms(4) },
     totalBadge: {
       backgroundColor: 'rgba(12, 92, 92, 0.50)',
       paddingHorizontal: ms(10),
@@ -82,7 +82,7 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
     },
      titlelarge: {
       color: AppColors.onPrimary,
-      fontSize: fs(20),
+      fontSize: fs(17),
       fontWeight: '800',
       marginTop: mvs(10),
       marginHorizontal: ms(16),
@@ -197,7 +197,7 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
       marginBottom: mvs(12),
     },
     tlsCode: { color: AppColors.textPrimary, fontSize: fs(15.5), fontWeight: '800',marginRight:ms(7) },
-    tlsCodeLarge: { color: AppColors.textPrimary, fontSize: fs(13.5), fontWeight: '800',marginRight:ms(7) },
+    tlsCodeLarge: { color: AppColors.textPrimary, fontSize: Platform.OS === 'ios' ? fs(12.5):  fs(12.5), fontWeight: '800',marginRight:ms(7) },
     cardCheckbox: { marginLeft: ms(8) },
 
     /* Radio control for single-select order cards.
@@ -231,27 +231,27 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
   paddingRight: ms(10),},
     fieldLabel: {
       color: AppColors.textTertiary,
-      fontSize: fs(12.5),
+      fontSize: Platform.OS === 'ios' ? fs(10) :fs(11.5),
       fontWeight: '700',
       letterSpacing: 0.4,
       marginBottom: mvs(4),
     },
     fieldValueRow: { flexDirection: 'row', alignItems: 'center',minWidth: 0,     },
     fieldValue: { color: AppColors.textPrimary, fontSize: fs(16), fontWeight: '600',flexShrink: 1,  },
-    fieldValueLarge: { color: AppColors.textPrimary, fontSize: fs(13), fontWeight: '600',flexShrink: 1,  },
+    fieldValueLarge: { color: AppColors.textPrimary, fontSize: Platform.OS === 'ios' ? fs(11) :fs(12), fontWeight: '600',flexShrink: 1,  },
     colourDot: { width: ms(15), height: ms(15), borderRadius: ms(8.5), marginRight: ms(6) },
 
     cardDivider: { height: 1, backgroundColor: HAIRLINE, marginVertical: mvs(8) },
 
     cardFooterRow: { flexDirection: 'row', alignItems: 'center' },
     createdOnText: { color: AppColors.textTertiary, fontSize: fs(14), marginLeft: ms(5) },
-    createdOnTextLarge: { color: AppColors.textTertiary, fontSize: fs(13), marginLeft: ms(5) },
+    createdOnTextLarge: { color: AppColors.textTertiary, fontSize: fs(12), marginLeft: ms(5) },
 
      footer: {
         backgroundColor:   AppColors.surface ?? '#fff',
         paddingHorizontal: H_PAD,
           paddingTop:        15,
-        paddingBottom:     Platform.OS === 'ios' ? 0 : 32,
+        paddingBottom:     Platform.OS === 'ios' ? 13 : 32,
         borderTopWidth:    1,
         borderTopColor:    '#E8EDED',
         ...Platform.select({

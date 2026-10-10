@@ -8,7 +8,7 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
-import Slider from '../components/CustomSlider';
+import CustomSlider from '../components/CustomSlider';
 import { ms, mvs, fs } from '../utils/scale';
 import { getSelectedLineId } from '../api/storage/authStorage';
 import { AppColors } from '../theme/theme';
@@ -228,25 +228,31 @@ export default function ProcessAuditScreen({ route, navigation }) {
             </View>
 
             <View style={GlobalStyles.container.sliderRow}>
-              <Text style={GlobalStyles.text.sliderBound}>{SPI_MIN}</Text>
-              <Slider
-                style={GlobalStyles.container.slider}
-                minimumValue={SPI_MIN}
-                maximumValue={SPI_MAX}
-                step={1}
-                value={spiCount}
-                onValueChange={(v) => setSpiCount(v)}
-                minimumTrackTintColor={AppColors.primary}
-                maximumTrackTintColor={AppColors.border}
-                thumbTintColor={AppColors.primary}
-              />
+  <Text style={GlobalStyles.text.sliderBound}>
+    {SPI_MIN}
+  </Text>
 
-              <Text style={GlobalStyles.text.sliderBound}>{SPI_MAX}</Text>
-            </View>
+  <CustomSlider
+  style={GlobalStyles.container.slider}
+  minimumValue={0}
+  maximumValue={5}
+  step={1}
+  value={spiCount}
+  onValueChange={setSpiCount}
+  gradientColors={['#0D939D', '#0D939D']}
+  maximumTrackTintColor={AppColors.border}
+  thumbColor="#FFFFFF"
+  thumbBorderColor="#0D939D"
+/>
+
+  <Text style={GlobalStyles.text.sliderBound}>
+    {SPI_MAX}
+  </Text>
+</View>
           </View>
 
           <View style={GlobalStyles.container.card_pro}>
-            <View style={{ marginLeft: 10 }}>
+            <View style={{ marginLeft: 10 ,marginTop:20}}>
               <SectionLabelNew label="QUALITY CHECKS" />
             </View>
             <View style={{ marginTop: verticalScale(10) }}>

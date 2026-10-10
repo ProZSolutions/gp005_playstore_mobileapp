@@ -176,7 +176,7 @@ export default function createStyles(ms, mvs, fs) {
       borderTopColor: BORDER,
     },
     detailLabel: {
-      fontSize: fs(13),
+      fontSize: Platform.OS==='ios' ? fs(11) :fs(13),
       color: TEXT_SECONDARY,
       fontWeight: '500',
     },
@@ -185,7 +185,7 @@ export default function createStyles(ms, mvs, fs) {
       alignItems: 'center',
     },
     detailValue: {
-      fontSize: fs(13.5),
+      fontSize: Platform.OS==='ios' ? fs(11.5) :fs(13.5),
       color: TEXT_PRIMARY,
       fontWeight: '700',
     },
@@ -211,7 +211,7 @@ export default function createStyles(ms, mvs, fs) {
       marginRight: ms(5),
     },
     liveValueText: {
-      fontSize: fs(13.5),
+      fontSize: Platform.OS==='ios' ? fs(11.5) : fs(13.5),
       fontWeight: '700',
       color: DANGER,
     },
@@ -281,7 +281,7 @@ export default function createStyles(ms, mvs, fs) {
       marginRight: ms(10),
     },
     escalateLabel: {
-      fontSize: fs(14),
+      fontSize: Platform.OS === 'ios' ? fs(12.5): fs(14),
       fontWeight: '700',
       color: TEXT_PRIMARY,
     },
@@ -379,7 +379,7 @@ export default function createStyles(ms, mvs, fs) {
     },
     submitBtnText: {
       color: ON_PRIMARY,
-      fontSize: fs(15),
+      fontSize: Platform.OS==='ios' ? fs(13) : fs(15),
       fontWeight: '700',
     },
     submitBtnTextDisabled: {

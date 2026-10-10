@@ -96,7 +96,7 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
     },
     sectionHeaderText: {
       marginLeft: ms(8),
-      fontSize: fs(12),
+      fontSize: Platform.OS ==='ios' ?fs(10) : fs(12),
       fontWeight: '700',
       letterSpacing: 0.4,
       color: TEAL_DARK,
@@ -147,7 +147,7 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
       flex: 1,
     },
     infoLabel: {
-      fontSize: fs(11.5),
+      fontSize: Platform.OS ==='ios' ?fs(9) :fs(11.5),
       color: TEXT_TERTIARY,
       fontWeight: '600',
       marginBottom: mvs(2),
@@ -156,7 +156,7 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
       color: TEXT_TERTIARY,
     },
     infoValue: {
-      fontSize: fs(14),
+      fontSize: Platform.OS ==='ios' ?fs(10.5) :fs(14),
       color: TEXT_PRIMARY,
       fontWeight: '700',
     },
@@ -255,7 +255,7 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
     },
     submitBtnText: {
       color: ON_PRIMARY,
-      fontSize: fs(15),
+      fontSize: Platform.OS ==='ios' ?fs(12) :fs(15),
       fontWeight: '700',
     },
     submitBtnTextDisabled: {

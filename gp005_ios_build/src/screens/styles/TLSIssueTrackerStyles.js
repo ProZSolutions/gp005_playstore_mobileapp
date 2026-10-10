@@ -4,6 +4,7 @@ import { AppColors } from '../../theme/theme';
 const { width: W } = Dimensions.get('window');
 const H_PAD = Math.min(Math.max(W * 0.042, 14), 20);
 export const HAIRLINE = 'rgba(0,0,0,0.08)';
+export const CHIP_ACTIVE_BG = AppColors.lineHighligher ?? '#067A72';
 
 export default function createStyles(ms, mvs, fs, isLargeScreen) {
   return StyleSheet.create({
@@ -108,16 +109,16 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
     lineChip: {
       flexDirection: 'row',
       alignItems: 'center',
-        
-      borderColor:AppColors.white,
-      borderWidth:ms(0.4),
+      backgroundColor: AppColors.surface,
       borderRadius: ms(18),
-      paddingHorizontal: ms(12),
-      paddingVertical: mvs(7),
+      paddingHorizontal: ms(14),
+      paddingVertical: mvs(8),
       marginRight: ms(8),
     },
-    lineChipActive: {   backgroundColor: AppColors.primaryDarkLTh,borderWidth:ms(0)},
-    lineChipText: { color: 'rgba(255,255,255,0.9)', fontSize: fs(13), fontWeight: '600' },
+    lineChipActive: {
+          backgroundColor: CHIP_ACTIVE_BG,
+        },
+  lineChipText: { color: AppColors.textPrimary, fontSize: fs(13.5), fontWeight: '600' },
     lineChipTextActive: { color: AppColors.onPrimary },
     chipCountBadge: {
       marginLeft: ms(6),
@@ -155,7 +156,7 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
       justifyContent: 'space-between',
       marginBottom: mvs(10),
     },
-    orderId: { fontSize: fs(15.5), fontWeight: '800', color: AppColors.textPrimary },
+    orderId: { fontSize: Platform.OS === 'ios' ? fs(12.5):fs(15.5), fontWeight: '800', color: AppColors.textPrimary },
     statusPill: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -178,19 +179,19 @@ export default function createStyles(ms, mvs, fs, isLargeScreen) {
       paddingVertical: mvs(9),
       marginBottom: mvs(12),
     },
-    defectChipText: { color: AppColors.black ?? AppColors.black, fontSize: fs(14), fontWeight: '600', marginLeft: ms(8) },
+    defectChipText: { color: AppColors.black ?? AppColors.black, fontSize: Platform.OS === 'ios' ? fs(13) :fs(14), fontWeight: '600', marginLeft: ms(8) },
 
     cardGridRow: { flexDirection: 'row', marginBottom: mvs(8),marginTop:ms(4) },
     cardGridCell: { flex: 1 },
     fieldLabel: {
       color: AppColors.textTertiary,
-      fontSize: fs(11.5),
+      fontSize: Platform.OS === 'ios' ? fs(9):fs(11.5),
       fontWeight: '700',
-      letterSpacing: 0.3,
+      letterSpacing: 0.2,
       marginBottom: mvs(3),
     },
     fieldValueRow: { flexDirection: 'row', alignItems: 'center' },
-    fieldValue: { color: AppColors.textPrimary, fontSize: fs(14.5), fontWeight: '600' },
+    fieldValue: { color: AppColors.textPrimary, fontSize: Platform.OS === 'ios'?fs(13): fs(14.5), fontWeight: '600' },
     colourDot: { width: ms(8), height: ms(8), borderRadius: ms(4), marginRight: ms(6) },
     auditCard: {},
  

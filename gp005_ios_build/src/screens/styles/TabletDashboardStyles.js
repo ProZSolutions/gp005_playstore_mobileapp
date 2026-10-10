@@ -1,7 +1,41 @@
 import { StyleSheet } from 'react-native';
 import { AppColors } from '../../theme/theme';
 import Dimensions from '../../theme/dimensions';
- 
+ const configCardBase = {
+  width: '30%',
+  minHeight: 165,
+  maxWidth: undefined,
+
+  position: 'relative',
+  flexDirection: 'column',
+  justifyContent: 'flex-start',
+
+  paddingHorizontal: 12,
+  paddingTop: 12,
+  paddingBottom: 12,
+};
+
+const configTitleBase = {
+  fontFamily: 'Inter-Regular',
+  fontWeight: '800',
+  fontSize: 18,
+
+  // Reserve space and allow long titles to wrap
+  paddingRight: 6,
+  paddingLeft:6,
+  marginBottom: 0,
+  flexShrink: 1,
+};
+
+const configIconBase = {
+  position: 'absolute',
+  right: 12,
+  bottom: 12,
+  marginTop: 0,
+  marginRight: 0,
+  marginBottom: 0,
+  alignSelf: 'auto',
+};
 const TabletDashboardStyles = StyleSheet.create({ 
   mainOpCard: {
     width: '29%',
@@ -17,31 +51,17 @@ const TabletDashboardStyles = StyleSheet.create({
   },
   mainOpTitle: {
     fontFamily: 'Inter-Regular',
-    fontSize: 22.5,
+    fontSize: 20.5,
     marginBottom: 3,
   },
   mainOpSubtitle: {
     fontFamily: 'Inter-Regular',
-    fontSize: 18.5,
+    fontSize: 16.5,
     lineHeight: 20,
   },
 
-   configCard: {
-    width: '29%',
-    height: 165,
-    maxWidth: 260,
-    justifyContent: 'space-between',
-     flexDirection: 'row',
-  },
-  configTitle: {
-    fontFamily: 'Inter-Regular',
-    fontWeight:800,
-    fontSize: 20,
-    marginBottom:20
-  },
-     configIcon: { alignSelf: 'flex-end', marginTop:'auto' },
- configIconP: { alignSelf: 'flex-end', marginTop:'auto' ,marginBottom:10,marginRight:10},
-  body: {
+ 
+   body: {
     maxWidth: 900,
     alignSelf: 'center',
     width: '100%',
@@ -116,7 +136,7 @@ const TabletDashboardStyles = StyleSheet.create({
     fontSize: 19,
   },
   sectionLabel_dash: {
-    fontSize: 22,
+    fontSize: 21,
     marginTop: 22,
     marginBottom: 14,
   },
@@ -146,28 +166,7 @@ const TabletDashboardStyles = StyleSheet.create({
     fontSize: 15.5,
     lineHeight: 18,
   },
-  configCardLandscape: {
-    width: '25%',
-    height: 175,
-    maxWidth: 220,
-    justifyContent: 'space-between',
-    flexDirection: 'row',
-  },
-    configCardPscape: {
-    width: '29%',
-    height: 175,
-    maxWidth: 220,
-    justifyContent: 'space-between',
-    flexDirection: 'row',
-  },
-  configTitleLandscape: {
-    fontFamily: 'Inter-Regular',
-    fontWeight: 800,
-    fontSize: 18,
-    marginBottom: 12,
-    marginRight:12 
-  },
-  configIconLandscape: { alignSelf: 'flex-end', marginTop: 'auto',marginBottom: 12,marginRight:12 },
+  
   bodyLandscape: {
     maxWidth: 1150,
     alignSelf: 'center',
@@ -182,6 +181,46 @@ const TabletDashboardStyles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 22,
   },
+
+  
+
+// Inside StyleSheet.create:
+configCard: {
+  ...configCardBase,
+  minHeight: 165,
+},
+
+configCardPscape: {
+  ...configCardBase,
+  minHeight: 175,
+},
+
+configCardLandscape: {
+  ...configCardBase,
+  minHeight: 165,
+},
+
+configTitle: {
+  ...configTitleBase,
+  fontSize: 20,
+},
+
+configTitleLandscape: {
+  ...configTitleBase,
+  fontSize: 17,
+},
+
+configIcon: {
+  ...configIconBase,
+},
+
+configIconP: {
+  ...configIconBase,
+},
+
+configIconLandscape: {
+  ...configIconBase,
+},
 });
 
 export default TabletDashboardStyles;

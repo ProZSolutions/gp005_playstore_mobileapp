@@ -125,9 +125,9 @@ export default function createStyles(ms, mvs, fs) {
       width: '100%',
     },
     detailRowBorder: { borderTopWidth: 1, borderTopColor: '#EEF2F2' },
-    detailLabel: { color: AppColors.textSecondary, fontSize: fs(14), flexShrink: 0, paddingRight: ms(10) },
+    detailLabel: { color: AppColors.textSecondary, fontSize: Platform.OS === 'ios' ? fs(11.5) : fs(14), flexShrink: 0, paddingRight: ms(10) },
     detailValue: { color: AppColors.textPrimary, fontSize: fs(14.5), fontWeight: '500', textAlign: 'right', flexShrink: 1,flex: 1 },
-    detailValueItalic: { fontStyle: 'italic', fontWeight: '500', color: AppColors.textPrimary },
+    detailValueItalic: { fontSize: Platform.OS === 'ios' ? fs(11.5) : fs(14), fontWeight: '500', color: AppColors.textPrimary },
     liveDot: { width: ms(7), height: ms(7), borderRadius: ms(3.5), backgroundColor: AppColors.error, marginRight: ms(5) },
     liveValueRow: { flexDirection: 'row', alignItems: 'center' },
     liveValueText: { color: AppColors.error, fontSize: fs(14.5), fontWeight: '500' },
@@ -184,7 +184,7 @@ export default function createStyles(ms, mvs, fs) {
       gap: ms(8),
     },
     primaryBtnDisabled: { backgroundColor: '#D7DEDE' },
-    primaryBtnText: { color: AppColors.onPrimary, fontSize: fs(16), fontWeight: '800' },
+    primaryBtnText: { color: AppColors.onPrimary, fontSize: Platform.OS === 'ios' ? fs(14):fs(16), fontWeight: '800' },
     primaryBtnTextDisabled: { color: '#8A9898' },
     /* ── CAP Taken row (clickable, badge + chevron) ── */
     capTakenValueWrap: {
@@ -307,6 +307,7 @@ export default function createStyles(ms, mvs, fs) {
       color: AppColors.textTertiary,
       letterSpacing: 0.4,
       marginTop: mvs(4),
+      marginLeft:Platform.OS ==='ios' ? 10:0,
       marginBottom: mvs(8),
     },
     customCapInput: {
@@ -367,7 +368,7 @@ export default function createStyles(ms, mvs, fs) {
       justifyContent: 'center',
     },
     verdictBtnText: {
-      fontSize: fs(15),
+      fontSize: Platform.OS === 'ios' ? fs(12): fs(15),
       fontWeight: '800',
       color: AppColors.textSecondary,
     },
@@ -423,7 +424,7 @@ export default function createStyles(ms, mvs, fs) {
       marginRight: ms(10),
     },
     escalateLabel: {
-      fontSize: screen.isTablet ?  fs(22) :fs(14.5),
+      fontSize: screen.isTablet ?  fs(14) :fs(14.5),
       fontWeight: '700',
       color: AppColors.textPrimary,
     },

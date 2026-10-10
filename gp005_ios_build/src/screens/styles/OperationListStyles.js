@@ -116,7 +116,7 @@ export default function createStyles(ms, mvs, fs) {
       justifyContent: 'space-between',
       marginBottom: mvs(12),
     },
-    opName: { fontSize: fs(16.5), fontWeight: '800', color: AppColors.textPrimary },
+    opName: { fontSize: Platform.OS === 'ios' ? fs(13):fs(16.5), fontWeight: '800', color: AppColors.textPrimary },
     gearBtn: {
       width: ms(30),
       height: ms(30),
@@ -129,15 +129,15 @@ export default function createStyles(ms, mvs, fs) {
     cardGridCell: { flex: 1 },
     fieldLabel: {
       color: AppColors.textTertiary,
-      fontSize: fs(12),
+      fontSize: Platform.OS === 'ios' ? fs(10): fs(12),
       fontWeight: '700',
       letterSpacing: 0.4,
       marginBottom: mvs(4),
     },
-    fieldValue: { color: AppColors.textPrimary, fontSize: fs(15.5), fontWeight: '700' },
+    fieldValue: { color: AppColors.textPrimary, fontSize: Platform.OS === 'ios' ? fs(11): fs(15.5), fontWeight: '700' },
     statusRow: { flexDirection: 'row', alignItems: 'center' },
     statusDot: { width: ms(8), height: ms(8), borderRadius: ms(4), marginRight: ms(6) },
-    statusText: { fontSize: fs(14.5), fontWeight: '700' },
+    statusText: { fontSize: Platform.OS === 'ios' ? fs(12): fs(14.5), fontWeight: '700' },
 
     /* ── Filter modal ── */
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
@@ -173,7 +173,7 @@ export default function createStyles(ms, mvs, fs) {
       justifyContent: 'center',
     },
     sectionLabel: {
-      fontSize: fs(13.5),
+      fontSize: Platform.OS === 'ios' ? fs(12) :fs(13.5),
       fontWeight: '700',
       color: AppColors.textPrimary,
       marginBottom: mvs(10),
@@ -186,7 +186,7 @@ export default function createStyles(ms, mvs, fs) {
       backgroundColor: '#F0F3F3',
     },
     optionChipActive: { backgroundColor: AppColors.primary },
-    optionChipText: { fontSize: fs(13.5), fontWeight: '600', color: AppColors.textPrimary },
+    optionChipText: { fontSize:Platform.OS === 'ios' ? fs(12): fs(13.5), fontWeight: '600', color: AppColors.textPrimary },
     optionChipTextActive: { color: AppColors.onPrimary },
     sheetDivider: { height: 1, backgroundColor: '#EEF2F2', marginBottom: mvs(18) },
     sheetFooterRow: { flexDirection: 'row', gap: ms(12) },
@@ -199,7 +199,7 @@ export default function createStyles(ms, mvs, fs) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    resetBtnText: { fontSize: fs(15), fontWeight: '700', color: AppColors.textSecondary },
+    resetBtnText: { fontSize: Platform.OS === 'ios' ? fs(12):fs(15), fontWeight: '700', color: AppColors.textSecondary },
     applyBtn: {
       flex: 1,
       paddingVertical: mvs(13),
@@ -209,7 +209,7 @@ export default function createStyles(ms, mvs, fs) {
       justifyContent: 'center',
     },
     applyBtnActive: { backgroundColor: AppColors.primary },
-    applyBtnText: { fontSize: fs(15), fontWeight: '700', color: '#8A9898' },
+    applyBtnText: { fontSize: Platform.OS === 'ios' ? fs(12):fs(15), fontWeight: '700', color: '#8A9898' },
     applyBtnTextActive: { color: AppColors.onPrimary },
   });
 }

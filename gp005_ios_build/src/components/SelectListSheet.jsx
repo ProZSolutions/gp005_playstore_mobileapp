@@ -64,7 +64,7 @@ export default function SelectListSheet({
     <BottomSheet visible={visible} onClose={onClose} title={title} maxHeight={verticalScale(hgt)}>
       {searchable && (
         <View style={styles.searchBar}>
-          <Icon name="search" size={scale(15)} color={AppColors.textTertiary ?? '#9CA3AF'} />
+          <Icon name="search" size={scale(10)} color={AppColors.textTertiary ?? '#9CA3AF'} />
           <TextInput
             value={query}
             onChangeText={setQuery}
@@ -92,7 +92,7 @@ export default function SelectListSheet({
                   activeOpacity={0.7}
                 >
                   <View style={[styles.checkCircle,circlestyle, active && styles.checkCircleActive]}>
-                    {active && <Icon name="check" size={scale(12)} color="#fff" />}
+                    {active && <Icon name="check" size={Platform.OS === 'ios' ? scale(8) : scale(12)} color="#fff" />}
                   </View>
                   <Text style={[styles.rowLabel,rawte]}>{item.value}</Text>
                   {rightText != null && (
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     marginBottom: verticalScale(12),
   },
    
-  searchInputLarge: { flex: 1, fontSize: fontScale(18), color: AppColors.textPrimary ?? '#111827', padding: 0 },
+  searchInputLarge: { flex: 1, fontSize: fontScale(16), color: AppColors.textPrimary ?? '#111827', padding: 0 },
   searchInput: { flex: 1, fontSize: fontScale(14), color: AppColors.textPrimary ?? '#111827', padding: 0 },
   list: { paddingHorizontal: scale(20), paddingBottom: verticalScale(10), gap: verticalScale(8) },
   row: {

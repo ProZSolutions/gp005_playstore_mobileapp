@@ -80,7 +80,7 @@ export const AppInput = forwardRef(function AppInput(
     ? {
         borderRadius:      moderateScale(12),
         paddingHorizontal: moderateScale(18),
-        minHeight:         moderateScale(50),
+        minHeight:         moderateScale(45),
       }
     : isLandscape
     ? styles.boxLandscape
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     borderWidth:   1.5,
     borderRadius:  10,
     paddingHorizontal: 14,
-    minHeight:     40,
+    minHeight:     45,
     ...Platform.select({
       ios: {
         shadowColor:   '#000',
@@ -269,15 +269,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   boxLandscape: {
-    minHeight: 34,
+    minHeight: 53,
     paddingHorizontal: 12,
   },
   inputLandscape: {
-    fontSize: 15,
-    paddingVertical: Platform.OS === 'ios' ? 7 : 8,
+    fontSize: 13,
+    paddingVertical: Platform.OS === 'ios' ? 10 : 8,
   },
   labelLandscape: {
-    fontSize: 15,
+    fontSize: 13,
     marginBottom: 3,
   },
   showHideLandscape: {

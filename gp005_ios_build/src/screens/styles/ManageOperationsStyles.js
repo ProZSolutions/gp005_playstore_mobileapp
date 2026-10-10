@@ -29,7 +29,7 @@ export default function createStyles(ms, mvs, fs) {
       borderRadius: ms(16),
     },
     backText: { color: AppColors.onPrimary, fontSize: fs(14), fontWeight: '600', marginLeft: ms(4) },
-    title: { color: AppColors.onPrimary, fontSize: fs(22), fontWeight: '800' },
+    title: { color: AppColors.onPrimary, fontSize: Platform.OS==='ios' ? fs(17): fs(22), fontWeight: '800' },
 
      titleRow: {
       flexDirection: 'row',
@@ -57,7 +57,7 @@ export default function createStyles(ms, mvs, fs) {
       textTransform: 'uppercase',
       marginBottom: mvs(8),
     }, sectionLabelHeader: {
-      fontSize: fs(14.5),
+      fontSize: Platform.OS === 'ios' ? fs(12):fs(14.5),
       fontWeight: '700',
       letterSpacing: 0.6,
       color: AppColors.textTertiary,
@@ -87,7 +87,7 @@ export default function createStyles(ms, mvs, fs) {
       justifyContent: 'center',
       marginRight: ms(12),
     },
-    detailsName: { fontSize: fs(16.5), fontWeight: '800', color: AppColors.textPrimary },
+    detailsName: { fontSize: Platform.OS === 'ios' ?  fs(12) :fs(16.5), fontWeight: '800', color: AppColors.textPrimary },
     detailsSubRow: { flexDirection: 'row', alignItems: 'center', marginTop: mvs(4) },
     detailsSubText: { fontSize: fs(13), color: AppColors.textTertiary, fontWeight: '500' },
     detailsSubDivider: { marginHorizontal: ms(6), color: AppColors.textTertiary },
@@ -145,7 +145,7 @@ export default function createStyles(ms, mvs, fs) {
       borderRadius: ms(10),
       gap: ms(8),
     },
-    addDeviceBtnText: { color: AppColors.onPrimary, fontSize: fs(15), fontWeight: '700' },
+    addDeviceBtnText: { color: AppColors.onPrimary, fontSize: Platform.OS === 'ios' ? fs(12):fs(15), fontWeight: '700' },
 
     /* ── Device rows ── */
     deviceList: { paddingBottom: mvs(24) },
@@ -167,8 +167,8 @@ export default function createStyles(ms, mvs, fs) {
       marginRight: ms(12),
     },
     deviceBody: { flex: 1 },
-    deviceId: { fontSize: fs(15), fontWeight: '800', color: AppColors.textPrimary },
-    deviceMachine: { fontSize: fs(13), color: AppColors.textTertiary, marginTop: mvs(2) },
+    deviceId: { fontSize: Platform.OS==='ios' ? fs(12):fs(15), fontWeight: '800', color: AppColors.textPrimary },
+    deviceMachine: { fontSize: Platform.OS==='ios' ? fs(10):fs(13), color: AppColors.textTertiary, marginTop: mvs(2) },
     deleteBtn: {
       width: ms(34),
       height: ms(34),
@@ -294,13 +294,13 @@ export default function createStyles(ms, mvs, fs) {
       marginRight: ms(10),
     },
     sheetFieldLabel: {
-      fontSize: fs(11.5),
+      fontSize: Platform.OS === 'ios' ? fs(10) : fs(11.5),
       fontWeight: '700',
       color: AppColors.textTertiary,
       letterSpacing: 0.4,
       textTransform: 'uppercase',
     },
-    sheetFieldValue: { fontSize: fs(15.5), fontWeight: '800', color: AppColors.textPrimary, marginTop: mvs(2) },
+    sheetFieldValue: { fontSize:  Platform.OS === 'ios' ? fs(13) :  fs(15.5), fontWeight: '800', color: AppColors.textPrimary, marginTop: mvs(2) },
     sheetAddBtn: {
       backgroundColor: AppColors.primary,
       paddingVertical: mvs(14),
@@ -309,6 +309,6 @@ export default function createStyles(ms, mvs, fs) {
       justifyContent: 'center',
       marginTop: mvs(6),
     },
-    sheetAddBtnText: { color: AppColors.onPrimary, fontSize: fs(15.5), fontWeight: '800' },
+    sheetAddBtnText: { color: AppColors.onPrimary, fontSize: Platform.OS === 'ios' ? fs(13) :fs(15.5), fontWeight: '800' },
   });
 }

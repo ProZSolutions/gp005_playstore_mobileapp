@@ -1,23 +1,25 @@
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, Pressable, StatusBar, StyleSheet, FlatList,
-  ActivityIndicator, BackHandler, useWindowDimensions,
+  BackHandler, useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { showAlert } from '../../utils/AlertService';
 import { usePermissions, GROUP, ACTION } from '../../context/PermissionsContext';
 
 import { AppColors } from '../../theme/theme';
 import { useResponsive } from '../../utils/responsive';
 import createStyles from '../styles/IssueDetailStyles';
 import createStyless from '../styles/ReworkTrackerDetailsStyles';
-import CommonBottomModal from '../../components/CommonBottomModal'; 
+import CommonBottomModal from '../../components/CommonBottomModal';
 
 const TEAL = AppColors.primary;
 
+// Cap content width on tablets/large screens. Landscape gets a wider cap so
+// there is less empty space on the left/right sides.
 const TABLET_BREAKPOINT = 850;
-const MAX_CONTENT_WIDTH = 750;
+const MAX_WIDTH_PORTRAIT = 750;
+const MAX_WIDTH_LANDSCAPE = 1100;
 
 const RECORD_TYPE_META = {
   product_audit: { title: 'TLS Audit Details', icon: 'aperture-outline' },
@@ -46,7 +48,7 @@ const ORDER_FIELD_DEFS = [
   ['team_name', 'Team'],
   ['shift_name', 'Shift'],
   ['machine_no', 'Machine No.'],
-  ];
+];
 const DETAIL_OBJECT_KEYS = {
   rework: ['rework_details'],
   rework_tracker: ['rework_details', 'rework_tracker_details'],
@@ -68,7 +70,7 @@ const NESTED_SKIP_KEYS = {
   rejection_tracker_details: [
     'status', 'qty', 'size', 'defect_name', 'category_name', 'severity_name', 'notes', 'work_audit_by_name',
   ],
- };
+};
 
 const DUPLICATE_TOP_LEVEL_KEYS = [
   'category_id', 'category_name', 'defect_id', 'defect_name', 'severity_id', 'severity_name', 'selected_cap',
@@ -80,12 +82,12 @@ const HIDDEN_KEYS = new Set([
   'proaudit_uuid', 'rework_source_table', 'rework_tracker_source_table',
   'rejection_source_table', 'rejection_tracker_source_table', 'is_completed',
   'total_minor', 'total_major', 'total_critical', 'process_status', 'product_source_table',
-  'audit_by', 'work_audit_by', 'inspection_status', 'aql_result','elapsed_seconds','auditor_name','auditor_empcode',
-  'light_color','light_hexcode','is_assign_auto','is_assign_manual',
+  'audit_by', 'work_audit_by', 'inspection_status', 'aql_result', 'elapsed_seconds', 'auditor_name', 'auditor_empcode',
+  'light_color', 'light_hexcode', 'is_assign_auto', 'is_assign_manual',
   // duplicates of fields already shown in the header / other rows
   'buyer', 'Empname',
   ...ORDER_FIELD_DEFS.flatMap(([k, , alt]) => (alt ? [k, alt] : [k])),
-]); 
+]);
 const ID_KEY_EXEMPTIONS = new Set(['tls_id']);
 const ID_KEY_PATTERN = /(^id$)|(_id$)|(_uuid$)|([a-z]Id$)/;
 const isIdKey = (key) => ID_KEY_PATTERN.test(key) && !ID_KEY_EXEMPTIONS.has(key);
@@ -112,16 +114,16 @@ const LABEL_OVERRIDES = {
   allow_critical: 'Allowed Critical',
 };
 
- const ITEM_HIDDEN_KEYS = new Set([
+const ITEM_HIDDEN_KEYS = new Set([
   'uuid', 'is_escalate', 'product_is_completed', 'product_created_by', 'product_updated_by',
 ]);
 const AUDIT_HIDDEN_KEYS = [
-  'audit_status',           
-  'light_color',           
-  'light_hexcode',         
-  'process_is_completed',   
-  'emp_code',               
-  'name',                  
+  'audit_status',
+  'light_color',
+  'light_hexcode',
+  'process_is_completed',
+  'emp_code',
+  'name',
 ];
 
 const SEVERITY_CHIP_STYLES = {
@@ -197,7 +199,7 @@ function splitObjectFields(obj, { skipKeys = [] } = {}) {
   const arraySections = [];
   const skip = new Set(skipKeys);
   const source = obj ?? {};
-  
+
   const capKeys = Object.keys(source).filter(isCapKey);
   let chosenCapKey = null;
   if (capKeys.length > 1) {
@@ -207,87 +209,97 @@ function splitObjectFields(obj, { skipKeys = [] } = {}) {
       nonEmptyCapKeys[0] ??
       capKeys[0];
   }
- 
+
   Object.entries(source).forEach(([key, value]) => {
     if (skip.has(key) || HIDDEN_KEYS.has(key) || isIdKey(key) || isSourceTableKey(key)) return;
     if (value === null || value === undefined) return;
     // Drop every cap-type key except the chosen one.
     if (capKeys.length > 1 && isCapKey(key) && key !== chosenCapKey) return;
- 
+
     const arr = safeParseArray(value);
     if (arr) {
       if (arr.length) arraySections.push({ key, label: humanizeKey(key), items: arr });
       return;
     }
     if (typeof value === 'object') return;
- 
+
     const row = { label: humanizeKey(key), value: formatValueForKey(key, value), multiline: MULTILINE_KEYS.has(key) };
     if (row.multiline) multilineRows.push(row);
     else rows.push(row);
   });
- 
+
   return { rows: [...rows, ...multilineRows], arraySections };
 }
 
-function DetailRow({ label, value, styles, bordered, multiline }) {
+function DetailRow({ label, value, styles, extraStyles, bordered, multiline, isTablet }) {
+  const labelStyle = [styles.detailLabel, isTablet && extraStyles.detailLabelTablet];
+  const valueStyle = [styles.detailValue, isTablet && extraStyles.detailValueTablet];
+
   if (multiline) {
     return (
       <View style={[styles.detailRowMultiline, bordered && styles.detailRowBorder]}>
-        <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={styles.detailValue}>{value}</Text>
+        <Text style={labelStyle}>{label}</Text>
+        <Text style={valueStyle}>{value}</Text>
       </View>
     );
   }
   return (
     <View style={[styles.detailRow, bordered && styles.detailRowBorder]}>
-      <Text style={styles.detailLabel} numberOfLines={1}>{label}</Text>
-      <Text style={styles.detailValue} numberOfLines={1} ellipsizeMode="tail">{value}</Text>
+      <Text style={labelStyle} numberOfLines={1}>{label}</Text>
+      <Text style={valueStyle} numberOfLines={1} ellipsizeMode="tail">{value}</Text>
     </View>
   );
 }
 
-function createExtraStyles(ms, mvs, fs) {
+function createExtraStyles(ms, mvs, fs, maxW) {
+  // Font scale that is capped, so text doesn't balloon on tablets.
+  const cfs = (n) => Math.min(fs(n), n * 1.1);
+
   return StyleSheet.create({
+    // Tablet overrides for the label / value rows
+   detailLabelTablet: { fontSize: cfs(16), flex: 1 },
+    detailValueTablet: { fontSize: cfs(16), flex: 1.4, textAlign: 'right' },
+
     defectMainRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' },
     severityInlineChip: { paddingHorizontal: ms(8), paddingVertical: mvs(4), borderRadius: ms(10), flexShrink: 0 },
-    severityInlineText: { fontSize: fs(11), fontWeight: '700' },
+    severityInlineText: { fontSize: cfs(11), fontWeight: '700' },
     defectRight: { flex: 1, alignItems: 'flex-end', marginLeft: ms(10) },
-    defectCategoryDefect: { fontSize: fs(12), fontWeight: '600', color: '#222', textAlign: 'right' },
+    defectCategoryDefect: { fontSize: cfs(12), fontWeight: '600', color: '#222', textAlign: 'right' },
     capChipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: ms(6), marginTop: mvs(8) },
     capChip: {
       backgroundColor: 'transparent', borderWidth: 1, borderColor: '#C7D2FE',
       borderRadius: ms(10), paddingHorizontal: ms(8), paddingVertical: mvs(3),
     },
-    capChipText: { fontSize: fs(11), color: '#3730A3', fontWeight: '600' },
+    capChipText: { fontSize: Platform.OS === 'ios' ? cfs(14) :cfs(11), color: '#3730A3', fontWeight: '600' },
     arrayRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: mvs(10) },
     arrayLeft: { flexDirection: 'row', alignItems: 'center' },
     countBadge: {
       minWidth: ms(22), height: ms(22), borderRadius: ms(11), paddingHorizontal: ms(6),
       alignItems: 'center', justifyContent: 'center', marginRight: ms(8),
     },
-    countBadgeText: { fontSize: fs(12), fontWeight: '700', color: AppColors.onPrimary },
-    arrayLabel: { fontSize: fs(13), fontWeight: '600', color: AppColors.textPrimary ?? '#222' },
+    countBadgeText: { fontSize: cfs(12), fontWeight: '700', color: AppColors.onPrimary },
+    arrayLabel: { fontSize: cfs(13), fontWeight: '600', color: AppColors.textPrimary ?? '#222' },
     chevron: { marginLeft: ms(6) },
-    itemList: { paddingBottom: mvs(4), width: '100%', alignSelf: 'center', maxWidth: MAX_CONTENT_WIDTH },
+    itemList: { paddingBottom: mvs(4), width: '100%', alignSelf: 'center', maxWidth: maxW },
     itemCard: {
       marginHorizontal: ms(12), marginTop: mvs(6), padding: ms(8), borderRadius: ms(10),
       backgroundColor: 'transparent', borderWidth: 1, borderColor: '#E5E7EB',
     },
-    itemIndexText: { fontSize: fs(11), fontWeight: '700', color: AppColors.primary, marginBottom: mvs(4) },
+    itemIndexText: { fontSize: cfs(11), fontWeight: '700', color: AppColors.primary, marginBottom: mvs(4) },
     itemRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: mvs(2) },
-    itemLabel: { fontSize: fs(12), color: '#767676', flex: 1 },
-    itemValue: { fontSize: fs(12), color: '#222', flex: 1, textAlign: 'right' },
+    itemLabel: { fontSize: cfs(12), color: '#767676', flex: 1 },
+    itemValue: { fontSize: cfs(12), color: '#222', flex: 1, textAlign: 'right' },
     severityChip: { paddingHorizontal: ms(8), paddingVertical: mvs(3), borderRadius: ms(10), marginBottom: mvs(6) },
-    severityChipText: { fontSize: fs(11), fontWeight: '700' },
+    severityChipText: { fontSize: cfs(11), fontWeight: '700' },
     capModalWrap: {
       flexDirection: 'row', flexWrap: 'wrap', gap: ms(8),
       paddingHorizontal: ms(16), paddingVertical: mvs(12),
-      width: '100%', alignSelf: 'center', maxWidth: MAX_CONTENT_WIDTH,
+      width: '100%', alignSelf: 'center', maxWidth: maxW,
     },
     qcListWrap: {
       flexDirection: 'row', flexWrap: 'wrap', gap: ms(8),
       paddingHorizontal: ms(16), paddingTop: mvs(12), paddingBottom: mvs(8),
-      width: '100%', alignSelf: 'center', maxWidth: MAX_CONTENT_WIDTH,
+      width: '100%', alignSelf: 'center', maxWidth: maxW,
     },
     qcPill: {
       flexDirection: 'row', alignItems: 'center', paddingHorizontal: ms(10), paddingVertical: mvs(6),
@@ -295,20 +307,20 @@ function createExtraStyles(ms, mvs, fs) {
     },
     qcPillPass: { backgroundColor: '#ECFDF5' },
     qcPillFail: { backgroundColor: '#FEF2F2' },
-    qcPillText: { fontSize: fs(12), fontWeight: '600' },
+    qcPillText: { fontSize: cfs(12), fontWeight: '600' },
     bottomBar: {
       paddingHorizontal: ms(16), paddingTop: mvs(10), paddingBottom: mvs(14),
       backgroundColor: AppColors.surface ?? '#FFFFFF',
       borderTopWidth: 1, borderTopColor: '#ECECEC',
       alignItems: 'center',
     },
-    bottomBarInner: { width: '100%', maxWidth: MAX_CONTENT_WIDTH },
+    bottomBarInner: { width: '100%', maxWidth: maxW },
     retrieveButton: {
       height: ms(48), borderRadius: ms(12), backgroundColor: AppColors.primary,
       alignItems: 'center', justifyContent: 'center', flexDirection: 'row',
     },
     retrieveButtonDisabled: { opacity: 0.6 },
-    retrieveButtonText: { color: AppColors.onPrimary, fontSize: fs(15), fontWeight: '700', marginLeft: ms(8) },
+    retrieveButtonText: { color: AppColors.onPrimary, fontSize: cfs(15), fontWeight: '700', marginLeft: ms(8) },
   });
 }
 
@@ -461,7 +473,9 @@ function ArrayDetailModal({ visible, onClose, title, items, ms, sectionKey, extr
   );
 }
 
-function SectionCard({ icon, title, rows, arraySections, styles, extraStyles, ms, onOpenArray, emptyText }) {
+function SectionCard({
+  icon, title, rows, arraySections, styles, extraStyles, ms, onOpenArray, emptyText, isTablet,
+}) {
   const hasContent = (rows && rows.length) || (arraySections && arraySections.length);
 
   return (
@@ -473,7 +487,16 @@ function SectionCard({ icon, title, rows, arraySections, styles, extraStyles, ms
       <View style={styles.sectionBody}>
         {!hasContent && <Text style={styles.detailValue}>{emptyText ?? 'No additional details available.'}</Text>}
         {rows?.map((row, i) => (
-          <DetailRow key={row.label} styles={styles} label={row.label} value={row.value} bordered={i > 0} multiline={row.multiline} />
+          <DetailRow
+            key={row.label}
+            styles={styles}
+            extraStyles={extraStyles}
+            isTablet={isTablet}
+            label={row.label}
+            value={row.value}
+            bordered={i > 0}
+            multiline={row.multiline}
+          />
         ))}
         {arraySections?.map((section) => (
           <ArraySummaryRow
@@ -497,21 +520,25 @@ function SectionCard({ icon, title, rows, arraySections, styles, extraStyles, ms
 /* ------------------------------------------------------------------------ */
 
 export default function ReportDetailsScreen({ navigation, route }) {
-  const { canView, can, loading: permsLoading } = usePermissions();
+  const { canView, can } = usePermissions();
   // ASSUMPTION: reuse the Escalation permission group for the retrieve
   // action. Swap to a dedicated GROUP.REPORT (+ ACTION) once one exists.
   const canViewGroup = canView(GROUP.ESCALATION);
-  const canRetrieve = canViewGroup && can(GROUP.ESCALATION, ACTION.RET);
+  const canRetrieve = canViewGroup && can(GROUP.ESCALATION, ACTION.RET); // eslint-disable-line no-unused-vars
 
   const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs } = useResponsive();
   const styles = createStyles(ms, mvs, fs);
   const styles_re = createStyless(ms, mvs, fs);
-  const extraStyles = useMemo(() => createExtraStyles(ms, mvs, fs), [ms, mvs, fs]);
 
-  const { width: windowWidth } = useWindowDimensions();
-  const isTablet = windowWidth >= TABLET_BREAKPOINT;
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const isTablet = Math.min(windowWidth, windowHeight) >= 600 || windowWidth >= TABLET_BREAKPOINT;
+  const isLandscape = windowWidth > windowHeight;
+  const maxW = isLandscape ? MAX_WIDTH_LANDSCAPE : MAX_WIDTH_PORTRAIT;
+
+  const extraStyles = useMemo(() => createExtraStyles(ms, mvs, fs, maxW), [ms, mvs, fs, maxW]);
+
   const contentWidthStyle = isTablet
-    ? { width: '100%', maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center' }
+    ? { width: '100%', maxWidth: maxW, alignSelf: 'center' }
     : null;
 
   const record = route?.params?.issue?.raw ?? route?.params?.issue ?? {};
@@ -519,7 +546,6 @@ export default function ReportDetailsScreen({ navigation, route }) {
   const meta = RECORD_TYPE_META[recordType] ?? DEFAULT_META;
 
   const [activeArray, setActiveArray] = useState(null);
-  const [retrieving, setRetrieving] = useState(false);
   const val = useCallback(
     (key, alt) => displayOrDash(record[key] ?? (alt ? record[alt] : undefined)),
     [record],
@@ -541,7 +567,7 @@ export default function ReportDetailsScreen({ navigation, route }) {
       ...ORDER_FIELD_DEFS.map(([k]) => k),
       ...nestedKeys,
       ...(nestedKeys.length ? DUPLICATE_TOP_LEVEL_KEYS : []),
-       ...(AUDIT_RECORD_TYPES.has(recordType) ? AUDIT_HIDDEN_KEYS : []),
+      ...(AUDIT_RECORD_TYPES.has(recordType) ? AUDIT_HIDDEN_KEYS : []),
       'status',
     ];
     const { rows, arraySections } = splitObjectFields(record, { skipKeys: skipTopLevel });
@@ -561,7 +587,6 @@ export default function ReportDetailsScreen({ navigation, route }) {
     return true;
   }, [navigation]);
 
- 
   useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', handleBackReset);
     return () => subscription.remove();
@@ -607,8 +632,6 @@ export default function ReportDetailsScreen({ navigation, route }) {
                 </>
               )}
             </View>
-           
-            
           </View>
         </SafeAreaView>
       </View>
@@ -630,6 +653,7 @@ export default function ReportDetailsScreen({ navigation, route }) {
                 extraStyles={extraStyles}
                 ms={ms}
                 onOpenArray={setActiveArray}
+                isTablet={isTablet}
               />
             ))}
 
@@ -643,6 +667,7 @@ export default function ReportDetailsScreen({ navigation, route }) {
                 extraStyles={extraStyles}
                 ms={ms}
                 onOpenArray={setActiveArray}
+                isTablet={isTablet}
               />
             )}
 
@@ -656,14 +681,13 @@ export default function ReportDetailsScreen({ navigation, route }) {
                 extraStyles={extraStyles}
                 ms={ms}
                 onOpenArray={setActiveArray}
+                isTablet={isTablet}
                 emptyText="No additional details available for this record."
               />
             )}
           </View>
         </ScrollView>
       </View>
-
-     
 
       <ArrayDetailModal
         visible={!!activeArray}

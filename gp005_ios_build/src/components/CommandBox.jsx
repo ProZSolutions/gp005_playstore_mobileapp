@@ -121,7 +121,7 @@
         marginBottom: 14,
     },
     label: {
-        fontSize:      screen.isTablet ? 21 : 14,
+        fontSize:      screen.isTablet ? 18 : 14,
         fontWeight:    '500',
         letterSpacing: 0.2,
         marginBottom:  6,
@@ -161,5 +161,5 @@
     },
     errorText: { fontSize: screen.isTablet ? 22: 12, color: '#DC2626', flex: 1,fontFamily:'Inter-Regular' },
     hintText:  { fontSize: screen.isTablet ? 22:  12, color: '#9CA3AF', flex: 1 ,fontFamily:'Inter-Regular'},
-    counter:   { fontSize: screen.isTablet ? 22:  12, color: '#9CA3AF',marginBottom:5,marginRight:8 ,fontFamily:'Inter-Regular'},
+    counter:   { fontSize: screen.isTablet ? 17:  12, color: '#9CA3AF',marginBottom:5,marginRight:8 ,fontFamily:'Inter-Regular'},
     });

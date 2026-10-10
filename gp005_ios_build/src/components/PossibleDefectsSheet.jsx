@@ -11,14 +11,7 @@ import { AppColors } from '../theme/theme';
 import { scale, verticalScale, fontScale, moderateScale } from '../utils/scale';
 import BottomSheet from './BottomSheet';
 
-/**
- * defects: [{ id, defect_name, defect_code }] from /audit/operation-defects
- * selected: array of currently-selected defect ids
- * onConfirm(ids): fires immediately on every toggle (multi-select, no separate confirm step).
- *   Ignored when readOnly is true.
- * readOnly: when true, every defect renders pre-selected and taps do nothing —
- *   the sheet becomes a pure "view what's known for this operation" popup.
- */
+ 
 export default function PossibleDefectsSheet({
   visible,
   onClose,

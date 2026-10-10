@@ -96,7 +96,7 @@ function OrderCard({ order, selected, onPress, styles,isLandscape,isLargeScreen 
     >
       <View style={styles.cardTopRow}>
         <View style={{flexDirection:'row',paddingLeft:ms(10)}}>
-        <Text style={[styles.tlsCode,tlsCodeStyle]}>{order.tlsCode}</Text>
+        <Text style={[ tlsCodeStyle]}>{order.tlsCode}</Text>
         <StatusPill status={order.status} status_name={order.status_name} styles={styles} type="status"/>
         </View>
         <View
@@ -123,14 +123,14 @@ function OrderCard({ order, selected, onPress, styles,isLandscape,isLargeScreen 
           <Text style={styles.fieldLabel}>COLOUR</Text>
           <View style={styles.fieldValueRow}>
             <View style={[styles.colourDot, { backgroundColor: order.colourHex }]} />
-            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.colour}</Text>
+            <Text style={[tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.colour}</Text>
           </View>
         </View>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>BUYER</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="people-outline" size={ms(13)} color={AppColors.primary} />
-            <Text  style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.buyer}</Text>
+            <Text  style={[tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.buyer}</Text>
           </View>
         </View>
       </View>
@@ -144,14 +144,14 @@ function OrderCard({ order, selected, onPress, styles,isLandscape,isLargeScreen 
           <Text style={styles.fieldLabel}>STYLE</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="shirt-outline" size={ms(13)} color={AppColors.primary} />
-            <Text  style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.style}</Text>
+            <Text  style={[tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.style}</Text>
           </View>
         </View>
         <View style={styles.cardGridCell}>
           <Text style={styles.fieldLabel}>STYLE NO.</Text>
           <View style={styles.fieldValueRow}>
             <Ionicons name="pricetag-outline" size={ms(13)} color={AppColors.primary} />
-            <Text style={[styles.fieldValue,tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.styleNo}</Text>
+            <Text style={[tlsValueStyle, { marginLeft: ms(5) }]} numberOfLines={1}>{order.styleNo}</Text>
           </View>
         </View>
       </View>

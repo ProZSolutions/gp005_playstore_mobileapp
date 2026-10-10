@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo ,  useRef,
+} from 'react';
 import {
   View,
   Text,
@@ -10,6 +11,9 @@ import {
   SafeAreaView,
   ActivityIndicator, Switch,
   Modal,
+
+  KeyboardAvoidingView,
+  Keyboard,
 } from 'react-native';
 import { ms, mvs, fs } from '../utils/scale';
 import { AppInput } from '../components/CommandBox';
@@ -180,7 +184,7 @@ function InfoListSheet({ visible, onClose, title, items, emptyText, variant }) {
             <View style={infoSheetStyles.headerRow}>
               <Text style={infoSheetStyles.title}>{title}</Text>
               <TouchableOpacity onPress={onClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <Vector name="close" size={scale(22)} color={AppColors.textSecondary} />
+                <Vector name="close" size={scale(17)} color={AppColors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -277,6 +281,50 @@ export default function ProductAuditScreen({ route, navigation }) {
   const [slotInfo, setSlotInfo] = useState(null);
   const [successVisible, setSuccessVisible] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
+
+
+  const scrollViewRef = useRef(null);
+const commentsContainerRef = useRef(null);
+const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+useEffect(() => {
+  const showEvent =
+    Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+
+  const hideEvent =
+    Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+  const showSubscription = Keyboard.addListener(showEvent, () => {
+    setKeyboardVisible(true);
+  });
+
+  const hideSubscription = Keyboard.addListener(hideEvent, () => {
+    setKeyboardVisible(false);
+  });
+
+  return () => {
+    showSubscription.remove();
+    hideSubscription.remove();
+  };
+}, []);
+
+const handleCommentsFocus = useCallback(() => {
+  setTimeout(() => {
+    commentsContainerRef.current?.measureLayout(
+      scrollViewRef.current?.getInnerViewNode?.() ??
+        scrollViewRef.current,
+      (x, y) => {
+        scrollViewRef.current?.scrollTo({
+          y: Math.max(0, y - verticalScale(24)),
+          animated: true,
+        });
+      },
+      () => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      },
+    );
+  }, Platform.OS === 'ios' ? 100 : 250);
+}, []);
  
   useEffect(() => {
     let cancelled = false;
@@ -547,6 +595,7 @@ export default function ProductAuditScreen({ route, navigation }) {
   );
 
   return ( 
+    
     <View style={GlobalStyles.container.safe}>
       <StatusBar barStyle="light-content" backgroundColor={AppColors.primary} />
 
@@ -559,7 +608,11 @@ export default function ProductAuditScreen({ route, navigation }) {
         isLandscape={isLandscape}
         isLargeScreen={isLargeScreen}
       />
-
+    <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+  >
       <View style={GlobalStyles.container.safe}>
         {pinOperatorCard && (
           <View style={[GlobalStyles.container.fixedCardWrap, fixed]}>
@@ -576,7 +629,7 @@ export default function ProductAuditScreen({ route, navigation }) {
           {!pinOperatorCard && operatorCard}
 
           <View style={GlobalStyles.container.card_pro}>
-            <View style={GlobalStyles.container.summaryHeader}>
+            <View style={[GlobalStyles.container.summaryHeader,{paddingTop:10}]}>
               <SectionLabelNew label="AUDIT SUMMARY" />
               <View style={[GlobalStyles.container.gradePill, { backgroundColor: gradeBg }]}>
                 <Text style={[GlobalStyles.text.gradeText, { color: gradeColor }]}>{grade}</Text>
@@ -676,7 +729,7 @@ export default function ProductAuditScreen({ route, navigation }) {
           </View>
           <View style={{ height: verticalScale(8) }} />
         </ScrollView>
-      </View>
+      </View></KeyboardAvoidingView>
 
       <FooterBar footerStyle={[GlobalStyles.container.footer, foooo]}>
         <TouchableOpacity
@@ -766,6 +819,7 @@ export default function ProductAuditScreen({ route, navigation }) {
         }
       />
     </View>
+     
   );
 }
 
@@ -837,7 +891,7 @@ const infoSheetStyles = StyleSheet.create({
     marginBottom: verticalScale(14),
   },
   title: {
-    fontSize: fontScale(16),
+    fontSize: Platform.OS === 'ios' ? fontScale(22):fontScale(16),
     fontWeight: '700',
     color: AppColors.textPrimary,
   },

@@ -45,7 +45,7 @@ function DetailRow({ label, value, styles, bordered, italic, live, multiline, ic
     return (
       <View style={[styles.detailRowMultiline, bordered && styles.detailRowBorder]}>
         <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={[italic && styles.detailValueItalic]}>
+        <Text style={[ styles.detailValueItalic]}>
           {value}
         </Text>
       </View>
@@ -130,7 +130,7 @@ const headerWrap = isLargeScreen ? AuditLayoutStyles.headerWrapLarge : AuditLayo
 
      const titletxt = GlobalStyles.text.pillText
     const backLL = GlobalStyles.text.pillTextLL;
-
+const Btitletxt = GlobalStyles.text.BpillText
 
 
    const paddingTop = insets.top + (phoneLandscape ? mvs(6) : (Platform.OS === 'android' ? mvs(14) : mvs(10)));
@@ -178,7 +178,7 @@ const headerWrap = isLargeScreen ? AuditLayoutStyles.headerWrapLarge : AuditLayo
             activeOpacity={0.8}
           >
             <Text style={GlobalStyles.icon.pillIcon}>✕</Text>
-            <Text style={titletxt}>Cancel</Text>
+            <Text style={Btitletxt}>Cancel</Text>
           </TouchableOpacity>
         </View>
 

@@ -507,12 +507,12 @@ const ContainerStyles = StyleSheet.create({
   },
     detailRowBorder: { borderTopWidth: 1, borderTopColor: '#EEF2F2' },
     detailLabel: { color: AppColors.textSecondary,
-       fontSize: screen.isTablet? fs(22) : fs(14), flexShrink: 0,
+       fontSize: screen.isTablet? fs(20) : fs(14), flexShrink: 0,
        paddingRight: ms(10),paddingLeft:ms(4) },
        detailLabelLarger: { color: AppColors.textSecondary, fontSize: fs(22), flexShrink: 0,
        paddingRight: ms(10),paddingLeft:ms(4) },
     detailValue: { color: AppColors.textPrimary, fontSize: fs(14.5), fontWeight: '500', textAlign: 'right', flexShrink: 1,flex: 1 },
-    detailValueItalic: { fontSize: screen.isTablet? fs(22) : fs(14), fontStyle: 'italic', fontWeight: '500', color: AppColors.textPrimary },
+    detailValueItalic: { fontSize: screen.isTablet? fs(24) : fs(14), fontWeight: '500', color: AppColors.textPrimary },
     liveDot: { width: ms(7), height: ms(7), borderRadius: ms(3.5), backgroundColor: AppColors.error, marginRight: ms(5) },
     liveValueRow: { flexDirection: 'row', alignItems: 'center' },
     liveValueText: { color: AppColors.error, fontSize: fs(14.5), fontWeight: '500' },
@@ -581,21 +581,28 @@ const ContainerStyles = StyleSheet.create({
     },
     mainOpIconWrap: { width: Dimensions.spacing.mainOpIconWrapSize, height: Dimensions.spacing.mainOpIconWrapSize, borderRadius: Dimensions.radius.mainOpIconWrap, alignItems: 'center', justifyContent: 'center', marginBottom: Dimensions.spacing.mainOpIconWrapMarginBottom },
  configSection: { flex: Dimensions.flexRatio.configSection },
-    configGrid: { flexDirection: 'row',
+    configGrid: {
+  flexDirection: 'row',
   flexWrap: 'wrap',
-  justifyContent: 'flex-start', gap:Dimensions.spacing.mainCardGap},
-   configCard: {
-  width: Dimensions.percent.configCardWidth,
-
+  justifyContent: 'flex-start',
+  alignItems: 'stretch',
+  gap: Dimensions.spacing.mainCardGap,
+},
+  configCard: {
+  width: '30%',
   minHeight: Dimensions.spacing.configCardMinHeight,
-
   backgroundColor: AppColors.surface,
   borderRadius: Dimensions.radius.configCard,
 
-  paddingHorizontal: Dimensions.spacing.configCardPaddingH,
-  paddingVertical: Dimensions.spacing.configCardPaddingV,
+  paddingHorizontal: 12,
+  paddingTop: 12,
+  paddingBottom: 12,
+  marginBottom: 0,
 
-  marginBottom: Dimensions.spacing.configCardMarginBottom,
+  // Keep the icon positioned relative to this card
+  position: 'relative',
+  flexDirection: 'column',
+  justifyContent: 'flex-start',
 
   shadowColor: '#000',
   shadowOpacity: Dimensions.shadow.configCard.opacity,

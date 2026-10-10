@@ -38,7 +38,7 @@ function DetailRow({ label, value, styles, bordered, italic, live, multiline }) 
     return (
       <View style={[styles.detailRowMultiline, bordered && styles.detailRowBorder]}>
         <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={[italic && styles.detailValueItalic]}>{value}</Text>
+        <Text style={[ styles.detailValueItalic]}>{value}</Text>
       </View>
     );
   }
@@ -277,6 +277,8 @@ export default function DefectInformationScreen({ navigation, route }) {
       elapsedTimeAtEntry: getElapsedAnchorIso(),
       closeWithoutCap: true,
       reasonForClosure: reason,
+      activeLineId,
+      user,
     });
   }, [issue, navigation, getElapsedAnchorIso]);
 

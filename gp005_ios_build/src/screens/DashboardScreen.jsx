@@ -781,35 +781,42 @@ export default function DashboardScreen({ navigation, route }) {
                 CONFIGURATION & TOOLS
               </Text>
               <View style={GlobalStyles.container.configGrid}>
-                {visibleConfigTools.map((item) => (
-                  <Pressable
-                    key={item.key}
-                    style={({ pressed }) => [
-                      GlobalStyles.container.configCard,
-                      configCardStyle,
-                      pressed && { opacity: 0.9 },
-                    ]}
-                    onPress={() =>
-                      navigation.navigate(item.key, {
-                        user,
-                        zoneIds: checkinData.zoneIds,
-                        lineIds: checkinData.lineIds,
-                        zoneNames: checkinData.zoneNames,
-                        lineNames: checkinData.lineNames,
-                      })
-                    }
-                  >
-                    <Text style={[GlobalStyles.text.configTitle, configTitleStyle]}>
-                      {item.title}
-                    </Text>
-                    <Icon
-                      name={item.icon}
-                      size={sizess}
-                      style={[GlobalStyles.text.configIcon, configIconStyle]}
-                    />
-                  </Pressable>
-                ))}
-              </View>
+  {visibleConfigTools.map((item) => (
+    <Pressable
+      key={item.key}
+      style={({ pressed }) => [
+        GlobalStyles.container.configCard,
+        configCardStyle,
+        pressed && { opacity: 0.9 },
+      ]}
+      onPress={() =>
+        navigation.navigate(item.key, {
+          user,
+          zoneIds: checkinData.zoneIds,
+          lineIds: checkinData.lineIds,
+          zoneNames: checkinData.zoneNames,
+          lineNames: checkinData.lineNames,
+        })
+      }
+    >
+      <Text
+        style={[
+          GlobalStyles.text.configTitle,
+          configTitleStyle,
+          { paddingBottom: 30 },
+        ]}
+      >
+        {item.title}
+      </Text>
+
+      <Icon
+        name={item.icon}
+        size={sizess}
+        style={configIconStyle}
+      />
+    </Pressable>
+  ))}
+</View>
             </View>
           )}
         </View>

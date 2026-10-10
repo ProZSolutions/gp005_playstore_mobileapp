@@ -593,7 +593,7 @@ const tlsSearchBarStyle = pickStyle(styles.searchBarLarge,
         )}
       </View>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer,{paddingBottom:10}]}>
         <ActionButton
           label="Start Audit"
           disabled={!selectedOrder || checkingDevice}

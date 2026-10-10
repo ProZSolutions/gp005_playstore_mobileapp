@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, ScrollView, Pressable, StatusBar, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Pressable, StatusBar, ActivityIndicator,useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -59,8 +59,11 @@ function SizeCard({ size, active, disabled, onSelect, styles }) {
 }
 
 export default function SizeWiseResultScreen({ navigation, route }) {
+  const { height, width } = useWindowDimensions();
+  const isPortrait = height >= width;
   const { moderateScale: ms, moderateVerticalScale: mvs, fontScale: fs, isLargeScreen } = useResponsive();
-  const styles = createStyles(ms, mvs, fs, isLargeScreen);
+  const styles = createStyles(ms, mvs, fs,  isLargeScreen ,
+  isPortrait );
 
   const {
     order: initialOrder,

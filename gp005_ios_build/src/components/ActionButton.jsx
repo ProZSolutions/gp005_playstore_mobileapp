@@ -1,52 +1,69 @@
 import React from 'react';
-import { Pressable, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import {
+  Pressable,
+  Text,
+  ActivityIndicator,
+  StyleSheet,
+} from 'react-native';
+
 import { AppColors } from '../theme/theme';
 import { useResponsive } from '../utils/responsive';
-import btnStyles from './styles/ActionButtonStyles';
 import { useOrientation } from '../hooks/useOrientation';
+import btnStyles from './styles/ActionButtonStyles';
 
-
-export function ActionButton({ label, onPress, disabled, loading }) {
+export function ActionButton({
+  label,
+  onPress,
+  disabled = false,
+  loading = false,
+}) {
   const { isLargeScreen } = useResponsive();
- const { isLandscape } = useOrientation();
- 
-  const applyLarge = isLargeScreen && !isLandscape;
-const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>
-    isLargeScreen
-      ? (isLandscape ? largeLandscape : largePortrait)
-      : (isLandscape ? mobileLandscape : mobilePortrait);
+  const { isLandscape } = useOrientation();
 
-  const textStyle = pickStyle(btnStyles.labellarge,btnStyles.labellarge,btnStyles.label,btnStyles.label);
-    const btnStyle = pickStyle(btnStyles.btnLarge,btnStyles.btnLarge,btnStyles.btn,btnStyles.btn);
+  const isDisabled = disabled || loading;
 
+  const buttonStyle = isLargeScreen
+    ? styles.tabletButton
+    : styles.mobileButton;
 
-
+  const textStyle = isLargeScreen
+    ? btnStyles.labellarge
+    : btnStyles.label;
 
   return (
     <Pressable
-      onPress={disabled ? undefined : onPress}
-      android_ripple={disabled ? undefined : { color: 'rgba(255,255,255,0.18)' }}
+      onPress={isDisabled ? undefined : onPress}
+      disabled={isDisabled}
+      android_ripple={
+        isDisabled
+          ? undefined
+          : { color: 'rgba(255,255,255,0.18)' }
+      }
+      accessibilityRole="button"
+      accessibilityState={{
+        disabled: isDisabled,
+        busy: loading,
+      }}
       style={({ pressed }) => [
         btnStyles.btn,
+        isLargeScreen && btnStyles.btnLarge,
         btnStyles.primary,
-        disabled && btnStyles.disabled,
-        pressed && !disabled && btnStyles.pressed,
-        btnStyle
+        buttonStyle,
+        isDisabled && btnStyles.disabled,
+        pressed && !isDisabled && btnStyles.pressed,
       ]}
-      accessibilityRole="button"
-      accessibilityState={{ disabled }}
     >
       {loading ? (
-        <ActivityIndicator color={AppColors.onPrimary} />
+        <ActivityIndicator color={AppColors.onPrimary ?? '#FFFFFF'} />
       ) : (
         <Text
           style={[
             btnStyles.label,
             textStyle,
-            disabled && btnStyles.labelDisabled,
-            
+            isDisabled && btnStyles.labelDisabled,
           ]}
           numberOfLines={1}
+          adjustsFontSizeToFit
         >
           {label}
         </Text>
@@ -57,21 +74,18 @@ const pickStyle = (largePortrait, largeLandscape, mobilePortrait, mobileLandscap
 
 export default ActionButton;
 
-const tabletStyles = StyleSheet.create({
-  btnLarge: {
-    minHeight: 60,
-     borderRadius: 25,
-     paddingVertical: 20,  },
-  labelLarge: {
-    fontSize: 15,
+const styles = StyleSheet.create({
+  mobileButton: {
+    minHeight: 48,
+    paddingVertical: 8,
+    flexGrow: 0,
+    flexShrink: 0,
   },
-  // Compact footer button for landscape, phone or tablet alike
-  btnLandscape: {
-    minHeight: 60,
-    paddingVertical: 20,
-    borderRadius: 12,
-  },
-  labelLandscape: {
-    fontSize: 15,
+
+  tabletButton: {
+    minHeight: 52,
+    paddingVertical: 10,
+    flexGrow: 0,
+    flexShrink: 0,
   },
 });

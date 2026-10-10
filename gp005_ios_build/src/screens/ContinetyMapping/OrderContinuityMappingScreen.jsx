@@ -248,10 +248,7 @@ export default function OrderContinuityMappingScreen({ navigation }) {
       setSaving(false);
     }
   }, [saveDisabled, fromLine, fromStyle, fromOrder, fromColor, toOrder, toColor, navigation]);
-
-  // ---- Permission gate ----
-  // While permissions are still resolving, avoid flashing the no-access
-  // screen before canCreateAudit has a real value.
+ 
   if (permissionsLoading) {
     return (
       <View style={styles.root}>

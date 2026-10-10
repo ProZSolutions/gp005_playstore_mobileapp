@@ -70,13 +70,13 @@ function ManualQtyModal({ visible, initialValue, maxValue, onClose, onSave, sett
   const pick = (largePortrait, largeLandscape, mobilePortrait, mobileLandscape) =>   isLargeScreen ? (isLandscape ? largeLandscape : largePortrait): 
   (isLandscape ? mobileLandscape : mobilePortrait);
   const [text, setText] = useState(String(initialValue ?? ''));
-  const textStyle      = pick(styles.manualTitleLarge, styles.manualTitle);
-  const limitStyle     = pick(styles.limitLarge, styles.limit);
-  const btncancelStyle = pick(styles.btncancellarge, styles.btncancel);
-  const btnsubmitStyle = pick(styles.btnsubmittlarge, styles.btnsubmitt);
-  const btncantxt      = pick(styles.btncantextlarge, styles.btncantext);
-  const btnsubtxt      = pick(styles.btnsavetxtlarge, styles.btnsavetxt);
-  const mnyy           = pick(styles.manbglng, styles.manbg);
+  const textStyle      = pick(styles.manualTitleLarge,styles.manualTitleLarge, styles.manualTitle, styles.manualTitle);
+  const limitStyle     = pick(styles.limitLarge,styles.limitLarge, styles.limit,styles.limit);
+  const btncancelStyle = pick(styles.btncancellarge,styles.btncancellarge,styles.btncancel, styles.btncancel);
+  const btnsubmitStyle = pick(styles.btnsubmittlarge,styles.btnsubmittlarge, styles.btnsubmitt,styles.btnsubmitt);
+  const btncantxt      = pick(styles.btncantextlarge,styles.btncantextlarge, styles.btncantext,styles.btncantext);
+  const btnsubtxt      = pick(styles.btnsavetxtlarge, styles.btnsavetxtlarge,  styles.btnsavetxt,styles.btnsavetxt);
+  const mnyy           = pick(styles.manbglng, styles.manbglng, styles.manbg, styles.manbg);
   const fontSizeL = pick(25,16);
   useEffect(() => {
     if (visible) setText(String(initialValue ?? ''));

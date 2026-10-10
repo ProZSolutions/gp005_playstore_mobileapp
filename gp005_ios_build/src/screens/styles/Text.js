@@ -86,13 +86,18 @@ const TextStyles = StyleSheet.create({
                fontSize: screen.isTablet ? Dimensions.text.viewAllTextFontSizeLL :Dimensions.text.pillTextFontSize,
                fontWeight: '600',fontFamily:'Inter-Bold'  },
             pillText: { color: AppColors.onPrimary,
-               fontSize: screen.isTablet ? Dimensions.text.viewAllTextFontSizeL :Dimensions.text.pillTextFontSize,
+               fontSize: screen.isTablet ? Dimensions.text.viewAllTextFontSizeLL :Dimensions.text.pillTextFontSize,
+               fontWeight: '600',fontFamily:'Inter-Bold'  },
+                pillTextLarge: { color: AppColors.onPrimary, fontSize: Dimensions.text.viewAllTextFontSizeL,
+               fontWeight: '600',fontFamily:'Inter-Bold'  },
+               BpillText: { color: AppColors.onPrimary,
+               fontSize: screen.isTablet ? Dimensions.text.pillTextFontSize :Dimensions.text.pillTextFontSize,
                fontWeight: '600',fontFamily:'Inter-Bold'  },
                 pillTextLarge: { color: AppColors.onPrimary, fontSize: Dimensions.text.viewAllTextFontSizeL,
                fontWeight: '600',fontFamily:'Inter-Bold'  },
           headerTitle: {
             color: AppColors.onPrimary,
-            fontSize: screen.isTablet ? Dimensions.text.titleFontSize :  Dimensions.text.headerTitleFontSize,fontFamily:'Inter-Regular' ,
+            fontSize: screen.isTablet ? Dimensions.text.headerTitleFontSize :  Dimensions.text.headerTitleFontSize,fontFamily:'Inter-Regular' ,
             fontWeight: '800',
             marginBottom: Dimensions.spacing.headerTitleMarginBottom,
             marginTop:Dimensions.spacing.headerPaddingTopIOS
@@ -212,7 +217,7 @@ const TextStyles = StyleSheet.create({
                 fontWeight: '700',
                 color: AppColors.textSecondary,
             },
-           submitBtnText:      { fontSize: screen.isTablet ?  Dimensions.text.viewAllTextFontSizeL : Dimensions.text.submitTextFontSize,fontFamily:'Inter-Regular' , fontWeight: '800', color: AppColors.textTertiary },
+           submitBtnText:      { fontSize: screen.isTablet ?  Dimensions.text.sectionLabelFontSizeL : Dimensions.text.submitTextFontSize,fontFamily:'Inter-Regular' , fontWeight: '800', color: AppColors.textTertiary },
             submitBtnTextActive:{ color: AppColors.onPrimary },
     //product audit
     //process audit
@@ -322,7 +327,7 @@ const TextStyles = StyleSheet.create({
     flex: 1,
     fontSize: screen.isTablet ?  Dimensions.text.qcDescLineHeight : Dimensions.text.qcDescFontSize,fontFamily:'Inter-Regular' ,
     color: AppColors.textSecondary,
-    lineHeight: Dimensions.text.qcDescLineHeight,
+    lineHeight: Platform.OS === 'ios' ?Dimensions.text.viewAllTextFontSizeL : Dimensions.text.qcDescLineHeight,
   },
    scanBtnText: {
     color: AppColors.onPrimary,

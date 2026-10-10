@@ -195,7 +195,7 @@ export default function createStyles(ms, mvs, fs) {
       borderTopColor: BORDER,
     },
     detailLabel: {
-      fontSize: fs(13.5),fontFamily:'Inter-Bold',
+      fontSize:  Platform.OS === 'ios' ? fs(11):fs(13.5),fontFamily:'Inter-Bold',
       color: TEXT_SECONDARY,
        flexShrink: 0,  
       fontWeight: '600',
@@ -215,7 +215,7 @@ export default function createStyles(ms, mvs, fs) {
     },
     detailValue: {
       marginTop:2,      
-      fontSize: fs(14.5),fontFamily:'Inter-Regular',
+      fontSize: Platform.OS === 'ios' ? fs(11):fs(14.5),fontFamily:'Inter-Regular',
        color: TEXT_PRIMARY,
       fontWeight: '600',
        flexShrink: 1,  
@@ -227,7 +227,7 @@ export default function createStyles(ms, mvs, fs) {
       color: TEXT_TERTIARY,
        paddingRight: ms(4),
       fontWeight: '500',
-       fontSize: fs(12.5)
+       fontSize: Platform.OS === 'ios' ? fs(11):fs(12.5)
        ,fontFamily:'Inter-Regular',
        
     },
@@ -359,7 +359,7 @@ export default function createStyles(ms, mvs, fs) {
     },
     submitBtnText: {
       color: ON_PRIMARY,
-      fontSize: fs(15),fontFamily:'Inter-Regular',
+      fontSize:  Platform.OS === 'ios' ? fs(12):fs(15),fontFamily:'Inter-Regular',
       fontWeight: '700',
     },
     submitBtnTextDisabled: {
